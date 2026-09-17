@@ -36,7 +36,7 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.15",
+    "@biomejs/biome": "2.5.4",
     "lefthook": "2.1.6",
     "lightningcss": "1.32.0",
     "turbo": "^2.10.5"
