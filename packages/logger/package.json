@@ -22,7 +22,7 @@
 	},
 	"devDependencies": {
 		"@school-os/typescript-config": "workspace:*",
-		"@types/node": "^25.9.5",
+		"@types/node": "^26.1.1",
 		"typescript": "^6.0.3",
 		"@vitest/coverage-v8": "^4.1.6",
 		"vitest": "^4.1.6"
