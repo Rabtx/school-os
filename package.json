@@ -38,13 +38,13 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
     "lefthook": "2.1.6",
-    "lightningcss": "1.32.0",
+    "lightningcss": "1.33.0",
     "turbo": "^2.10.5"
   },
   "ignoreScripts": ["sharp", "unrs-resolver"],
   "trustedDependencies": ["sharp", "unrs-resolver"],
   "overrides": {
-    "lightningcss": "1.32.0",
+    "lightningcss": "1.33.0",
     "@expo/dom-webview": "57.0.0",
     "@expo/log-box": "57.0.0",
     "@expo/metro-runtime": "57.0.6",
