@@ -16,7 +16,7 @@
     "@openrouter/ai-sdk-provider": "^2.10.0",
     "@radix-ui/react-presence": "^1.1.5",
     "@school-os/ui": "workspace:*",
-    "ai": "^6.0.230",
+    "ai": "^7.0.37",
     "class-variance-authority": "^0.7.1",
     "flexsearch": "^0.8.212",
     "fumadocs-core": "16.11.5",
