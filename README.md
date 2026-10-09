@@ -128,7 +128,7 @@ Shared packages (`@school-os/ui`, `@school-os/logger`, TypeScript configs), Dock
 **Prerequisites:** [Bun](https://bun.sh) `1.3.13` · Git · optional Docker Compose `v2.20+` and Rust (for `apps/rust`)
 
 ```bash
-git clone https://github.com/shabirkhan-dev/school-os.git
+git clone https://github.com/rabtx/school-os.git
 cd school-os
 bun install
 bun run prepare   # install git hooks (recommended)

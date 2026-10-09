@@ -21,7 +21,7 @@ export default function HomePage() {
 					Read the docs
 				</Link>
 				<Link
-					href="https://github.com/shabirkhan-dev/school-os"
+					href="https://github.com/rabtx/school-os"
 					className="rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-fd-accent"
 				>
 					View repository

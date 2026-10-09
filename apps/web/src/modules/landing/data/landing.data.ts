@@ -16,7 +16,7 @@ export const SITE = {
 	title: "School OS — the trust engine for schools",
 	description:
 		"Mobile-first school management for networks like Aga Khan Schools — Smart Attendance and instant WhatsApp parent alerts, not another ERP.",
-	githubUrl: "https://github.com/shabirkhan-dev/school-os",
+	githubUrl: "https://github.com/rabtx/school-os",
 } as const;
 
 const DOCS_ORIGIN = (process.env.NEXT_PUBLIC_DOCS_URL ?? "http://localhost:3002/docs").replace(
