@@ -30,7 +30,7 @@ tables are missing — the migrator output should end with
 |--------------|--------|-------|
 | `/tenants/:tenantId/homework` | `homework` | Teachers see assignments for their section subjects; admins/owners see all; parents see published work for linked students |
 | `/tenants/:tenantId/assessments` | `assessments` | Same scoping pattern |
-| `/ai/academics/draft` | `ai` | Draft homework/assessment copy (teacher/admin) |
+| `/tenants/:tenantId/ai/academics/draft` | `ai` | Draft homework/assessment copy (teacher/admin) |
 
 Permissions: `homework.read`, `homework.write`, `assessments.read`, `assessments.write` (see
 `permission-codes.ts` in API and web).
