@@ -73,3 +73,51 @@ export type HomeworkReport = {
 	submissionRate: number | null;
 	gradedRate: number | null;
 };
+
+export type SchoolReportPeriod = "week" | "month" | "year";
+
+export type AttendanceCounts = {
+	present: number;
+	absent: number;
+	late: number;
+	excused: number;
+	leftEarly: number;
+	unknown: number;
+	total: number;
+};
+
+export type SchoolAttendanceFollowUp = {
+	studentId: string;
+	studentCode: string;
+	fullName: string;
+	sectionName: string | null;
+	className: string | null;
+	absences: number;
+	late: number;
+	excused: number;
+	guardianName: string | null;
+	guardianPhone: string | null;
+};
+
+/** Leadership attendance report for a week, month or school year. */
+export type SchoolAttendanceReport = {
+	period: SchoolReportPeriod;
+	from: string;
+	to: string;
+	previous: { from: string; to: string } | null;
+	schoolDays: number;
+	summary: AttendanceCounts;
+	attendanceRate: number | null;
+	previousSummary: AttendanceCounts | null;
+	previousAttendanceRate: number | null;
+	byClass: {
+		sectionId: string;
+		sectionName: string;
+		className: string | null;
+		summary: AttendanceCounts;
+		attendanceRate: number | null;
+	}[];
+	lateByWeekday: { dayOfWeek: number; count: number }[];
+	followUpRule: { absences: number; late: number };
+	followUps: SchoolAttendanceFollowUp[];
+};

@@ -47,6 +47,29 @@ function shiftIsoDate(isoDate: string, days: number): string {
 	return date.toISOString().slice(0, 10);
 }
 
+/** Last day of the month that contains a YYYY-MM-DD date. */
+function endOfMonth(isoDate: string): string {
+	const date = new Date(`${isoDate.slice(0, 7)}-01T00:00:00Z`);
+	date.setUTCMonth(date.getUTCMonth() + 1, 0);
+	return date.toISOString().slice(0, 10);
+}
+
+function daysBetween(fromDate: string, toDate: string): number {
+	return Math.round(
+		(Date.parse(`${toDate}T00:00:00Z`) - Date.parse(`${fromDate}T00:00:00Z`)) / 86_400_000,
+	);
+}
+
+/** A period's last day, cut off at today so a running week or month compares like for like. */
+function clipToToday(fromDate: string, endDate: string, today: string): string {
+	return today >= fromDate && today < endDate ? today : endDate;
+}
+
+const REPORT_FOLLOW_UP = { absences: 3, late: 4 } as const;
+const REPORT_FOLLOW_UP_LIMIT = 25;
+
+export type AttendanceReportPeriod = 'week' | 'month' | 'year';
+
 @Injectable()
 export class AttendanceService {
 	constructor(
@@ -303,6 +326,140 @@ export class AttendanceService {
 				guardianName: row.guardianName,
 			})),
 		};
+	}
+
+	/**
+	 * Leadership attendance report (Figma "Attendance report"): totals against the previous
+	 * period, rate per class, late arrivals per weekday and students over the follow-up rule.
+	 */
+	async getReport(
+		userId: string,
+		tenantId: string,
+		period: AttendanceReportPeriod,
+		date: string,
+		today: string,
+	) {
+		await this.requireLeadershipRead(userId, tenantId);
+		const range = await this.reportRange(tenantId, period, date, today);
+
+		const [dailyRows, previousRows, sectionRows, followUps] = await Promise.all([
+			this.attendance.countMarksByDateAndStatus(tenantId, range.from, range.to),
+			range.previous
+				? this.attendance.countMarksByDateAndStatus(
+						tenantId,
+						range.previous.from,
+						range.previous.to,
+					)
+				: Promise.resolve([]),
+			this.attendance.countMarksBySectionAndStatus(tenantId, range.from, range.to),
+			this.attendance.listStudentsOverThreshold(
+				tenantId,
+				range.from,
+				range.to,
+				REPORT_FOLLOW_UP,
+				REPORT_FOLLOW_UP_LIMIT,
+			),
+		]);
+
+		const summary = countMarksByStatusRows(dailyRows);
+		const previousSummary = range.previous ? countMarksByStatusRows(previousRows) : null;
+
+		const lateByWeekday = [1, 2, 3, 4, 5, 6, 7].map((dayOfWeek) => ({ dayOfWeek, count: 0 }));
+		for (const row of dailyRows) {
+			if (row.status !== 'late') continue;
+			const weekday = new Date(`${row.sessionDate}T00:00:00Z`).getUTCDay() || 7;
+			lateByWeekday[weekday - 1]!.count += row.count;
+		}
+
+		const sectionGroups = new Map<
+			string,
+			{ sectionId: string; sectionName: string; className: string | null; rows: typeof sectionRows }
+		>();
+		for (const row of sectionRows) {
+			const group = sectionGroups.get(row.sectionId) ?? {
+				sectionId: row.sectionId,
+				sectionName: row.sectionName,
+				className: row.className,
+				rows: [],
+			};
+			group.rows.push(row);
+			sectionGroups.set(row.sectionId, group);
+		}
+		const byClass = [...sectionGroups.values()]
+			.map(({ sectionId, sectionName, className, rows }) => {
+				const counts = countMarksByStatusRows(rows);
+				return {
+					sectionId,
+					sectionName,
+					className,
+					summary: counts,
+					attendanceRate: attendanceRateOf(counts),
+				};
+			})
+			.toSorted((a, b) =>
+				`${a.className ?? ''} ${a.sectionName}`.localeCompare(
+					`${b.className ?? ''} ${b.sectionName}`,
+					undefined,
+					{ numeric: true },
+				),
+			);
+
+		return {
+			period,
+			from: range.from,
+			to: range.to,
+			previous: range.previous,
+			schoolDays: new Set(dailyRows.map((row) => row.sessionDate)).size,
+			summary,
+			attendanceRate: attendanceRateOf(summary),
+			previousSummary,
+			previousAttendanceRate: previousSummary ? attendanceRateOf(previousSummary) : null,
+			byClass,
+			// Weekend columns only when the school actually marked on a weekend.
+			lateByWeekday: lateByWeekday.filter((day) => day.dayOfWeek <= 5 || day.count > 0),
+			followUpRule: REPORT_FOLLOW_UP,
+			followUps: followUps.map((row) => ({
+				studentId: row.studentId,
+				studentCode: row.studentCode,
+				fullName: `${row.firstName} ${row.lastName}`,
+				sectionName: row.sectionName,
+				className: row.className,
+				absences: row.absences,
+				late: row.late,
+				excused: row.excused,
+				guardianName: row.guardianName,
+				guardianPhone: row.guardianPhone,
+			})),
+		};
+	}
+
+	private async reportRange(
+		tenantId: string,
+		period: AttendanceReportPeriod,
+		date: string,
+		today: string,
+	): Promise<{ from: string; to: string; previous: { from: string; to: string } | null }> {
+		if (period === 'week') {
+			const from = mondayOf(date);
+			const to = clipToToday(from, shiftIsoDate(from, 6), today);
+			return { from, to, previous: { from: shiftIsoDate(from, -7), to: shiftIsoDate(to, -7) } };
+		}
+		if (period === 'month') {
+			const from = `${date.slice(0, 7)}-01`;
+			const to = clipToToday(from, endOfMonth(from), today);
+			const previousFrom = `${shiftIsoDate(from, -1).slice(0, 7)}-01`;
+			const previousEnd = endOfMonth(previousFrom);
+			const previousTo = shiftIsoDate(previousFrom, daysBetween(from, to));
+			return {
+				from,
+				to,
+				previous: { from: previousFrom, to: previousTo < previousEnd ? previousTo : previousEnd },
+			};
+		}
+		const year = await this.attendance.findActiveAcademicYear(tenantId);
+		const from = year?.startsOn ?? `${date.slice(0, 4)}-01-01`;
+		const end = year?.endsOn ?? `${date.slice(0, 4)}-12-31`;
+		return { from, to: clipToToday(from, end, today), previous: null };
 	}
 
 	async getSchoolDayPulse(userId: string, tenantId: string, sessionDate: string) {

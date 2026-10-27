@@ -49,6 +49,9 @@ describe('AttendanceService', () => {
 		countMarksByDateAndStatus: ReturnType<typeof vi.fn>;
 		countStudentsByEventSource: ReturnType<typeof vi.fn>;
 		listCheckInsForDate: ReturnType<typeof vi.fn>;
+		countMarksBySectionAndStatus: ReturnType<typeof vi.fn>;
+		listStudentsOverThreshold: ReturnType<typeof vi.fn>;
+		findActiveAcademicYear: ReturnType<typeof vi.fn>;
 	};
 	let academicRepository: {
 		findSectionById: ReturnType<typeof vi.fn>;
@@ -78,6 +81,9 @@ describe('AttendanceService', () => {
 			countMarksByDateAndStatus: vi.fn().mockResolvedValue([]),
 			countStudentsByEventSource: vi.fn().mockResolvedValue([]),
 			listCheckInsForDate: vi.fn().mockResolvedValue([]),
+			countMarksBySectionAndStatus: vi.fn().mockResolvedValue([]),
+			listStudentsOverThreshold: vi.fn().mockResolvedValue([]),
+			findActiveAcademicYear: vi.fn().mockResolvedValue(null),
 		};
 		academicRepository = {
 			findSectionById: vi.fn(),
@@ -324,6 +330,110 @@ describe('AttendanceService', () => {
 			await expect(service.getOverview('user-1', 'tenant-1', '2026-10-08')).rejects.toBeInstanceOf(
 				ForbiddenException,
 			);
+		});
+	});
+	describe('getReport', () => {
+		const principal = {
+			id: 'principal-membership-1',
+			tenantId: 'tenant-1',
+			userId: 'user-1',
+			role: 'principal',
+			status: 'active',
+		};
+
+		it('reports the running month against the same span of the previous month', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue(principal);
+			attendanceRepository.countMarksByDateAndStatus
+				.mockResolvedValueOnce([
+					{ sessionDate: '2026-10-05', status: 'present', count: 8 },
+					{ sessionDate: '2026-10-05', status: 'late', count: 1 },
+					{ sessionDate: '2026-10-06', status: 'absent', count: 1 },
+					{ sessionDate: '2026-10-06', status: 'late', count: 2 },
+				])
+				.mockResolvedValueOnce([{ sessionDate: '2026-09-07', status: 'present', count: 4 }]);
+			attendanceRepository.countMarksBySectionAndStatus.mockResolvedValue([
+				{ sectionId: 's-b', sectionName: '7-B', className: 'Grade 7', status: 'present', count: 3 },
+				{ sectionId: 's-a', sectionName: '7-A', className: 'Grade 7', status: 'present', count: 5 },
+				{ sectionId: 's-b', sectionName: '7-B', className: 'Grade 7', status: 'absent', count: 1 },
+			]);
+
+			const result = await service.getReport(
+				'user-1',
+				'tenant-1',
+				'month',
+				'2026-10-08',
+				'2026-10-08',
+			);
+
+			expect(result.from).toBe('2026-10-01');
+			expect(result.to).toBe('2026-10-08');
+			expect(result.previous).toEqual({ from: '2026-09-01', to: '2026-09-08' });
+			expect(result.schoolDays).toBe(2);
+			expect(result.summary.late).toBe(3);
+			expect(result.previousAttendanceRate).toBe(100);
+			expect(result.byClass.map((row) => [row.sectionName, row.attendanceRate])).toEqual([
+				['7-A', 100],
+				['7-B', 75],
+			]);
+			expect(result.lateByWeekday).toEqual([
+				{ dayOfWeek: 1, count: 1 },
+				{ dayOfWeek: 2, count: 2 },
+				{ dayOfWeek: 3, count: 0 },
+				{ dayOfWeek: 4, count: 0 },
+				{ dayOfWeek: 5, count: 0 },
+			]);
+			expect(attendanceRepository.listStudentsOverThreshold).toHaveBeenCalledWith(
+				'tenant-1',
+				'2026-10-01',
+				'2026-10-08',
+				{ absences: 3, late: 4 },
+				25,
+			);
+		});
+
+		it('caps the previous span at the end of a shorter month', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue(principal);
+
+			const result = await service.getReport(
+				'user-1',
+				'tenant-1',
+				'month',
+				'2026-03-31',
+				'2026-04-15',
+			);
+
+			expect(result.to).toBe('2026-03-31');
+			expect(result.previous).toEqual({ from: '2026-02-01', to: '2026-02-28' });
+		});
+
+		it('uses the active academic year with no comparison for the year period', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue(principal);
+			attendanceRepository.findActiveAcademicYear.mockResolvedValue({
+				startsOn: '2026-08-15',
+				endsOn: '2027-06-15',
+			});
+
+			const result = await service.getReport(
+				'user-1',
+				'tenant-1',
+				'year',
+				'2026-10-08',
+				'2026-10-08',
+			);
+
+			expect(result).toMatchObject({ from: '2026-08-15', to: '2026-10-08', previous: null });
+			expect(result.previousSummary).toBeNull();
+		});
+
+		it('is limited to leadership roles', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue({
+				...principal,
+				role: 'teacher',
+			});
+
+			await expect(
+				service.getReport('user-1', 'tenant-1', 'week', '2026-10-08', '2026-10-08'),
+			).rejects.toBeInstanceOf(ForbiddenException);
 		});
 	});
 });

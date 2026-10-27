@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { and, between, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, between, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
 import {
 	type AttendanceMarkRecord,
 	type AttendanceSessionRecord,
+	academicYears,
 	attendanceEvents,
 	attendanceMarks,
 	attendanceSessions,
@@ -339,5 +340,104 @@ export class AttendanceRepository {
 			)
 			.orderBy(sql`${attendanceMarks.markedAt} desc nulls last`)
 			.limit(limit);
+	}
+	/** Mark counts per section and status over a date range, for the attendance report. */
+	async countMarksBySectionAndStatus(tenantId: string, fromDate: string, toDate: string) {
+		return this.database.db
+			.select({
+				sectionId: sections.id,
+				sectionName: sections.name,
+				className: classes.name,
+				status: attendanceMarks.status,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(attendanceMarks)
+			.innerJoin(attendanceSessions, eq(attendanceSessions.id, attendanceMarks.sessionId))
+			.innerJoin(sections, eq(sections.id, attendanceSessions.sectionId))
+			.leftJoin(classes, eq(classes.id, sections.classId))
+			.where(
+				and(
+					eq(attendanceMarks.tenantId, tenantId),
+					between(attendanceSessions.sessionDate, fromDate, toDate),
+				),
+			)
+			.groupBy(sections.id, sections.name, classes.name, attendanceMarks.status);
+	}
+
+	/**
+	 * Students at or over an absence or late threshold in the range, worst first, with their
+	 * latest class and primary guardian.
+	 */
+	async listStudentsOverThreshold(
+		tenantId: string,
+		fromDate: string,
+		toDate: string,
+		thresholds: { absences: number; late: number },
+		limit: number,
+	) {
+		const absences = sql<number>`count(*) filter (where ${attendanceMarks.status} = 'absent')::int`;
+		const late = sql<number>`count(*) filter (where ${attendanceMarks.status} = 'late')::int`;
+		const excused = sql<number>`count(*) filter (where ${attendanceMarks.status} = 'excused')::int`;
+		const sectionName = sql<
+			string | null
+		>`(array_agg(${sections.name} order by ${attendanceSessions.sessionDate} desc))[1]`;
+		const className = sql<
+			string | null
+		>`(array_agg(${classes.name} order by ${attendanceSessions.sessionDate} desc))[1]`;
+		const guardian = (column: 'name' | 'phone') => sql<string | null>`(
+			select ${column === 'name' ? sql`${guardians.firstName} || ' ' || ${guardians.lastName}` : guardians.phone}
+			from ${studentGuardians}
+			join ${guardians} on ${guardians.id} = ${studentGuardians.guardianId}
+			where ${studentGuardians.studentId} = ${students.id}
+				and ${studentGuardians.tenantId} = ${tenantId}
+			order by ${studentGuardians.isPrimary} desc
+			limit 1
+		)`;
+		return this.database.db
+			.select({
+				studentId: students.id,
+				studentCode: students.studentCode,
+				firstName: students.firstName,
+				lastName: students.lastName,
+				absences,
+				late,
+				excused,
+				sectionName,
+				className,
+				guardianName: guardian('name'),
+				guardianPhone: guardian('phone'),
+			})
+			.from(attendanceMarks)
+			.innerJoin(attendanceSessions, eq(attendanceSessions.id, attendanceMarks.sessionId))
+			.innerJoin(students, eq(students.id, attendanceMarks.studentId))
+			.leftJoin(sections, eq(sections.id, attendanceSessions.sectionId))
+			.leftJoin(classes, eq(classes.id, sections.classId))
+			.where(
+				and(
+					eq(attendanceMarks.tenantId, tenantId),
+					between(attendanceSessions.sessionDate, fromDate, toDate),
+					isNull(students.deletedAt),
+				),
+			)
+			.groupBy(students.id)
+			.having(sql`${absences} >= ${thresholds.absences} or ${late} >= ${thresholds.late}`)
+			.orderBy(sql`${absences} desc`, sql`${late} desc`, students.lastName)
+			.limit(limit);
+	}
+
+	/** The tenant's active academic year, if one is set. */
+	async findActiveAcademicYear(tenantId: string) {
+		const [row] = await this.database.db
+			.select({ startsOn: academicYears.startsOn, endsOn: academicYears.endsOn })
+			.from(academicYears)
+			.where(
+				and(
+					eq(academicYears.tenantId, tenantId),
+					eq(academicYears.status, 'active'),
+					isNull(academicYears.deletedAt),
+				),
+			)
+			.limit(1);
+		return row ?? null;
 	}
 }

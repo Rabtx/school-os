@@ -19,6 +19,8 @@ import { PermissionsGuard } from '@/modules/authorization/permissions.guard';
 import { RequirePermissions } from '@/modules/authorization/require-permissions.decorator';
 import { TenantGuard } from '@/modules/tenants/tenant.guard';
 import {
+	type AttendanceReportQuery,
+	attendanceReportQuerySchema,
 	ConfirmAllPresentDto,
 	CreateAttendanceSessionDto,
 	type FindSessionQuery,
@@ -107,6 +109,20 @@ export class AttendanceController {
 	) {
 		const date = query.sessionDate ?? new Date().toISOString().slice(0, 10);
 		return this.attendance.getOverview(user.sub, tenantId, date);
+	}
+
+	@Get('report')
+	@RequirePermissions(PermissionCodes.ATTENDANCE_READ)
+	@ApiOperation({
+		summary: 'Leadership attendance report for a week, month or school year',
+	})
+	getReport(
+		@CurrentUser() user: AccessTokenPayload,
+		@Param('tenantId', new ParseUUIDPipe({ version: '4' })) tenantId: string,
+		@Query(new ZodValidationPipe(attendanceReportQuerySchema)) query: AttendanceReportQuery,
+	) {
+		const today = new Date().toISOString().slice(0, 10);
+		return this.attendance.getReport(user.sub, tenantId, query.period, query.date ?? today, today);
 	}
 
 	@Get('school-pulse')
