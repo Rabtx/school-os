@@ -29,3 +29,21 @@ export function useMyWeekTimetableQuery(tenantId: string | null, date: string, e
 		},
 	});
 }
+
+export function useSectionWeekTimetableQuery(
+	tenantId: string | null,
+	sectionId: string | null,
+	date: string,
+	enabled = true,
+) {
+	const { token } = useAuth();
+
+	return useQuery({
+		queryKey: ["timetable", "section", "week", tenantId, sectionId, date],
+		enabled: enabled && Boolean(token && tenantId && sectionId),
+		queryFn: () => {
+			if (!token || !tenantId || !sectionId) throw new Error("Auth required");
+			return timetableService.getSectionWeek(token, tenantId, sectionId, date);
+		},
+	});
+}

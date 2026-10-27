@@ -1,8 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, count, eq } from 'drizzle-orm';
+import { and, asc, count, eq, sql } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
-import { classes, sections, subjects, timetableEntries, timetablePeriods } from '@/database/schema';
+import {
+	classes,
+	memberships,
+	sections,
+	subjects,
+	timetableEntries,
+	timetablePeriods,
+	userProfiles,
+	users,
+} from '@/database/schema';
 
 @Injectable()
 export class TimetableRepository {
@@ -38,6 +47,37 @@ export class TimetableRepository {
 				),
 			)
 			.orderBy(asc(timetablePeriods.sortOrder));
+	}
+
+	/** Every entry for one section across the week, with subject and teacher display name. */
+	async listSectionEntries(tenantId: string, sectionId: string) {
+		return this.database.db
+			.select({
+				entry: timetableEntries,
+				subject: subjects,
+				teacherName: sql<string | null>`(
+					select coalesce(nullif(${userProfiles.displayName}, ''), ${users.username})
+					from ${memberships}
+					join ${users} on ${users.id} = ${memberships.userId}
+					left join ${userProfiles} on ${userProfiles.userId} = ${users.id}
+					where ${memberships.id} = ${timetableEntries.teacherMembershipId}
+				)`,
+			})
+			.from(timetableEntries)
+			.leftJoin(subjects, eq(timetableEntries.subjectId, subjects.id))
+			.where(
+				and(eq(timetableEntries.tenantId, tenantId), eq(timetableEntries.sectionId, sectionId)),
+			);
+	}
+
+	async findSection(tenantId: string, sectionId: string) {
+		const [row] = await this.database.db
+			.select({ section: sections, className: classes.name })
+			.from(sections)
+			.innerJoin(classes, eq(sections.classId, classes.id))
+			.where(and(eq(sections.tenantId, tenantId), eq(sections.id, sectionId)))
+			.limit(1);
+		return row ?? null;
 	}
 
 	async countEntries(tenantId: string): Promise<number> {
