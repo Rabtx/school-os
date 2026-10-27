@@ -3,13 +3,13 @@
 import { Edit02Icon, UserMultiple02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
-import { Badge } from "@school-os/ui/components/badge";
 import { Button } from "@school-os/ui/components/button";
 import { Field, FieldGroup, FieldLabel } from "@school-os/ui/components/field";
 import { Input } from "@school-os/ui/components/input";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { useCallback, useMemo, useState } from "react";
 import { AdminPageShell, FormDrawer } from "@/components/admin";
+import { InitialsAvatar } from "@/components/initials-avatar";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -115,6 +115,13 @@ function GuardianFormFields({
 	);
 }
 
+const channelLabels: Record<Guardian["preferredChannel"], string> = {
+	email: "Email",
+	phone: "Phone",
+	whatsapp: "WhatsApp",
+	sms: "SMS",
+};
+
 export function GuardiansPage() {
 	const { activeTenant } = useTenantContext();
 	const { can, isLoading: permissionsLoading } = usePermissions();
@@ -161,7 +168,12 @@ export function GuardiansPage() {
 				header: "Name",
 				sortable: true,
 				sortValue: (row) => row.fullName,
-				renderCell: (guardian) => <span className="font-medium">{guardian.fullName}</span>,
+				renderCell: (guardian) => (
+					<span className="flex items-center gap-2.5">
+						<InitialsAvatar name={guardian.fullName} />
+						<span className="font-medium">{guardian.fullName}</span>
+					</span>
+				),
 			},
 			{
 				id: "phone",
@@ -182,13 +194,24 @@ export function GuardiansPage() {
 				),
 			},
 			{
+				id: "channel",
+				header: "Channel",
+				sortable: true,
+				sortValue: (row) => row.preferredChannel,
+				renderCell: (guardian) => (
+					<span className="text-dashboard-text-secondary">
+						{channelLabels[guardian.preferredChannel]}
+					</span>
+				),
+			},
+			{
 				id: "portal",
 				header: "Portal",
 				renderCell: (guardian) =>
 					guardian.membershipId ? (
-						<Badge variant="outline">Linked account</Badge>
+						<span className="text-[var(--rx-success)]">Linked account</span>
 					) : (
-						<span className="text-dashboard-text-muted">Contact only</span>
+						<span className="text-dashboard-text-dim">Contact only</span>
 					),
 			},
 			{

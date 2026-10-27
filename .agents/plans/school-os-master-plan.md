@@ -42,7 +42,7 @@ its `depends_on` cards are done. Status lives in the card's folder (`open/`, `do
 
 | # | Card | Phase | Priority | Depends on |
 | --- | --- | --- | --- | --- |
-| 1 | `web-reskin-shell-lists`: shell, dashboard, list pages | 3 | high | (PR #103) |
+| 1 | `web-reskin-shell-lists`: shell, dashboard, list pages (done, PR #103) | 3 | high | |
 | 2 | `web-reskin-detail-screens`: profile, guardians, roll call, homework, gradebook, timetable, reports, settings | 3 | high | 1 |
 | 3 | `auth-session-hardening`: tokens, CSRF, sign-in findings | 2 follow-up | high | |
 | 4 | `web-states-and-command-search`: shared states, ⌘K, menus | 3 | normal | 1 |

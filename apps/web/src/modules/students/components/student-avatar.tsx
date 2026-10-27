@@ -11,9 +11,9 @@ type Props = {
 };
 
 const sizeClasses = {
-	sm: "size-8 text-[11px] rounded-lg",
-	md: "size-12 text-[13px] rounded-xl",
-	lg: "size-20 text-[22px] rounded-2xl",
+	sm: "size-7 text-[11px] rounded-full",
+	md: "size-12 text-[13px] rounded-full",
+	lg: "size-20 text-[22px] rounded-full",
 };
 
 export function StudentAvatar({ student, size = "md", className }: Props) {
@@ -23,11 +23,7 @@ export function StudentAvatar({ student, size = "md", className }: Props) {
 			<img
 				src={student.photoUrl}
 				alt=""
-				className={cn(
-					"inline-flex shrink-0 object-cover ring-1 ring-border",
-					sizeClasses[size],
-					className,
-				)}
+				className={cn("inline-flex shrink-0 object-cover", sizeClasses[size], className)}
 			/>
 		);
 	}
@@ -36,7 +32,7 @@ export function StudentAvatar({ student, size = "md", className }: Props) {
 		<span
 			aria-hidden
 			className={cn(
-				"inline-flex shrink-0 items-center justify-center bg-muted font-semibold text-foreground ring-1 ring-border",
+				"inline-flex shrink-0 items-center justify-center bg-[color-mix(in_oklab,var(--rx-accent)_22%,transparent)] font-medium text-[var(--rx-accent)]",
 				sizeClasses[size],
 				className,
 			)}
