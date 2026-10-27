@@ -68,6 +68,17 @@ export const sessionDateQuerySchema = z
 	})
 	.strict();
 
+export const attendanceReportQuerySchema = z
+	.object({
+		period: z.enum(['week', 'month', 'year']).default('month'),
+		date: z
+			.string()
+			.trim()
+			.regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD')
+			.optional(),
+	})
+	.strict();
+
 export const findSessionQuerySchema = z
 	.object({
 		sectionId: z.string().uuid(),
@@ -83,4 +94,5 @@ export type MarkAttendanceInput = z.infer<typeof markAttendanceSchema>;
 export type ConfirmAllPresentInput = z.infer<typeof confirmAllPresentSchema>;
 export type StudentHistoryQuery = z.infer<typeof studentHistoryQuerySchema>;
 export type SessionDateQuery = z.infer<typeof sessionDateQuerySchema>;
+export type AttendanceReportQuery = z.infer<typeof attendanceReportQuerySchema>;
 export type FindSessionQuery = z.infer<typeof findSessionQuerySchema>;

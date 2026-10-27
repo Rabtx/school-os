@@ -5,7 +5,7 @@ import { requireToken } from "@/lib/api/require-token";
 import { useAuth } from "@/modules/auth/context/auth-context";
 import { reportsQueryKeys } from "../queries/reports-query-keys";
 import { reportsService } from "../services/reports.service";
-import type { ReportTerm } from "../types/reports.types";
+import type { ReportTerm, SchoolReportPeriod } from "../types/reports.types";
 
 export function useReportOverviewQuery(
 	tenantId: string | null,
@@ -73,5 +73,22 @@ export function useHomeworkReportQuery(
 			return reportsService.homework(requireToken(token), tenantId, params);
 		},
 		enabled: enabled && Boolean(token && tenantId && params?.sectionId),
+	});
+}
+
+export function useSchoolAttendanceReportQuery(
+	tenantId: string | null,
+	period: SchoolReportPeriod,
+	date: string,
+	enabled = true,
+) {
+	const { token } = useAuth();
+	return useQuery({
+		queryKey: reportsQueryKeys.schoolAttendance(tenantId ?? "", period, date),
+		queryFn: () => {
+			if (!tenantId) throw new Error("Tenant required");
+			return reportsService.schoolAttendance(requireToken(token), tenantId, { period, date });
+		},
+		enabled: enabled && Boolean(token && tenantId),
 	});
 }

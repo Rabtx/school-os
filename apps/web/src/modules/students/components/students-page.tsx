@@ -206,6 +206,12 @@ export function StudentsPage() {
 		setManageOpen(true);
 	}, []);
 
+	// `?student=<id>` opens that student's profile, for links from reports and alerts.
+	const linkedStudentId = searchParams.get("student");
+	useEffect(() => {
+		if (linkedStudentId) openManage(linkedStudentId);
+	}, [linkedStudentId, openManage]);
+
 	const studentColumns = useMemo(
 		(): DataTableColumn<Student>[] => [
 			{

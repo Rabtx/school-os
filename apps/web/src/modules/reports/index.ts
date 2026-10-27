@@ -1,3 +1,4 @@
+export { AttendanceReportPage } from "./components/attendance-report-page";
 export { ReportsPage } from "./components/reports-page";
 export {
 	useAttendanceReportQuery,
