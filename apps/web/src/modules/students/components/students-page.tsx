@@ -5,20 +5,10 @@ import {
 	MoreHorizontalIcon,
 	StudentIcon,
 	TableIcon,
-	UserAdd01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
 import { Button } from "@school-os/ui/components/button";
-import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerDescription,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerTitle,
-} from "@school-os/ui/components/drawer";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -58,7 +48,7 @@ import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/ten
 import { formatStudentGender, studentStatusTone } from "../utils/student-ui.utils";
 import { AdmitStudentWizard } from "./admit-student-wizard";
 import { StudentAvatar } from "./student-avatar";
-import { StudentIdCard } from "./student-id-card";
+import { StudentProfilePanel } from "./student-profile-panel";
 import { StudentRosterCards } from "./student-roster-cards";
 
 type RosterView = "table" | "cards";
@@ -111,6 +101,7 @@ export function StudentsPage() {
 	const [linkNewLastName, setLinkNewLastName] = useState("");
 	const [linkNewPhone, setLinkNewPhone] = useState("");
 	const [useNewGuardian, setUseNewGuardian] = useState(false);
+	const [linkFormOpen, setLinkFormOpen] = useState(false);
 
 	const activeYearId = useMemo(() => {
 		const activeYear = yearsQuery.data?.find((year) => year.status === "active");
@@ -175,6 +166,7 @@ export function StudentsPage() {
 		setLinkNewLastName("");
 		setLinkNewPhone("");
 		setUseNewGuardian(false);
+		setLinkFormOpen(false);
 		setManageOpen(true);
 	}, []);
 
@@ -324,11 +316,6 @@ export function StudentsPage() {
 	});
 
 	const manageStudentQuery = useStudentQuery(
-		tenantId,
-		manageStudentId || null,
-		Boolean(manageOpen && manageStudentId),
-	);
-	const manageEnrollmentsQuery = useStudentEnrollmentsQuery(
 		tenantId,
 		manageStudentId || null,
 		Boolean(manageOpen && manageStudentId),
@@ -640,207 +627,117 @@ export function StudentsPage() {
 				</FieldGroup>
 			</FormDrawer>
 
-			<Drawer open={manageOpen} onOpenChange={setManageOpen} direction="right">
-				<DrawerContent className="h-full max-h-none data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-lg">
-					<DrawerHeader className="border-border border-b text-start">
-						<DrawerTitle>Student profile</DrawerTitle>
-						<DrawerDescription>
-							ID card, admission details, guardians, and enrollments.
-						</DrawerDescription>
-					</DrawerHeader>
-					<div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-						{manageStudentQuery.isLoading || !manageStudentQuery.data ? (
-							<div className="flex justify-center py-10">
-								<Spinner className="size-6" />
-							</div>
-						) : (
-							<div className="space-y-6">
-								<StudentIdCard
-									student={manageStudentQuery.data.student}
-									schoolName={activeTenant?.name ?? "School"}
-									tenantId={tenantId}
-									sectionLabel={sectionLabelByStudentId.get(manageStudentQuery.data.student.id)}
-									academicYearLabel={activeYearLabel}
-									className="mx-auto"
-								/>
-
-								<dl className="grid gap-3 sm:grid-cols-2 text-sm">
-									<div>
-										<dt className="text-muted-foreground text-xs uppercase">Email</dt>
-										<dd>{manageStudentQuery.data.student.email ?? "—"}</dd>
-									</div>
-									<div>
-										<dt className="text-muted-foreground text-xs uppercase">Phone</dt>
-										<dd>{manageStudentQuery.data.student.phone ?? "—"}</dd>
-									</div>
-									<div>
-										<dt className="text-muted-foreground text-xs uppercase">Address</dt>
-										<dd>
-											{[
-												manageStudentQuery.data.student.addressLine1,
-												manageStudentQuery.data.student.city,
-											]
-												.filter(Boolean)
-												.join(", ") || "—"}
-										</dd>
-									</div>
-									<div>
-										<dt className="text-muted-foreground text-xs uppercase">Previous school</dt>
-										<dd>{manageStudentQuery.data.student.previousSchool ?? "—"}</dd>
-									</div>
-								</dl>
-
-								<div>
-									<p className="mb-2 font-medium text-sm">Enrollments</p>
-									{manageEnrollmentsQuery.data?.length ? (
-										<ul className="space-y-1 text-muted-foreground text-sm">
-											{manageEnrollmentsQuery.data.map((enrollment) => (
-												<li key={enrollment.id}>
-													{sectionLabelById.get(enrollment.sectionId) ?? enrollment.sectionId} ·{" "}
-													{enrollment.status}
-												</li>
-											))}
-										</ul>
-									) : (
-										<p className="text-muted-foreground text-sm">
-											Not enrolled in any section yet.
-										</p>
-									)}
-									{canWrite ? (
-										<Button
-											type="button"
-											size="sm"
-											variant="outline"
-											className="mt-3"
-											onClick={() => {
-												setManageOpen(false);
-												openEnroll(manageStudentId);
-											}}
-										>
-											<HugeiconsIcon
-												icon={UserAdd01Icon}
-												data-icon="inline-start"
-												strokeWidth={2}
-											/>
-											Enroll in section
-										</Button>
-									) : null}
-								</div>
-
-								<div>
-									<p className="mb-2 font-medium text-sm">Guardians</p>
-									{manageStudentQuery.data.guardians.length === 0 ? (
-										<p className="text-muted-foreground text-sm">No guardians linked yet.</p>
-									) : (
-										<ul className="space-y-2">
-											{manageStudentQuery.data.guardians.map((link) => (
-												<li
-													key={link.id}
-													className="rounded-lg border border-border px-3 py-2 text-sm"
-												>
-													<p className="font-medium">{link.guardian.fullName}</p>
-													<p className="text-muted-foreground text-xs">
-														{link.relationship}
-														{link.isPrimary ? " · Primary" : ""}
-														{link.guardian.phone ? ` · ${link.guardian.phone}` : ""}
-													</p>
-												</li>
-											))}
-										</ul>
-									)}
-								</div>
-
-								{canWriteGuardians ? (
-									<form
-										className="rounded-lg border border-border p-3"
-										onSubmit={(event) => {
-											event.preventDefault();
-											void handleLinkGuardian();
-										}}
-									>
-										<p className="mb-3 font-medium text-sm">Link guardian</p>
-										<FieldGroup className="gap-3">
-											<Field>
-												<FieldLabel>Source</FieldLabel>
-												<SelectField
-													value={useNewGuardian ? "new" : "existing"}
-													onValueChange={(value) => setUseNewGuardian(value === "new")}
-													items={[
-														{ label: "Existing guardian", value: "existing" },
-														{ label: "New guardian", value: "new" },
-													]}
-												/>
-											</Field>
-											{useNewGuardian ? (
-												<>
-													<Field>
-														<FieldLabel>First name</FieldLabel>
-														<Input
-															value={linkNewFirstName}
-															onChange={(event) => setLinkNewFirstName(event.target.value)}
-															required
-														/>
-													</Field>
-													<Field>
-														<FieldLabel>Last name</FieldLabel>
-														<Input
-															value={linkNewLastName}
-															onChange={(event) => setLinkNewLastName(event.target.value)}
-															required
-														/>
-													</Field>
-													<Field>
-														<FieldLabel>Phone</FieldLabel>
-														<Input
-															value={linkNewPhone}
-															onChange={(event) => setLinkNewPhone(event.target.value)}
-														/>
-													</Field>
-												</>
-											) : (
-												<Field>
-													<FieldLabel>Guardian</FieldLabel>
-													<SelectField
-														value={linkGuardianId}
-														onValueChange={setLinkGuardianId}
-														placeholder="Select guardian"
-														items={guardianItems}
-													/>
-												</Field>
-											)}
-											<Field>
-												<FieldLabel>Relationship</FieldLabel>
-												<SelectField
-													value={linkRelationship}
-													onValueChange={setLinkRelationship}
-													items={[
-														{ label: "Father", value: "father" },
-														{ label: "Mother", value: "mother" },
-														{ label: "Guardian", value: "guardian" },
-														{ label: "Step parent", value: "step_parent" },
-														{ label: "Grandparent", value: "grandparent" },
-														{ label: "Other", value: "other" },
-													]}
-												/>
-											</Field>
-											<Button type="submit" size="sm" disabled={linkGuardian.isPending}>
-												{linkGuardian.isPending ? "Linking…" : "Link guardian"}
-											</Button>
-										</FieldGroup>
-									</form>
-								) : null}
-							</div>
-						)}
-					</div>
-					<DrawerFooter className="border-border border-t">
-						<DrawerClose asChild>
-							<Button type="button" variant="outline">
-								Close
+			{manageStudentId ? (
+				<StudentProfilePanel
+					open={manageOpen}
+					onOpenChange={setManageOpen}
+					tenantId={tenantId}
+					studentId={manageStudentId}
+					schoolName={activeTenant?.name ?? "School"}
+					academicYearLabel={activeYearLabel}
+					sectionLabel={(sectionId) => sectionLabelById.get(sectionId)}
+					currentSectionLabel={sectionLabelByStudentId.get(manageStudentId)}
+					onEnroll={
+						canWrite
+							? () => {
+									setManageOpen(false);
+									openEnroll(manageStudentId);
+								}
+							: undefined
+					}
+					guardianActions={
+						!canWriteGuardians ? null : !linkFormOpen ? (
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								className="h-7 rounded-full"
+								onClick={() => setLinkFormOpen(true)}
+							>
+								Link guardian
 							</Button>
-						</DrawerClose>
-					</DrawerFooter>
-				</DrawerContent>
-			</Drawer>
+						) : (
+							<form
+								className="rounded-[8px] border border-dashboard-border p-3"
+								onSubmit={(event) => {
+									event.preventDefault();
+									void handleLinkGuardian();
+								}}
+							>
+								<p className="mb-3 font-medium text-dashboard-text-primary">Link guardian</p>
+								<FieldGroup className="gap-3">
+									<Field>
+										<FieldLabel>Source</FieldLabel>
+										<SelectField
+											value={useNewGuardian ? "new" : "existing"}
+											onValueChange={(value) => setUseNewGuardian(value === "new")}
+											items={[
+												{ label: "Existing guardian", value: "existing" },
+												{ label: "New guardian", value: "new" },
+											]}
+										/>
+									</Field>
+									{useNewGuardian ? (
+										<>
+											<Field>
+												<FieldLabel>First name</FieldLabel>
+												<Input
+													value={linkNewFirstName}
+													onChange={(event) => setLinkNewFirstName(event.target.value)}
+													required
+												/>
+											</Field>
+											<Field>
+												<FieldLabel>Last name</FieldLabel>
+												<Input
+													value={linkNewLastName}
+													onChange={(event) => setLinkNewLastName(event.target.value)}
+													required
+												/>
+											</Field>
+											<Field>
+												<FieldLabel>Phone</FieldLabel>
+												<Input
+													value={linkNewPhone}
+													onChange={(event) => setLinkNewPhone(event.target.value)}
+												/>
+											</Field>
+										</>
+									) : (
+										<Field>
+											<FieldLabel>Guardian</FieldLabel>
+											<SelectField
+												value={linkGuardianId}
+												onValueChange={setLinkGuardianId}
+												placeholder="Select guardian"
+												items={guardianItems}
+											/>
+										</Field>
+									)}
+									<Field>
+										<FieldLabel>Relationship</FieldLabel>
+										<SelectField
+											value={linkRelationship}
+											onValueChange={setLinkRelationship}
+											items={[
+												{ label: "Father", value: "father" },
+												{ label: "Mother", value: "mother" },
+												{ label: "Guardian", value: "guardian" },
+												{ label: "Step parent", value: "step_parent" },
+												{ label: "Grandparent", value: "grandparent" },
+												{ label: "Other", value: "other" },
+											]}
+										/>
+									</Field>
+									<Button type="submit" size="sm" disabled={linkGuardian.isPending}>
+										{linkGuardian.isPending ? "Linking…" : "Link guardian"}
+									</Button>
+								</FieldGroup>
+							</form>
+						)
+					}
+				/>
+			) : null}
 		</AdminPageShell>
 	);
 }

@@ -5,7 +5,7 @@ type: feature
 from: pm
 to: web
 priority: high
-status: doing
+status: done
 assignee: claude
 reviewer: none
 parent: none
@@ -50,5 +50,5 @@ Restyle only; keep data, navigation, permissions and i18n unchanged.
 
 ## Resolution
 
-PR #103 (open, CI running). Move to `done/` when merged.
+Merged in PR #103 (fcdf5ef). Shell, dashboard, page shell and data tables match the Figma frames; per-student columns moved to `str-students-list-enrichment`.
 

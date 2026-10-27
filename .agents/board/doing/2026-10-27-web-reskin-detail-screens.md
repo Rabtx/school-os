@@ -5,12 +5,12 @@ type: feature
 from: pm
 to: web
 priority: high
-status: open
-assignee: none
+status: doing
+assignee: claude
 reviewer: none
 parent: none
 depends_on: ["str-web-reskin-shell-lists"]
-branch: none
+branch: ccr-bf0f9944-6h1l31
 worktree: none
 scope: ["apps/web/src/modules/students/**", "apps/web/src/modules/guardians/**", "apps/web/src/modules/attendance/**", "apps/web/src/modules/homework/**", "apps/web/src/modules/gradebook/**", "apps/web/src/modules/timetable/**", "apps/web/src/modules/reports/**"]
 allowed_shared: []
@@ -28,7 +28,7 @@ Phase 3 step 2 of `.agents/plans/school-os-master-plan.md`. Figma (Principal pag
 
 ## Proposal or Ask
 
-One PR per two or three screens. Student profile replaces the side drawer with a full page. Reuse the shell, table and stat card from `str-web-reskin-shell-lists`.
+One PR per two or three screens. The student profile is a 440px side panel over the list (Figma `77:60454`), with "Open full profile" for later. Reuse the shell, table and stat card from `str-web-reskin-shell-lists`.
 
 ## Scope
 
