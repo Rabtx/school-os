@@ -204,6 +204,13 @@
 			"when": 1787400647371,
 			"tag": "0028_navigation_timetable_leadership",
 			"breakpoints": true
+		},
+		{
+			"idx": 31,
+			"version": "7",
+			"when": 1787410000000,
+			"tag": "0029_navigation_settings",
+			"breakpoints": true
 		}
 	]
 }

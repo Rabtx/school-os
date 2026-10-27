@@ -19,9 +19,6 @@ type Props = {
 };
 
 function crumbsForPath(pathname: string, root: string): Crumb[] {
-	if (pathname.startsWith("/admin/members")) {
-		return [{ label: root, href: "/admin" }, { label: "Members" }];
-	}
 	if (pathname.startsWith("/admin/account/profile")) {
 		return [
 			{ label: root, href: "/admin" },

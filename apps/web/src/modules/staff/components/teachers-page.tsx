@@ -272,7 +272,7 @@ export function TeachersPage() {
 						active: rosterView === "cards",
 					},
 					...(can(PermissionCodes.TENANT_MEMBERSHIP_READ)
-						? [{ label: "Members", href: "/admin/members" }]
+						? [{ label: "Members", href: "/admin/settings/members" }]
 						: []),
 				]}
 				toolbar={
