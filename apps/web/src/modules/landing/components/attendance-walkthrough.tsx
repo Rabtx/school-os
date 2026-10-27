@@ -230,7 +230,6 @@ function QrCodePattern() {
 		<div className="grid size-full grid-cols-5 grid-rows-5 gap-0.5 p-1" aria-hidden="true">
 			{Array.from({ length: 25 }, (_, i) => (
 				<span
-					// biome-ignore lint/suspicious/noArrayIndexKey: static decorative grid
 					key={i}
 					className={cn(
 						"rounded-[1px]",
@@ -253,7 +252,7 @@ function StudentCard({ showStamp, reduceMotion }: StudentCardProps) {
 	return (
 		<div className="relative overflow-hidden rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
 			<div className="flex items-center gap-3">
-				{/* biome-ignore lint/performance/noImgElement: dicebear demo avatar */}
+				{/* oxlint-disable-next-line nextjs/no-img-element -- dicebear demo avatar */}
 				<img
 					src={dicebearUrl(DEMO_STUDENT.avatarSeed)}
 					alt=""

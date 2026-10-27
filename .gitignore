@@ -10,6 +10,7 @@ node_modules
 !.yarn/releases
 !.yarn/versions
 .claude/
+.codex/
 # testing
 /coverage
 
@@ -69,6 +70,10 @@ coverage/
 # rust (Cargo)
 target/
 
+# curl cookie jars (may contain live auth tokens)
+cookie.txt
+*.cookie.txt
+
 # c (build output)
 apps/c/build/
 *.o
@@ -92,8 +97,8 @@ venv/
 # lua (if any)
 *.luac
 
-# biome (cache)
-.biome/
+# oxc (cache)
+.oxlintcache
 
 # editor / IDE (local only)
 .idea/

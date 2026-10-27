@@ -40,6 +40,7 @@ import type {
 	HomeworkStatus,
 } from "@/modules/homework/types/homework.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { useNow } from "@/lib/use-now";
 
 const statusOptions = [
 	{ label: "All statuses", value: "all" },
@@ -72,7 +73,7 @@ function homeworkListErrorMessage(error: unknown): string {
 	if (error instanceof ApiError) {
 		if (error.statusCode === 500) {
 			const hint =
-				"If you recently pulled homework or assessments code, apply API migrations: bun --cwd apps/nest-api run db:migrate — then restart the Nest API.";
+				"If you recently pulled homework or assessments code, apply API migrations: bun --cwd=apps/nest-api run db:migrate — then restart the Nest API.";
 			return error.detail?.includes("does not exist")
 				? `${error.detail}. ${hint}`
 				: `${error.message}. ${hint}`;
@@ -143,9 +144,10 @@ export function HomeworkPage() {
 		[campuses],
 	);
 
-	const rows = listQuery.data ?? [];
+	const nowMs = useNow().getTime();
+	const rows = useMemo(() => listQuery.data ?? [], [listQuery.data]);
 	const stats = useMemo(() => {
-		const now = Date.now();
+		const now = nowMs;
 		const weekMs = 7 * 24 * 60 * 60 * 1000;
 		return {
 			total: rows.length,
@@ -156,13 +158,13 @@ export function HomeworkPage() {
 					row.dueAt && new Date(row.dueAt).getTime() - now <= weekMs && row.status === "published",
 			).length,
 		};
-	}, [rows]);
+	}, [nowMs, rows]);
 
 	const columns: DataTableColumn<HomeworkAssignment>[] = [
 		{
 			id: "title",
 			header: "Title",
-			cell: (row) => (
+			renderCell: (row) => (
 				<Link
 					href={`/admin/homework/${row.id}`}
 					className="font-medium text-dashboard-accent hover:underline"
@@ -176,7 +178,7 @@ export function HomeworkPage() {
 		{
 			id: "class",
 			header: "Class",
-			cell: (row) => (
+			renderCell: (row) => (
 				<span>
 					{formatSectionLabel(
 						{ name: row.sectionName, campusId: campusId ?? "", classId: "" },
@@ -192,7 +194,7 @@ export function HomeworkPage() {
 		{
 			id: "students",
 			header: "Students",
-			cell: (row) => (
+			renderCell: (row) => (
 				<span className="text-dashboard-text-secondary text-[13px]">
 					{row.assignMode === "selected_students"
 						? `${row.recipientCount} selected`
@@ -203,21 +205,21 @@ export function HomeworkPage() {
 		{
 			id: "dueAt",
 			header: "Due",
-			cell: (row) => formatDueDate(row.dueAt),
+			renderCell: (row) => formatDueDate(row.dueAt),
 			sortable: true,
 			sortValue: (row) => row.dueAt ?? "",
 		},
 		{
 			id: "status",
 			header: "Status",
-			cell: (row) => statusBadge(row.status),
+			renderCell: (row) => statusBadge(row.status),
 			sortable: true,
 			sortValue: (row) => row.status,
 		},
 		{
 			id: "actions",
 			header: "",
-			cell: (row) =>
+			renderCell: (row) =>
 				canWrite ? (
 					<Button size="sm" variant="ghost" onClick={() => openEditSheet(row)}>
 						Edit

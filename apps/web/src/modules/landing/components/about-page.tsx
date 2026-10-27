@@ -274,7 +274,7 @@ function TeamCard({
 							</div>
 						</div>
 						<div className="relative flex items-end justify-center sm:justify-end">
-							{/* biome-ignore lint/performance/noImgElement: dicebear SVG avatar */}
+							{/* oxlint-disable-next-line nextjs/no-img-element -- dicebear SVG avatar */}
 							<img
 								src={dicebearUrl(member.seed)}
 								alt=""
@@ -294,7 +294,7 @@ function TeamCard({
 						className="flex h-full min-h-[18rem] flex-col justify-between p-5"
 					>
 						<div className="flex flex-1 items-center justify-center pt-4">
-							{/* biome-ignore lint/performance/noImgElement: dicebear SVG avatar */}
+							{/* oxlint-disable-next-line nextjs/no-img-element -- dicebear SVG avatar */}
 							<img
 								src={dicebearUrl(member.seed)}
 								alt=""

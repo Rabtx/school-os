@@ -146,7 +146,9 @@ export class StudentsRepository {
 
 			if (guardianLinks?.length) {
 				for (const { guardian: guardianInput, link } of guardianLinks) {
+					// oxlint-disable-next-line no-await-in-loop -- inserts share one transaction connection
 					const guardian = await this.guardians.createGuardianWithTx(tx, guardianInput);
+					// oxlint-disable-next-line no-await-in-loop -- inserts share one transaction connection
 					await this.guardians.linkStudentGuardianWithTx(tx, {
 						tenantId: studentInput.tenantId,
 						studentId: student.id,

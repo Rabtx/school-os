@@ -97,7 +97,7 @@ export function AssessmentsPage() {
 		{
 			id: "title",
 			header: "Title",
-			cell: (row) => (
+			renderCell: (row) => (
 				<Link href={`/admin/assessments/${row.id}`} className="font-medium hover:underline">
 					{row.title}
 				</Link>
@@ -108,35 +108,35 @@ export function AssessmentsPage() {
 		{
 			id: "type",
 			header: "Type",
-			cell: (row) => <Badge variant="outline">{row.type}</Badge>,
+			renderCell: (row) => <Badge variant="outline">{row.type}</Badge>,
 			sortable: true,
 			sortValue: (row) => row.type,
 		},
 		{
 			id: "class",
 			header: "Class",
-			cell: (row) => `${row.sectionName} · ${row.subjectName}`,
+			renderCell: (row) => `${row.sectionName} · ${row.subjectName}`,
 			sortable: true,
 			sortValue: (row) => `${row.sectionName} ${row.subjectName}`,
 		},
 		{
 			id: "assessedOn",
 			header: "Date",
-			cell: (row) => row.assessedOn,
+			renderCell: (row) => row.assessedOn,
 			sortable: true,
 			sortValue: (row) => row.assessedOn,
 		},
 		{
 			id: "maxScore",
 			header: "Max score",
-			cell: (row) => row.maxScore,
+			renderCell: (row) => row.maxScore,
 			sortable: true,
 			sortValue: (row) => row.maxScore,
 		},
 		{
 			id: "status",
 			header: "Status",
-			cell: (row) => (
+			renderCell: (row) => (
 				<Badge variant={row.status === "published" ? "default" : "outline"}>{row.status}</Badge>
 			),
 			sortable: true,

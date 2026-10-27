@@ -9,20 +9,10 @@ import {
 	Smartphone,
 } from "lucide-react-native";
 import { useState } from "react";
-import {
-	ActivityIndicator,
-	Alert,
-	Image,
-	Pressable,
-	ScrollView,
-	StyleSheet,
-	Text,
-	View,
-} from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NeonCard } from "@/components/ui/neon-card";
 import { OSHeader } from "@/components/ui/os-header";
-import { NeonColors } from "@/constants/design-system";
 import { useAuth } from "@/modules/auth";
 import { AccountTabs } from "@/modules/auth/components/account-tabs";
 import { AuthAlert } from "@/modules/auth/components/auth-alert";
@@ -132,19 +122,19 @@ export function SecurityScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
-			<SafeAreaView edges={["top"]} style={styles.safeArea}>
+		<View className="flex-1 bg-zinc-950">
+			<SafeAreaView edges={["top"]} className="flex-1">
 				<OSHeader />
 				<ScrollView
 					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.scrollContent}
+					contentContainerClassName="pb-12"
 					keyboardShouldPersistTaps="handled"
 				>
-					<View style={styles.viewContainer}>
-						<View style={styles.viewHeader}>
-							<Text style={styles.eyebrow}>ACCOUNT</Text>
-							<Text style={styles.viewTitle}>Security</Text>
-							<Text style={styles.viewSubtitle}>
+					<View className="px-4 pt-2 gap-6">
+						<View className="gap-1">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px]">ACCOUNT</Text>
+							<Text className="text-zinc-100 text-[32px] font-light">Security</Text>
+							<Text className="text-zinc-400 text-sm mt-1 leading-5">
 								Manage sign-in methods, recovery options, and devices with access.
 							</Text>
 						</View>
@@ -159,7 +149,7 @@ export function SecurityScreen() {
 							/>
 						) : null}
 
-						<View style={styles.overviewGrid}>
+						<View className="flex-row flex-wrap gap-2">
 							<OverviewChip
 								label="Email"
 								value={user.emailVerified ? "Verified" : "Needs verification"}
@@ -182,25 +172,27 @@ export function SecurityScreen() {
 							/>
 						</View>
 
-						<Text style={styles.protectionHint}>
+						<Text className="text-zinc-500 text-xs -mt-3 px-1">
 							{protectionCount} of 4 protections active
 							{googleLinked ? " · Google linked" : ""}
 						</Text>
 
-						<View style={styles.section}>
-							<Text style={styles.sectionLabel}>TWO-FACTOR AUTHENTICATION</Text>
+						<View className="gap-3">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] px-1">
+								TWO-FACTOR AUTHENTICATION
+							</Text>
 							<NeonCard>
-								<View style={styles.sectionBody}>
-									<Text style={styles.sectionHelp}>
+								<View className="gap-[14px]">
+									<Text className="text-zinc-400 text-[13px] leading-[18px]">
 										Require an authenticator code after password sign-in.
 									</Text>
 									{security.isLoading ? (
-										<ActivityIndicator color={NeonColors.accent.green} />
+										<ActivityIndicator color="#14b8a6" />
 									) : totpEnabled ? (
 										<>
-											<View style={styles.statusRow}>
-												<CheckCircle2 size={16} color={NeonColors.accent.green} strokeWidth={2} />
-												<Text style={styles.statusText}>
+											<View className="flex-row items-center gap-2">
+												<CheckCircle2 size={16} color="#14b8a6" strokeWidth={2} />
+												<Text className="flex-1 text-zinc-100 text-[13px] font-medium">
 													Authenticator active · {security.data?.mfa.recoveryCodesRemaining ?? 0}{" "}
 													recovery codes left
 												</Text>
@@ -228,11 +220,14 @@ export function SecurityScreen() {
 										</>
 									) : beginTotp.data ? (
 										<>
-											<Image source={{ uri: beginTotp.data.qrCodeDataUrl }} style={styles.qr} />
-											<Text style={styles.sectionHelp}>
+											<Image
+												source={{ uri: beginTotp.data.qrCodeDataUrl }}
+												className="w-40 h-40 self-center rounded-xl bg-white"
+											/>
+											<Text className="text-zinc-400 text-[13px] leading-[18px]">
 												Scan the QR code, then enter the six-digit code from your authenticator.
 											</Text>
-											<Text style={styles.secret} selectable>
+											<Text className="text-zinc-400 text-[11px] font-mono" selectable>
 												{beginTotp.data.secret}
 											</Text>
 											<AuthField
@@ -266,10 +261,12 @@ export function SecurityScreen() {
 										/>
 									)}
 									{recoveryCodes.length > 0 ? (
-										<View style={styles.recoveryBox}>
-											<Text style={styles.recoveryTitle}>Save these recovery codes now</Text>
+										<View className="gap-1.5 p-3 rounded-xl border border-teal-500/35 bg-teal-500/10">
+											<Text className="text-teal-500 text-[13px] font-bold mb-1">
+												Save these recovery codes now
+											</Text>
 											{recoveryCodes.map((code) => (
-												<Text key={code} style={styles.recoveryCode} selectable>
+												<Text key={code} className="text-zinc-100 text-xs font-mono" selectable>
 													{code}
 												</Text>
 											))}
@@ -279,25 +276,34 @@ export function SecurityScreen() {
 							</NeonCard>
 						</View>
 
-						<View style={styles.section}>
-							<Text style={styles.sectionLabel}>PASSKEYS</Text>
+						<View className="gap-3">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] px-1">
+								PASSKEYS
+							</Text>
 							<NeonCard>
-								<View style={styles.sectionBody}>
-									<Text style={styles.sectionHelp}>
+								<View className="gap-[14px]">
+									<Text className="text-zinc-400 text-[13px] leading-[18px]">
 										Use biometrics, a device PIN, or a physical security key. Requires a development
 										build (not Expo Go).
 									</Text>
 									{passkeys.length === 0 ? (
-										<Text style={styles.empty}>No passkeys registered</Text>
+										<Text className="text-zinc-500 text-[13px] text-center py-2">
+											No passkeys registered
+										</Text>
 									) : (
 										passkeys.map((passkey) => (
-											<View key={passkey.id} style={styles.listRow}>
-												<View style={styles.listIcon}>
-													<KeyRound size={16} color={NeonColors.text.secondary} strokeWidth={1.8} />
+											<View
+												key={passkey.id}
+												className="flex-row items-center gap-2.5 py-2.5 border-b border-white/5"
+											>
+												<View className="w-8 h-8 rounded-xl items-center justify-center bg-white/5">
+													<KeyRound size={16} color="#a1a1aa" strokeWidth={1.8} />
 												</View>
-												<View style={styles.listCopy}>
-													<Text style={styles.listTitle}>{passkey.name}</Text>
-													<Text style={styles.listMeta}>
+												<View className="flex-1 gap-0.5">
+													<Text className="text-zinc-100 text-[13px] font-semibold">
+														{passkey.name}
+													</Text>
+													<Text className="text-zinc-500 text-[11px]">
 														{passkey.deviceType}
 														{passkey.backedUp ? " · synced" : ""}
 													</Text>
@@ -306,7 +312,7 @@ export function SecurityScreen() {
 													onPress={() => confirmDeletePasskey(passkey.id, passkey.name)}
 													hitSlop={8}
 												>
-													<Text style={styles.dangerLink}>Remove</Text>
+													<Text className="text-red-500 text-[13px] font-semibold">Remove</Text>
 												</Pressable>
 											</View>
 										))
@@ -329,11 +335,13 @@ export function SecurityScreen() {
 						</View>
 
 						{user.hasPassword ? (
-							<View style={styles.section}>
-								<Text style={styles.sectionLabel}>CHANGE PASSWORD</Text>
+							<View className="gap-3">
+								<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] px-1">
+									CHANGE PASSWORD
+								</Text>
 								<NeonCard>
-									<View style={styles.sectionBody}>
-										<Text style={styles.sectionHelp}>
+									<View className="gap-[14px]">
+										<Text className="text-zinc-400 text-[13px] leading-[18px]">
 											Changing it signs out every other active session.
 										</Text>
 										{passwordSaved && changePassword.isSuccess ? (
@@ -383,23 +391,31 @@ export function SecurityScreen() {
 							</View>
 						) : null}
 
-						<View style={styles.section}>
-							<Text style={styles.sectionLabel}>ACTIVE SESSIONS</Text>
+						<View className="gap-3">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] px-1">
+								ACTIVE SESSIONS
+							</Text>
 							<NeonCard>
-								<View style={styles.sectionBody}>
+								<View className="gap-[14px]">
 									{sessions.isLoading ? (
-										<ActivityIndicator color={NeonColors.accent.green} />
+										<ActivityIndicator color="#14b8a6" />
 									) : sessions.data?.length ? (
 										sessions.data.map((session) => (
-											<View key={session.id} style={styles.listRow}>
-												<View style={styles.listIcon}>
-													<Monitor size={16} color={NeonColors.text.secondary} strokeWidth={1.8} />
+											<View
+												key={session.id}
+												className="flex-row items-center gap-2.5 py-2.5 border-b border-white/5"
+											>
+												<View className="w-8 h-8 rounded-xl items-center justify-center bg-white/5">
+													<Monitor size={16} color="#a1a1aa" strokeWidth={1.8} />
 												</View>
-												<View style={styles.listCopy}>
-													<Text style={styles.listTitle} numberOfLines={2}>
+												<View className="flex-1 gap-0.5">
+													<Text
+														className="text-zinc-100 text-[13px] font-semibold"
+														numberOfLines={2}
+													>
 														{session.userAgent ?? "Unknown device"}
 													</Text>
-													<Text style={styles.listMeta}>
+													<Text className="text-zinc-500 text-[11px]">
 														{session.ipAddress ?? "Unknown IP"} ·{" "}
 														{new Date(session.lastUsedAt).toLocaleString()}
 														{session.isCurrent ? " · Current" : ""}
@@ -409,24 +425,29 @@ export function SecurityScreen() {
 													onPress={() => confirmRevoke(session.id, session.isCurrent)}
 													hitSlop={8}
 												>
-													<Text style={styles.dangerLink}>Revoke</Text>
+													<Text className="text-red-500 text-[13px] font-semibold">Revoke</Text>
 												</Pressable>
 											</View>
 										))
 									) : (
-										<Text style={styles.empty}>No active sessions found.</Text>
+										<Text className="text-zinc-500 text-[13px] text-center py-2">
+											No active sessions found.
+										</Text>
 									)}
-									<Pressable style={styles.logoutAll} onPress={confirmLogoutAll}>
-										<ShieldOff size={16} color={NeonColors.accent.red} strokeWidth={1.8} />
-										<Text style={styles.logoutAllText}>Sign out everywhere</Text>
+									<Pressable
+										className="flex-row items-center justify-center gap-2 min-h-[48px] rounded-2xl border border-red-500/35 bg-red-500/10 mt-1 active:opacity-85"
+										onPress={confirmLogoutAll}
+									>
+										<ShieldOff size={16} color="#ef4444" strokeWidth={1.8} />
+										<Text className="text-red-500 text-[15px] font-bold">Sign out everywhere</Text>
 									</Pressable>
 								</View>
 							</NeonCard>
 						</View>
 
-						<View style={styles.footerHint}>
-							<Smartphone size={14} color={NeonColors.text.muted} strokeWidth={1.8} />
-							<Text style={styles.footerHintText}>
+						<View className="flex-row items-start gap-2 px-1">
+							<Smartphone size={14} color="#a1a1aa" strokeWidth={1.8} />
+							<Text className="flex-1 text-zinc-500 text-xs leading-4">
 								Google account linking is available on the web account settings for now.
 							</Text>
 						</View>
@@ -439,248 +460,25 @@ export function SecurityScreen() {
 
 function OverviewChip({ label, value, active }: { label: string; value: string; active: boolean }) {
 	return (
-		<View style={styles.chip}>
-			<View style={styles.chipIcon}>
+		<View className="w-[48%] flex-grow gap-1.5 p-3 rounded-2xl border border-zinc-800 bg-white/5">
+			<View className="w-7 h-7 rounded-lg items-center justify-center bg-white/5">
 				{label === "Two-factor" ? (
-					<Shield size={14} color={NeonColors.text.secondary} strokeWidth={1.8} />
+					<Shield size={14} color="#a1a1aa" strokeWidth={1.8} />
 				) : label === "Passkeys" ? (
-					<Fingerprint size={14} color={NeonColors.text.secondary} strokeWidth={1.8} />
+					<Fingerprint size={14} color="#a1a1aa" strokeWidth={1.8} />
 				) : (
-					<Lock size={14} color={NeonColors.text.secondary} strokeWidth={1.8} />
+					<Lock size={14} color="#a1a1aa" strokeWidth={1.8} />
 				)}
 			</View>
-			<Text style={styles.chipLabel}>{label}</Text>
-			<View style={styles.chipValueRow}>
-				<View style={[styles.dot, active ? styles.dotActive : styles.dotInactive]} />
-				<Text style={styles.chipValue} numberOfLines={1}>
+			<Text className="text-zinc-500 text-[11px] font-semibold uppercase tracking-[0.4px]">
+				{label}
+			</Text>
+			<View className="flex-row items-center gap-1.5">
+				<View className={`w-1.5 h-1.5 rounded-full ${active ? "bg-teal-500" : "bg-zinc-500"}`} />
+				<Text className="flex-1 text-zinc-100 text-[13px] font-semibold" numberOfLines={1}>
 					{value}
 				</Text>
 			</View>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: NeonColors.background,
-	},
-	safeArea: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingBottom: 48,
-	},
-	viewContainer: {
-		paddingHorizontal: 16,
-		paddingTop: 8,
-		gap: 24,
-	},
-	viewHeader: {
-		gap: 4,
-	},
-	eyebrow: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 1.5,
-	},
-	viewTitle: {
-		color: NeonColors.text.primary,
-		fontSize: 32,
-		fontWeight: "300",
-	},
-	viewSubtitle: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-		marginTop: 4,
-		lineHeight: 20,
-	},
-	overviewGrid: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 8,
-	},
-	chip: {
-		width: "48%",
-		flexGrow: 1,
-		gap: 6,
-		padding: 12,
-		borderRadius: 14,
-		borderWidth: 1,
-		borderColor: NeonColors.card.border,
-		backgroundColor: "rgba(255,255,255,0.03)",
-	},
-	chipIcon: {
-		width: 28,
-		height: 28,
-		borderRadius: 8,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: "rgba(255,255,255,0.04)",
-	},
-	chipLabel: {
-		color: NeonColors.text.muted,
-		fontSize: 11,
-		fontWeight: "600",
-		textTransform: "uppercase",
-		letterSpacing: 0.4,
-	},
-	chipValueRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-	},
-	dot: {
-		width: 6,
-		height: 6,
-		borderRadius: 3,
-	},
-	dotActive: {
-		backgroundColor: NeonColors.accent.green,
-	},
-	dotInactive: {
-		backgroundColor: NeonColors.text.muted,
-	},
-	chipValue: {
-		flex: 1,
-		color: NeonColors.text.primary,
-		fontSize: 13,
-		fontWeight: "600",
-	},
-	protectionHint: {
-		color: NeonColors.text.muted,
-		fontSize: 12,
-		marginTop: -12,
-		paddingHorizontal: 4,
-	},
-	section: {
-		gap: 12,
-	},
-	sectionLabel: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 1.5,
-		paddingHorizontal: 4,
-	},
-	sectionBody: {
-		gap: 14,
-	},
-	sectionHelp: {
-		color: NeonColors.text.secondary,
-		fontSize: 13,
-		lineHeight: 18,
-	},
-	statusRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	statusText: {
-		flex: 1,
-		color: NeonColors.text.primary,
-		fontSize: 13,
-		fontWeight: "500",
-	},
-	qr: {
-		width: 160,
-		height: 160,
-		alignSelf: "center",
-		borderRadius: 12,
-		backgroundColor: "#fff",
-	},
-	secret: {
-		color: NeonColors.text.secondary,
-		fontSize: 11,
-		fontFamily: "monospace",
-	},
-	recoveryBox: {
-		gap: 6,
-		padding: 12,
-		borderRadius: 12,
-		borderWidth: 1,
-		borderColor: "rgba(0, 230, 118, 0.35)",
-		backgroundColor: "rgba(0, 230, 118, 0.08)",
-	},
-	recoveryTitle: {
-		color: NeonColors.accent.green,
-		fontSize: 13,
-		fontWeight: "700",
-		marginBottom: 4,
-	},
-	recoveryCode: {
-		color: NeonColors.text.primary,
-		fontSize: 12,
-		fontFamily: "monospace",
-	},
-	empty: {
-		color: NeonColors.text.muted,
-		fontSize: 13,
-		textAlign: "center",
-		paddingVertical: 8,
-	},
-	listRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 10,
-		paddingVertical: 10,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: "rgba(255,255,255,0.06)",
-	},
-	listIcon: {
-		width: 32,
-		height: 32,
-		borderRadius: 10,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: "rgba(255,255,255,0.04)",
-	},
-	listCopy: {
-		flex: 1,
-		gap: 2,
-	},
-	listTitle: {
-		color: NeonColors.text.primary,
-		fontSize: 13,
-		fontWeight: "600",
-	},
-	listMeta: {
-		color: NeonColors.text.muted,
-		fontSize: 11,
-	},
-	dangerLink: {
-		color: NeonColors.accent.red,
-		fontSize: 13,
-		fontWeight: "600",
-	},
-	logoutAll: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 8,
-		minHeight: 48,
-		borderRadius: 14,
-		borderWidth: 1,
-		borderColor: "rgba(255, 23, 68, 0.35)",
-		backgroundColor: "rgba(255, 23, 68, 0.08)",
-		marginTop: 4,
-	},
-	logoutAllText: {
-		color: NeonColors.accent.red,
-		fontSize: 15,
-		fontWeight: "700",
-	},
-	footerHint: {
-		flexDirection: "row",
-		alignItems: "flex-start",
-		gap: 8,
-		paddingHorizontal: 4,
-	},
-	footerHintText: {
-		flex: 1,
-		color: NeonColors.text.muted,
-		fontSize: 12,
-		lineHeight: 16,
-	},
-});

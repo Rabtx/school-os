@@ -44,7 +44,11 @@ export function AttendanceScannerPanel({ onDecode, lastResult, markedCount, tota
 	const [manualValue, setManualValue] = useState("");
 
 	const nfc = useNfcScanner({ active: mode === "nfc", onDecode });
-	const camera = useCameraScanner({ active: mode === "camera", onDecode });
+	const {
+		videoRef: cameraVideoRef,
+		status: cameraStatus,
+		error: cameraError,
+	} = useCameraScanner({ active: mode === "camera", onDecode });
 	useHardwareScanner({ active: mode === "hardware", onDecode });
 
 	function handleManualSubmit(event: FormEvent) {
@@ -109,6 +113,7 @@ export function AttendanceScannerPanel({ onDecode, lastResult, markedCount, tota
 							onChange={(event) => setManualValue(event.target.value)}
 							placeholder="Type admission no. + Enter"
 							className="flex-1 font-mono text-[13px]"
+							// oxlint-disable-next-line jsx-a11y/no-autofocus -- the user just chose manual entry; the field is the only target
 							autoFocus
 						/>
 						<Button type="submit" size="sm" disabled={!manualValue.trim()}>
@@ -121,7 +126,7 @@ export function AttendanceScannerPanel({ onDecode, lastResult, markedCount, tota
 				{mode === "camera" ? (
 					<div className="relative overflow-hidden rounded-[10px] bg-black">
 						<video
-							ref={camera.videoRef}
+							ref={cameraVideoRef}
 							className="aspect-[4/3] w-full object-cover"
 							muted
 							playsInline
@@ -130,14 +135,14 @@ export function AttendanceScannerPanel({ onDecode, lastResult, markedCount, tota
 						<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
 							<div className="size-40 rounded-[12px] border-2 border-white/70 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
 						</div>
-						{camera.status === "starting" ? (
+						{cameraStatus === "starting" ? (
 							<div className="absolute inset-0 flex items-center justify-center bg-black/50 text-[13px] text-white">
 								Starting camera…
 							</div>
 						) : null}
-						{camera.status === "error" ? (
+						{cameraStatus === "error" ? (
 							<div className="absolute inset-0 flex items-center justify-center bg-black/70 p-4 text-center text-[13px] text-white">
-								{camera.error}
+								{cameraError}
 							</div>
 						) : null}
 					</div>

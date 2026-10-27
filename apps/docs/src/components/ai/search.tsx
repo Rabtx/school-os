@@ -142,7 +142,6 @@ export function AISearchInput(props: ComponentProps<"form">) {
 			<Input
 				value={input}
 				placeholder={isLoading ? "AI is answering..." : "Ask a question"}
-				autoFocus
 				className="p-3"
 				disabled={status === "streaming" || status === "submitted"}
 				onChange={(e) => {

@@ -1,49 +1,21 @@
 import { Plus } from "lucide-react-native";
-import { Pressable, StyleSheet, View } from "react-native";
-import { NeonColors, NeonShadows } from "@/constants/design-system";
+import { Pressable, View } from "react-native";
 
 interface FloatingActionButtonProps {
 	onPress?: () => void;
 	color?: string;
 }
 
-export function FloatingActionButton({
-	onPress,
-	color = NeonColors.accent.green,
-}: FloatingActionButtonProps) {
+export function FloatingActionButton({ onPress, color = "#34d399" }: FloatingActionButtonProps) {
 	return (
-		<View style={styles.container}>
+		<View className="absolute bottom-26 right-6 z-50">
 			<Pressable
 				onPress={onPress}
-				style={({ pressed }) => [
-					styles.button,
-					{ backgroundColor: color, shadowColor: color },
-					pressed && styles.pressed,
-				]}
+				className="w-16 h-16 rounded-full items-center justify-center bg-emerald-400 active:scale-95 active:opacity-90 shadow-xl shadow-emerald-400/40"
+				style={{ backgroundColor: color }}
 			>
-				<Plus size={32} color={NeonColors.background} strokeWidth={2.5} />
+				<Plus size={32} color="#09090b" strokeWidth={2.5} />
 			</Pressable>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		position: "absolute",
-		bottom: 104, // Above the bottom nav
-		right: 24,
-		zIndex: 999,
-	},
-	button: {
-		width: 64,
-		height: 64,
-		borderRadius: 32,
-		justifyContent: "center",
-		alignItems: "center",
-		...NeonShadows.glow,
-	},
-	pressed: {
-		transform: [{ scale: 0.92 }],
-		opacity: 0.9,
-	},
-});

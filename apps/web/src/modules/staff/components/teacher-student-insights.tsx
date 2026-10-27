@@ -14,7 +14,7 @@ import { PermissionCodes, usePermissions } from "@/modules/tenants";
 function countLeadingAbsentStreak(
 	entries: Array<{ sessionDate: string; status: AttendanceMarkStatus }>,
 ): number {
-	const sorted = [...entries].sort((a, b) => b.sessionDate.localeCompare(a.sessionDate));
+	const sorted = entries.toSorted((a, b) => b.sessionDate.localeCompare(a.sessionDate));
 	let streak = 0;
 	for (const entry of sorted) {
 		if (entry.status === "absent") streak += 1;
@@ -59,7 +59,7 @@ export function TeacherStudentInsights({ tenantId, studentId, enabled = true }: 
 	const homeworkRows = homeworkQuery.data ?? [];
 	const nextDue = homeworkRows
 		.filter((row) => row.dueAt)
-		.sort((a, b) => (a.dueAt ?? "").localeCompare(b.dueAt ?? ""))[0];
+		.toSorted((a, b) => (a.dueAt ?? "").localeCompare(b.dueAt ?? ""))[0];
 
 	const loading =
 		(canReadAttendance && historyQuery.isLoading) || (canReadHomework && homeworkQuery.isLoading);

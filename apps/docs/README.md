@@ -5,7 +5,7 @@ School OS documentation site (Next.js + Fumadocs).
 All project docs live in `content/docs/` and are served from this app.
 
 ```bash
-bun --cwd apps/docs run dev
+bun --cwd=apps/docs run dev
 ```
 
 Open http://localhost:3002/docs

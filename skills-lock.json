@@ -7,23 +7,11 @@
       "skillPath": "skills/coding-guidelines/SKILL.md",
       "computedHash": "0742312a0de5eb6bd84e093c1815b1db98126130b92713ea5fc2cf902338aa3b"
     },
-    "domain-cli": {
-      "source": "actionbook/rust-skills",
-      "sourceType": "github",
-      "skillPath": "skills/domain-cli/SKILL.md",
-      "computedHash": "88a6efe282b5105161c8ddb320f09ca0ffed19323fe403dfa7adb4aaa708b8dc"
-    },
     "domain-web": {
       "source": "actionbook/rust-skills",
       "sourceType": "github",
       "skillPath": "skills/domain-web/SKILL.md",
       "computedHash": "dd853ce97875f139da437df6e09eaca8b326931a98f3eb8dc02669670c12161d"
-    },
-    "hono": {
-      "source": "yusukebe/hono-skill",
-      "sourceType": "github",
-      "skillPath": "skills/hono/SKILL.md",
-      "computedHash": "220e5e1b12bbaeec49ec362b6e2262d77632d0536e9758bba9acbbc323fef990"
     },
     "m01-ownership": {
       "source": "actionbook/rust-skills",

@@ -7,7 +7,7 @@
 .vscode
 .idea
 .turbo
-.biome
+.oxlintcache
 **/.next
 **/dist
 **/coverage

@@ -84,7 +84,7 @@ function useAdmissionRows(
 				)
 			: admissions;
 
-		const sorted = [...filtered].sort((a, b) => compareAdmissions(a, b, sortKey));
+		const sorted = filtered.toSorted((a, b) => compareAdmissions(a, b, sortKey));
 		if (sortDir === "desc") sorted.reverse();
 		return sorted;
 	}, [admissions, query, sortDir, sortKey]);
@@ -186,6 +186,7 @@ export function AdmissionsTable({ admissions, className, query = "" }: Props) {
 									i > 0 && "border-dashboard-border-subtle [&>td]:border-t",
 								)}
 							>
+								{/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- a data cell; its content carries the label */}
 								<td className="py-3 pe-3 ps-4 align-top">
 									<div className="flex min-w-0 items-start gap-2.5">
 										<span
@@ -232,6 +233,7 @@ export function AdmissionsTable({ admissions, className, query = "" }: Props) {
 								<td className="py-3 pe-3 align-top">
 									<StatusBadge status={a.status} />
 								</td>
+								{/* oxlint-disable-next-line jsx-a11y/control-has-associated-label -- a data cell; its content carries the label */}
 								<td className="py-3 pe-3 align-top">
 									<DropdownMenu>
 										<DropdownMenuTrigger

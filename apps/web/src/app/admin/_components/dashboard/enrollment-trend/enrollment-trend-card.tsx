@@ -9,6 +9,7 @@ import { DashboardCardFooter, DashboardCardHeader, FooterSep, InsightStat } from
 import { LegendDot } from "./legend-dot";
 import { PixelGridChart } from "./pixel-grid-chart";
 import { RangeToggle } from "./range-toggle";
+import { useNow } from "@/lib/use-now";
 
 type Props = {
 	months: DashboardMetrics["enrollmentMonths"];
@@ -17,9 +18,9 @@ type Props = {
 };
 
 export function EnrollmentTrendCard({ months, insights, className }: Props) {
-	const currentMonthIndex = new Date().getMonth();
+	const currentMonthIndex = useNow().getMonth();
 	const currentMonth = months[currentMonthIndex];
-	const peakMonth = [...months].sort((a, b) => b.newAdmissions - a.newAdmissions)[0];
+	const peakMonth = months.toSorted((a, b) => b.newAdmissions - a.newAdmissions)[0];
 	const highlightMonth = peakMonth?.month ?? "JAN";
 
 	const narrative =

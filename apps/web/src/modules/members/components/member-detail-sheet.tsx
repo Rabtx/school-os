@@ -76,10 +76,10 @@ export function MemberDetailSheet({
 		setStatus(member.status);
 		setCampusId(member.campusId ?? "");
 		const roles = member.roles?.length ? member.roles : [member.role];
-		const available = (["teacher", "parent", "student"] as const).filter(
+		const available = (["teacher", "parent", "student"] as const).find(
 			(option) => !roles.includes(option),
 		);
-		if (available[0]) setSecondaryRole(available[0]);
+		if (available) setSecondaryRole(available);
 	}, [member]);
 
 	if (!member) return null;

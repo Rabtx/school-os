@@ -1,9 +1,4 @@
-export {
-	DataTable,
-	type DataTableColumn,
-	DataTableInlineRow,
-	defaultSortFn,
-} from "./data-table";
+export { DataTable, type DataTableColumn, DataTableInlineRow, defaultSortFn } from "./data-table";
 export { DataTablePagination } from "./data-table-pagination";
 export { DataTableShell } from "./data-table-shell";
 export { type DataTableFilterConfig, DataTableToolbar } from "./data-table-toolbar";

@@ -41,6 +41,7 @@ describe('AcademicService', () => {
 	};
 	let membershipsRepository: {
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
+		listRolesForMembership: ReturnType<typeof vi.fn>;
 		findActiveById: ReturnType<typeof vi.fn>;
 	};
 
@@ -64,6 +65,7 @@ describe('AcademicService', () => {
 		};
 		membershipsRepository = {
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 			findActiveById: vi.fn(),
 		};
 

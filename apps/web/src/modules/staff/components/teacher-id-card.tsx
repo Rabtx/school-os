@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@school-os/ui/components/badge";
-import QRCode from "react-qr-code";
+import { QRCode } from "react-qr-code";
 import { cn } from "@/lib/utils";
 import type { TeacherSummary } from "../types/staff.types";
 import {

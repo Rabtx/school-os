@@ -99,7 +99,7 @@ function OverviewTab({
 		return (
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				{Array.from({ length: 4 }).map((_, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+					// oxlint-disable-next-line react/no-array-index-key -- skeleton placeholders
 					<Skeleton key={index} className="h-24 w-full" />
 				))}
 			</div>
@@ -163,7 +163,7 @@ function GradesTab({
 		return (
 			<div className="space-y-2">
 				{Array.from({ length: 5 }).map((_, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+					// oxlint-disable-next-line react/no-array-index-key -- skeleton placeholders
 					<Skeleton key={index} className="h-10 w-full" />
 				))}
 			</div>
@@ -244,7 +244,7 @@ function AttendanceTab({
 		return (
 			<div className="space-y-2">
 				{Array.from({ length: 4 }).map((_, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+					// oxlint-disable-next-line react/no-array-index-key -- skeleton placeholders
 					<Skeleton key={index} className="h-10 w-full" />
 				))}
 			</div>
@@ -315,7 +315,7 @@ function HomeworkTab({
 		return (
 			<div className="space-y-2">
 				{Array.from({ length: 4 }).map((_, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+					// oxlint-disable-next-line react/no-array-index-key -- skeleton placeholders
 					<Skeleton key={index} className="h-10 w-full" />
 				))}
 			</div>

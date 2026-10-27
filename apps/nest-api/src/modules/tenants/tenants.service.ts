@@ -81,6 +81,7 @@ export class TenantsService {
 
 		let candidate = base;
 		let suffix = 2;
+		// oxlint-disable-next-line no-await-in-loop -- probes slugs until a free one is found
 		while (await this.tenants.slugExists(candidate)) {
 			candidate = `${base}-${suffix}`;
 			suffix += 1;
@@ -94,6 +95,7 @@ function slugify(value: string) {
 		.toLowerCase()
 		.trim()
 		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '')
+		// Runs are already collapsed to one dash, so a single-character trim is enough (and linear).
+		.replace(/^-|-$/g, '')
 		.slice(0, 72);
 }

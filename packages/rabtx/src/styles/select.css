@@ -1,0 +1,75 @@
+/*
+ * The platform's customizable select (`appearance: base-select`, Chromium today). Where it is not
+ * supported none of this applies: the closed field still looks right and the OS list opens.
+ * The list follows Figma's Menu: surface, hairline border, 12px radius, 28px rows with an 8px
+ * padding and a blue tick on the chosen one. Depth has no cast shadow, so Floating is a hairline ring.
+ */
+@source "../select";
+
+@supports (appearance: base-select) {
+	.rx-select,
+	.rx-select::picker(select) {
+		appearance: base-select;
+	}
+	.rx-select::picker-icon {
+		display: none;
+	}
+	.rx-select::picker(select) {
+		box-sizing: border-box;
+		min-inline-size: anchor-size(width);
+		margin-block: 4px;
+		padding: 4px;
+		border: 1px solid var(--rx-border-strong);
+		border-radius: var(--rx-r-box);
+		background: var(--rx-surface);
+		color: var(--rx-text);
+		box-shadow: 0 0 0 1px var(--rx-surface-ring);
+		opacity: 0;
+		transition:
+			opacity 150ms var(--rx-ease),
+			display 150ms allow-discrete,
+			overlay 150ms allow-discrete;
+	}
+	.rx-select:open::picker(select) {
+		opacity: 1;
+		@starting-style {
+			opacity: 0;
+		}
+	}
+	[data-depth="flat"] .rx-select::picker(select) {
+		box-shadow: none;
+	}
+	[data-motion="off"] .rx-select::picker(select) {
+		transition: none;
+	}
+	.rx-select option {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		height: 28px;
+		padding: 0 8px;
+		border-radius: var(--rx-r-item);
+		font-size: 13px;
+		line-height: 20px;
+		letter-spacing: -0.15px;
+		color: var(--rx-text);
+	}
+	.rx-select option:hover,
+	.rx-select option:focus-visible {
+		background: var(--rx-selected);
+		outline: none;
+	}
+	.rx-select option:disabled {
+		color: var(--rx-text-disabled);
+	}
+	.rx-select option::checkmark {
+		content: "";
+		order: 1;
+		margin-inline-start: auto;
+		inline-size: 16px;
+		block-size: 16px;
+		background: var(--rx-accent);
+		mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 14L8.5 17.5L19 6.5'/%3E%3C/svg%3E")
+			center / contain no-repeat;
+	}
+}

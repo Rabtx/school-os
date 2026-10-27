@@ -50,7 +50,6 @@ export function DatePicker({
 							!selected && "text-muted-foreground",
 							className,
 						)}
-						nativeButton={false}
 					/>
 				}
 			>

@@ -23,7 +23,7 @@ export function MyChildrenPage() {
 	const query = useMyChildrenQuery(tenantId);
 	const [view, setView] = useState<ChildrenView>("cards");
 
-	const children = query.data ?? [];
+	const children = useMemo(() => query.data ?? [], [query.data]);
 
 	const cardStudents = useMemo(() => {
 		if (!tenantId || !campusId) return [];

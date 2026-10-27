@@ -52,21 +52,21 @@ export function SubjectsPage() {
 				header: "Code",
 				sortable: true,
 				sortValue: (row) => row.code,
-				cell: (subject) => <span className="font-medium">{subject.code}</span>,
+				renderCell: (subject) => <span className="font-medium">{subject.code}</span>,
 			},
 			{
 				id: "name",
 				header: "Name",
 				sortable: true,
 				sortValue: (row) => row.name,
-				cell: (subject) => subject.name,
+				renderCell: (subject) => subject.name,
 			},
 			{
 				id: "description",
 				header: "Description",
 				sortable: true,
 				sortValue: (row) => row.description ?? "",
-				cell: (subject) => (
+				renderCell: (subject) => (
 					<span className="text-dashboard-text-secondary">{subject.description ?? "—"}</span>
 				),
 			},

@@ -1,5 +1,5 @@
 import { ShoppingBag } from "lucide-react-native";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { LogListItem } from "@/components/ui/log-list-item";
@@ -9,21 +9,20 @@ import { NeonColors } from "@/constants/design-system";
 
 export default function ExpensesIndex() {
 	return (
-		<View style={styles.container}>
-			<SafeAreaView edges={["top"]} style={styles.safeArea}>
+		<View className="flex-1 bg-zinc-950">
+			<SafeAreaView edges={["top"]} className="flex-1">
 				<OSHeader />
 
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.scrollContent}
-				>
-					<View style={styles.viewContainer}>
-						<View style={styles.viewHeader}>
-							<Text style={styles.viewTitle}>Capital</Text>
-							<Text style={styles.viewSubtitle}>Monitoring daily spend and financial health.</Text>
+				<ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-10">
+					<View className="px-4 pt-2">
+						<View className="mb-6">
+							<Text className="text-white text-[32px] font-light">Capital</Text>
+							<Text className="text-zinc-400 text-sm mt-1">
+								Monitoring daily spend and financial health.
+							</Text>
 						</View>
 						<SpendingWidget />
-						<View style={styles.logsList}>
+						<View className="px-4 mt-3">
 							<LogListItem
 								icon={ShoppingBag}
 								iconColor={NeonColors.accent.orange}
@@ -41,36 +40,3 @@ export default function ExpensesIndex() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: NeonColors.background,
-	},
-	safeArea: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingBottom: 40,
-	},
-	viewContainer: {
-		paddingHorizontal: 16,
-		paddingTop: 8,
-	},
-	viewHeader: {
-		marginBottom: 24,
-	},
-	viewTitle: {
-		color: NeonColors.text.primary,
-		fontSize: 32,
-		fontWeight: "300",
-	},
-	viewSubtitle: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-		marginTop: 4,
-	},
-	logsList: {
-		marginTop: 12,
-	},
-});

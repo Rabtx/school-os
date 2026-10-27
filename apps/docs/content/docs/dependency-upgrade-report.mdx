@@ -9,7 +9,7 @@ Scope: repo-wide direct dependency refresh for Bun workspaces, Rust crates, and 
 
 - `bun outdated --recursive --no-progress --network-concurrency=4`
 - `bun install --ignore-scripts --no-progress --network-concurrency=4`
-- `PRISMA_SCHEMA_ENGINE_BINARY=/tmp/prisma-schema-engine bun run --cwd apps/hono-api db:generate`
+- `PRISMA_SCHEMA_ENGINE_BINARY=/tmp/prisma-schema-engine bun run --cwd=apps/hono-api db:generate`
 - `cargo update --manifest-path apps/rust/Cargo.toml`
 - `cargo update --dry-run --verbose --manifest-path apps/rust/Cargo.toml`
 - `uv lock --upgrade`

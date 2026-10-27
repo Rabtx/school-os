@@ -22,6 +22,7 @@ describe('TenantConfigService', () => {
 	};
 	let membershipsRepository: {
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
+		listRolesForMembership: ReturnType<typeof vi.fn>;
 	};
 
 	const tenant = {
@@ -85,6 +86,7 @@ describe('TenantConfigService', () => {
 		};
 		membershipsRepository = {
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 		};
 
 		service = new TenantConfigService(

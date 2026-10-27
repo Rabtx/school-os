@@ -142,7 +142,7 @@ function RollingPrice({ value, reduceMotion }: { value: number; reduceMotion: bo
 				<span>$</span>
 				{digits.map((digit, index) => (
 					<RollingDigit
-						// biome-ignore lint/suspicious/noArrayIndexKey: digit columns are positional
+						// oxlint-disable-next-line react/no-array-index-key -- digit columns are positional
 						key={`${digits.length}-${index}`}
 						digit={Number(digit)}
 						reduceMotion={reduceMotion}

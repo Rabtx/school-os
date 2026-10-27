@@ -1,7 +1,6 @@
 import { Link, router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { StyleSheet, Text } from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { useState } from "react";
+import { Text } from "react-native";
 import { devCodeRouteParams, readDevCodeParam } from "@/modules/auth/lib/dev-auth-code";
 import { authService } from "@/modules/auth/services/auth.service";
 import { AuthAlert } from "./auth-alert";
@@ -13,14 +12,12 @@ export function VerifyEmailForm() {
 	const params = useLocalSearchParams<{ email?: string; devCode?: string }>();
 	const [email, setEmail] = useState(typeof params.email === "string" ? params.email : "");
 	const [code, setCode] = useState("");
-	const [developmentCode, setDevelopmentCode] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
 	const [resending, setResending] = useState(false);
-
-	useEffect(() => {
-		setDevelopmentCode(readDevCodeParam(params.devCode));
-	}, [params.devCode]);
+	const [developmentCode, setDevelopmentCode] = useState<string | null>(() =>
+		readDevCodeParam(params.devCode),
+	);
 
 	async function handleSubmit() {
 		setError(null);
@@ -86,22 +83,11 @@ export function VerifyEmailForm() {
 				pending={resending}
 				disabled={!email}
 			/>
-			<Text style={styles.footerText}>
-				<Link href="/login" style={styles.link}>
+			<Text className="text-center text-sm mt-2 text-zinc-400">
+				<Link href="/login" className="text-emerald-400 underline font-medium">
 					Back to sign in
 				</Link>
 			</Text>
 		</AuthScreen>
 	);
 }
-
-const styles = StyleSheet.create({
-	footerText: {
-		textAlign: "center",
-		fontSize: 14,
-	},
-	link: {
-		color: NeonColors.accent.green,
-		textDecorationLine: "underline",
-	},
-});

@@ -31,7 +31,9 @@ export function useNfcScanner({ active, onDecode }: UseNfcScannerOptions) {
 	const abortRef = useRef<AbortController | null>(null);
 	const readerRef = useRef<NDEFReader | null>(null);
 	const onDecodeRef = useRef(onDecode);
-	onDecodeRef.current = onDecode;
+	useEffect(() => {
+		onDecodeRef.current = onDecode;
+	}, [onDecode]);
 
 	const stop = useCallback(() => {
 		if (abortRef.current) {

@@ -1,18 +1,22 @@
-CREATE TYPE "assignment_target_mode" AS ENUM ('whole_class', 'selected_students');
+-- Idempotent: this migration was missing from the journal, so some databases applied it by hand.
+DO $$ BEGIN
+	CREATE TYPE "assignment_target_mode" AS ENUM ('whole_class', 'selected_students');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 --> statement-breakpoint
 ALTER TABLE "homework_assignments"
-	ADD COLUMN "assign_mode" "assignment_target_mode" NOT NULL DEFAULT 'whole_class',
-	ADD COLUMN "estimated_minutes" integer,
-	ADD COLUMN "materials" text;
+	ADD COLUMN IF NOT EXISTS "assign_mode" "assignment_target_mode" NOT NULL DEFAULT 'whole_class',
+	ADD COLUMN IF NOT EXISTS "estimated_minutes" integer,
+	ADD COLUMN IF NOT EXISTS "materials" text;
 --> statement-breakpoint
 ALTER TABLE "assessments"
-	ADD COLUMN "assign_mode" "assignment_target_mode" NOT NULL DEFAULT 'whole_class',
-	ADD COLUMN "starts_at" timestamp with time zone,
-	ADD COLUMN "duration_minutes" integer,
-	ADD COLUMN "room" varchar(120),
-	ADD COLUMN "instructions" text;
+	ADD COLUMN IF NOT EXISTS "assign_mode" "assignment_target_mode" NOT NULL DEFAULT 'whole_class',
+	ADD COLUMN IF NOT EXISTS "starts_at" timestamp with time zone,
+	ADD COLUMN IF NOT EXISTS "duration_minutes" integer,
+	ADD COLUMN IF NOT EXISTS "room" varchar(120),
+	ADD COLUMN IF NOT EXISTS "instructions" text;
 --> statement-breakpoint
-CREATE TABLE "homework_recipients" (
+CREATE TABLE IF NOT EXISTS "homework_recipients" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"tenant_id" uuid NOT NULL REFERENCES "tenants"("id") ON DELETE CASCADE,
 	"homework_id" uuid NOT NULL REFERENCES "homework_assignments"("id") ON DELETE CASCADE,
@@ -20,11 +24,11 @@ CREATE TABLE "homework_recipients" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX "homework_recipients_homework_student_unique" ON "homework_recipients" ("homework_id", "student_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "homework_recipients_homework_student_unique" ON "homework_recipients" ("homework_id", "student_id");
 --> statement-breakpoint
-CREATE INDEX "homework_recipients_tenant_id_idx" ON "homework_recipients" ("tenant_id");
+CREATE INDEX IF NOT EXISTS "homework_recipients_tenant_id_idx" ON "homework_recipients" ("tenant_id");
 --> statement-breakpoint
-CREATE TABLE "assessment_recipients" (
+CREATE TABLE IF NOT EXISTS "assessment_recipients" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"tenant_id" uuid NOT NULL REFERENCES "tenants"("id") ON DELETE CASCADE,
 	"assessment_id" uuid NOT NULL REFERENCES "assessments"("id") ON DELETE CASCADE,
@@ -32,9 +36,9 @@ CREATE TABLE "assessment_recipients" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX "assessment_recipients_assessment_student_unique" ON "assessment_recipients" ("assessment_id", "student_id");
+CREATE UNIQUE INDEX IF NOT EXISTS "assessment_recipients_assessment_student_unique" ON "assessment_recipients" ("assessment_id", "student_id");
 --> statement-breakpoint
-CREATE INDEX "assessment_recipients_tenant_id_idx" ON "assessment_recipients" ("tenant_id");
+CREATE INDEX IF NOT EXISTS "assessment_recipients_tenant_id_idx" ON "assessment_recipients" ("tenant_id");
 --> statement-breakpoint
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r.id, p.id

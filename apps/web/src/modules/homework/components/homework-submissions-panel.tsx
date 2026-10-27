@@ -239,13 +239,13 @@ export function HomeworkSubmissionsPanel({ homeworkId }: Props) {
 			<div className="space-y-2">
 				<div className="grid gap-3 sm:grid-cols-4">
 					{Array.from({ length: 4 }).map((_, index) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+						// oxlint-disable-next-line react/no-array-index-key -- skeleton placeholders
 						<Skeleton key={index} className="h-16 w-full rounded-xl" />
 					))}
 				</div>
 				<div className="space-y-2 rounded-md border border-border p-2">
 					{Array.from({ length: 6 }).map((_, index) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+						// oxlint-disable-next-line react/no-array-index-key -- skeleton placeholders
 						<Skeleton key={index} className="h-10 w-full" />
 					))}
 				</div>

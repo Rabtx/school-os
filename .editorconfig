@@ -9,7 +9,7 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-# Tab-indented (Biome, Rust, C)
+# Tab-indented (oxfmt, Rust, C)
 [*.{ts,tsx,js,jsx,mjs,cjs,json,css,scss}]
 indent_style = tab
 indent_size = 4

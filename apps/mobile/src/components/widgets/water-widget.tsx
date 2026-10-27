@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Svg, { Circle, G } from "react-native-svg";
 import { NeonCard } from "@/components/ui/neon-card";
 import { NeonColors } from "@/constants/design-system";
@@ -9,15 +9,15 @@ export function WaterWidget() {
 	const data = [0.4, 0.6, 0.3, 0.5, 0.7, 0.9, 0.4];
 
 	return (
-		<Pressable style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
+		<Pressable className="active:opacity-90">
 			<NeonCard>
-				<View style={styles.header}>
+				<View className="flex-row justify-between items-center mb-5">
 					<View>
-						<Text style={styles.amount}>
-							1.9 <Text style={styles.unit}>L today</Text>
+						<Text className="text-white text-5xl font-light">
+							1.9 <Text className="text-xl text-zinc-400">L today</Text>
 						</Text>
 					</View>
-					<View style={styles.circularProgress}>
+					<View className="relative justify-center items-center">
 						<Svg height="50" width="50" viewBox="0 0 50 50">
 							<G rotation="-90" origin="25, 25">
 								<Circle
@@ -41,149 +41,54 @@ export function WaterWidget() {
 								/>
 							</G>
 						</Svg>
-						<Text style={styles.percentText}>76%</Text>
+						<Text className="absolute text-white text-[10px] font-bold">76%</Text>
 					</View>
 				</View>
 
-				<View style={styles.goalRow}>
-					<Text style={styles.goalLabel}>GOAL</Text>
-					<Text style={styles.goalValue}>2.5L</Text>
+				<View className="flex-row justify-between mb-2">
+					<Text className="text-zinc-400 text-xs font-bold tracking-[2px]">GOAL</Text>
+					<Text className="text-white text-xs font-bold">2.5L</Text>
 				</View>
-				<View style={styles.separator} />
+				<View className="h-[1px] bg-zinc-800 mb-5" />
 
 				{/* Bar Chart */}
-				<View style={styles.chartContainer}>
+				<View className="flex-row justify-between items-end h-20 mb-5">
 					{data.map((val, i) => (
-						<View key={`water-${i}`} style={styles.barColumn}>
-							<View style={styles.barWrapper}>
+						<View key={`water-${i}`} className="items-center gap-2">
+							<View className="h-[60px] w-6 justify-end rounded-md overflow-hidden bg-zinc-900">
 								<LinearGradient
 									colors={[NeonColors.accent.blue, "#1A237E"]}
-									style={[styles.bar, { height: `${val * 100}%` }]}
+									style={{
+										width: "100%",
+										borderRadius: 6,
+										position: "relative",
+										height: `${val * 100}%`,
+									}}
 								>
-									{i === 5 && <View style={styles.highlightBar} />}
+									{i === 5 && (
+										<View className="absolute top-0 left-0 right-0 h-2.5 bg-emerald-400/80" />
+									)}
 								</LinearGradient>
 							</View>
-							<View style={[styles.dayCircle, i === 5 && styles.activeDayCircle]}>
-								<Text style={[styles.dayText, i === 5 && styles.activeDayText]}>{days[i]}</Text>
+							<View
+								className={`w-6 h-6 justify-center items-center rounded-full ${i === 5 ? "border border-zinc-400" : ""}`}
+							>
+								<Text
+									className={`text-[10px] font-semibold ${i === 5 ? "text-white" : "text-zinc-400"}`}
+								>
+									{days[i]}
+								</Text>
 							</View>
 						</View>
 					))}
 				</View>
 
-				<View style={styles.footer}>
-					<Text style={styles.footerText}>💧 1.7 L/DAY AVERAGE</Text>
+				<View className="items-center">
+					<Text className="text-zinc-400 text-xs font-semibold tracking-wide">
+						💧 1.7 L/DAY AVERAGE
+					</Text>
 				</View>
 			</NeonCard>
 		</Pressable>
 	);
 }
-
-const styles = StyleSheet.create({
-	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 20,
-	},
-	amount: {
-		color: NeonColors.text.primary,
-		fontSize: 48,
-		fontWeight: "300",
-	},
-	unit: {
-		fontSize: 20,
-		color: NeonColors.text.secondary,
-	},
-	circularProgress: {
-		position: "relative",
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	percentText: {
-		position: "absolute",
-		color: NeonColors.text.primary,
-		fontSize: 10,
-		fontWeight: "700",
-	},
-	goalRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 8,
-	},
-	goalLabel: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 2,
-	},
-	goalValue: {
-		color: NeonColors.text.primary,
-		fontSize: 12,
-		fontWeight: "700",
-	},
-	separator: {
-		height: 1,
-		backgroundColor: NeonColors.card.border,
-		marginBottom: 20,
-	},
-	chartContainer: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "flex-end",
-		height: 80,
-		marginBottom: 20,
-	},
-	barColumn: {
-		alignItems: "center",
-		gap: 8,
-	},
-	barWrapper: {
-		height: 60,
-		width: 24,
-		justifyContent: "flex-end",
-		borderRadius: 6,
-		overflow: "hidden",
-	},
-	bar: {
-		width: "100%",
-		borderRadius: 6,
-		position: "relative",
-	},
-	highlightBar: {
-		position: "absolute",
-		top: 0,
-		left: 0,
-		right: 0,
-		height: 10,
-		backgroundColor: NeonColors.accent.green,
-		opacity: 0.8,
-	},
-	dayCircle: {
-		width: 24,
-		height: 24,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	activeDayCircle: {
-		borderWidth: 1,
-		borderColor: NeonColors.text.secondary,
-		borderRadius: 12,
-	},
-	dayText: {
-		color: NeonColors.text.secondary,
-		fontSize: 10,
-		fontWeight: "600",
-	},
-	activeDayText: {
-		color: NeonColors.text.primary,
-	},
-	footer: {
-		alignItems: "center",
-	},
-	footerText: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "600",
-		letterSpacing: 1,
-	},
-});

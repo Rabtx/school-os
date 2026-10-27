@@ -106,7 +106,7 @@ function buildRecentAdmissions(
 	}
 
 	return [...students]
-		.sort((a, b) => studentAdmissionDate(b).getTime() - studentAdmissionDate(a).getTime())
+		.toSorted((a, b) => studentAdmissionDate(b).getTime() - studentAdmissionDate(a).getTime())
 		.slice(0, limit)
 		.map((student) => {
 			const enrollment = enrollmentByStudent.get(student.id);
@@ -146,7 +146,7 @@ function computeGradeRows(enrollments: Enrollment[], sections: Section[], classe
 	}
 
 	return [...classes]
-		.sort((a, b) => a.sortOrder - b.sortOrder)
+		.toSorted((a, b) => a.sortOrder - b.sortOrder)
 		.map((schoolClass, index) => ({
 			grade: index + 1,
 			label: schoolClass.name,
@@ -186,8 +186,8 @@ export function computeDashboardMetrics(data: DashboardRawData): DashboardMetric
 			: 0;
 	const gradeSpread =
 		gradeCounts.length > 0 ? Math.max(...gradeCounts) - Math.min(...gradeCounts) : 0;
-	const peakGrade = [...gradeRows].sort((a, b) => b.students - a.students)[0];
-	const softestGrade = [...gradeRows].sort((a, b) => a.students - b.students)[0];
+	const peakGrade = gradeRows.toSorted((a, b) => b.students - a.students)[0];
+	const softestGrade = gradeRows.toSorted((a, b) => a.students - b.students)[0];
 
 	const activeTeachers = data.teachers.filter((teacher) => teacher.profile.status === "active");
 	const teachersOnLeave = data.teachers.filter(

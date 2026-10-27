@@ -8,9 +8,10 @@ import type { ApiSuccessResponse } from '@/common/types/api-response.type';
 import type { RequestWithId } from '@/common/types/request-with-id.type';
 
 @Injectable()
-export class ResponseInterceptor<TData>
-	implements NestInterceptor<TData, ApiSuccessResponse<TData>>
-{
+export class ResponseInterceptor<TData> implements NestInterceptor<
+	TData,
+	ApiSuccessResponse<TData>
+> {
 	intercept(
 		context: ExecutionContext,
 		next: CallHandler<TData>,

@@ -11,6 +11,8 @@ import { AuthRepository } from '@/modules/auth/auth.repository';
 import { AuthService } from '@/modules/auth/auth.service';
 import { AuthCryptoService } from '@/modules/auth/auth-crypto.service';
 import { EmailService } from '@/modules/email/email.service';
+import { createMockPermissionsService } from '@/modules/authorization/testing/mock-permissions.service';
+import { MembershipInvitesService } from '@/modules/memberships/membership-invites.service';
 import { MembershipsRepository } from '@/modules/memberships/memberships.repository';
 import { MembershipsService } from '@/modules/memberships/memberships.service';
 import { MfaService } from '@/modules/mfa/mfa.service';
@@ -30,7 +32,8 @@ describe('database-backed authentication', () => {
 		sendPasswordResetCode: vi.fn().mockResolvedValue(undefined),
 	} as unknown as EmailService;
 	const membershipsRepository = new MembershipsRepository(database);
-	const membershipsService = new MembershipsService(membershipsRepository);
+	const permissions = createMockPermissionsService();
+	const membershipsService = new MembershipsService(membershipsRepository, permissions);
 	const auth = new AuthService(
 		config,
 		crypto,
@@ -39,9 +42,13 @@ describe('database-backed authentication', () => {
 		usersService,
 		membershipsService,
 		membershipsRepository,
+		permissions,
 		{ isTotpEnabled: vi.fn().mockResolvedValue(false) } as unknown as MfaService,
 		{} as PasskeysService,
 		{} as SocialAuthService,
+		{
+			applyPendingInvitesForUser: vi.fn().mockResolvedValue([]),
+		} as unknown as MembershipInvitesService,
 	);
 	const emailAddress = `auth-integration-${randomUUID()}@example.com`;
 

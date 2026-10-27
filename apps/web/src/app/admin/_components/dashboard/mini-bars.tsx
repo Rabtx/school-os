@@ -29,7 +29,7 @@ export function MiniBars({
 				const heightPct = Math.max(18, (v / max) * 100);
 				return (
 					<span
-						// biome-ignore lint/suspicious/noArrayIndexKey: bar order is stable and meaningful
+						// oxlint-disable-next-line react/no-array-index-key -- bar order is stable and meaningful
 						key={i}
 						className="w-[3px] rounded-[1.5px]"
 						style={{

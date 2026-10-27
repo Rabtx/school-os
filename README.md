@@ -84,7 +84,7 @@ The monorepo is a **production-shaped foundation**. Core school ops (students, a
 
 | Area | Status |
 | --- | --- |
-| Monorepo (Bun, Turbo, Biome, Lefthook, CI) | ✅ |
+| Monorepo (Bun, Turbo, oxlint, oxfmt, Lefthook, CI) | ✅ |
 | Web admin shell + marketing (`apps/web`) | ✅ |
 | Expo mobile scaffold (`apps/mobile`) | ✅ |
 | NestJS API spine — auth, sessions, MFA, passkeys, profiles (`apps/nest-api`) | ✅ |
@@ -125,7 +125,7 @@ Shared packages (`@school-os/ui`, `@school-os/logger`, TypeScript configs), Dock
 
 ## Quick start
 
-**Prerequisites:** [Bun](https://bun.sh) `1.3.13` · Git · optional Docker Compose `v2.20+` and Rust (for `apps/rust`)
+**Prerequisites:** [Bun](https://bun.sh) `1.4.2` (pinned with [mise](https://mise.jdx.dev): `mise install`) · Git · optional Docker Compose `v2.20+` and Rust (for `apps/rust`)
 
 ```bash
 git clone https://github.com/rabtx/school-os.git
@@ -144,10 +144,10 @@ bun run dev
 Run a single app:
 
 ```bash
-bun --cwd apps/web run dev
-bun --cwd apps/nest-api run dev
-bun --cwd apps/mobile run dev
-bun --cwd apps/docs run dev
+bun --cwd=apps/web run dev
+bun --cwd=apps/nest-api run dev
+bun --cwd=apps/mobile run dev
+bun --cwd=apps/docs run dev
 ```
 
 Before pushing changes:
@@ -228,7 +228,7 @@ school-os/
 | `bun run dev:all` | Start all apps including Rust |
 | `bun run dev:ai` | Start FastAPI AI assist only |
 | `bun run build` | Build all apps |
-| `bun run lint` / `lint:fix` | Biome + ShellCheck + Ruff |
+| `bun run lint` / `lint:fix` | oxlint + ShellCheck + Ruff |
 | `bun run format` | Format TS/JS, shell, Python, Rust |
 | `bun run typecheck` | TypeScript across workspaces |
 | `bun run test` / `test:coverage` | Unit tests + coverage gates |
@@ -241,7 +241,7 @@ school-os/
 ## Tooling
 
 - **Bun** workspaces + **Turborepo** orchestration
-- **Biome** for TS/JS lint and format (tabs, line width 100)
+- **oxlint** and **oxfmt** for TS/JS lint and format (tabs, line width 100)
 - **Lefthook** pre-commit and commit-msg hooks (Conventional Commits, lowercase)
 - Bash: ShellCheck + shfmt · Python: Ruff · Rust: rustfmt + clippy
 
@@ -293,7 +293,7 @@ See [.devcontainer/README.md](.devcontainer/README.md).
 ## Documentation
 
 ```bash
-bun --cwd apps/docs run dev
+bun --cwd=apps/docs run dev
 ```
 
 Key routes (http://localhost:3002/docs/…):

@@ -34,9 +34,9 @@ From repo root or `apps/ai-api`:
 ```bash
 bun run uv -- sync
 bun run dev:ai
-# or: bun --cwd apps/ai-api run dev
-bun --cwd apps/ai-api run lint
-bun --cwd apps/ai-api run test
+# or: bun --cwd=apps/ai-api run dev
+bun --cwd=apps/ai-api run lint
+bun --cwd=apps/ai-api run test
 ```
 
 Health: `GET http://localhost:8000/api/v1/health`

@@ -10,11 +10,13 @@ describe('MembershipsService', () => {
 	let service: MembershipsService;
 	let repository: {
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
+		listRolesForMembership: ReturnType<typeof vi.fn>;
 	};
 
 	beforeEach(() => {
 		repository = {
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 		};
 		service = new MembershipsService(
 			repository as unknown as MembershipsRepository,
@@ -58,6 +60,7 @@ describe('MembershipsService', () => {
 				status: 'active',
 			});
 
+			// oxlint-disable-next-line no-await-in-loop -- each role is checked against a fresh mock in turn
 			await expect(service.requireManagementAccess('user-1', 'tenant-1')).resolves.toMatchObject({
 				role,
 			});

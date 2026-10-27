@@ -1,3 +1,4 @@
+/* oxlint-disable no-await-in-loop -- seeding runs in order so each row exists before its dependents */
 import 'dotenv/config';
 
 import { hash } from 'bcryptjs';

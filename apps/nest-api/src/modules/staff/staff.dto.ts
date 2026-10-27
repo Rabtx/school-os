@@ -17,6 +17,7 @@ export const upsertStaffProfileSchema = z
 	})
 	.strict();
 
+// oxlint-disable-next-line typescript/no-extraneous-class -- the static Zod schema is what the validation pipe reads
 export class UpsertStaffProfileDto {
 	static schema = upsertStaffProfileSchema;
 }

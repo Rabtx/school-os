@@ -7,6 +7,7 @@ import { PermissionCodes } from '@/modules/authorization/permission-codes';
 import { createMockPermissionsService } from '@/modules/authorization/testing/mock-permissions.service';
 import { MembershipsService } from '@/modules/memberships/memberships.service';
 import { TenantGuard } from './tenant.guard';
+import { TenantsRepository } from './tenants.repository';
 
 describe('TenantGuard', () => {
 	let memberships: Mocked<MembershipsService>;
@@ -17,7 +18,11 @@ describe('TenantGuard', () => {
 			requireActiveMembership: vi.fn(),
 			listRolesForMembership: vi.fn().mockResolvedValue([]),
 		} as unknown as Mocked<MembershipsService>;
-		guard = new TenantGuard(memberships, createMockPermissionsService());
+		const tenantsRepository = {
+			findById: vi.fn().mockResolvedValue({ id: 'tenant-a', status: 'active' }),
+			isActive: vi.fn().mockReturnValue(true),
+		} as unknown as TenantsRepository;
+		guard = new TenantGuard(memberships, createMockPermissionsService(), tenantsRepository);
 	});
 
 	it('returns 404 when jwt tenant does not match route tenant', async () => {

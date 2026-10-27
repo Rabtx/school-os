@@ -1,7 +1,6 @@
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text } from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { Text } from "react-native";
 import { useAuth } from "@/modules/auth/context/auth-context";
 import { devCodeRouteParams } from "@/modules/auth/lib/dev-auth-code";
 import { registerSchema } from "@/modules/auth/schemas/auth.schemas";
@@ -62,7 +61,7 @@ export function SignupForm() {
 			title="Create your account"
 			description="Create your secure School OS account"
 			footer={
-				<Text style={styles.terms}>
+				<Text className="text-zinc-500 text-xs text-center px-3">
 					By continuing, you agree to our Terms of Service and Privacy Policy.
 				</Text>
 			}
@@ -75,7 +74,7 @@ export function SignupForm() {
 				label="Email"
 				value={email}
 				onChangeText={setEmail}
-				placeholder="you@school.edu"
+				placeholder="you@example.com"
 				keyboardType="email-address"
 				autoComplete="email"
 				editable={!submitting}
@@ -115,30 +114,12 @@ export function SignupForm() {
 				pending={submitting}
 				disabled={passwordsMismatch}
 			/>
-			<Text style={styles.footerText}>
+			<Text className="text-zinc-400 text-center text-sm mt-2">
 				Already have an account?{" "}
-				<Link href="/login" style={styles.link}>
+				<Link href="/login" className="text-emerald-400 underline font-medium">
 					Sign in
 				</Link>
 			</Text>
 		</AuthScreen>
 	);
 }
-
-const styles = StyleSheet.create({
-	footerText: {
-		color: NeonColors.text.secondary,
-		textAlign: "center",
-		fontSize: 14,
-	},
-	link: {
-		color: NeonColors.accent.green,
-		textDecorationLine: "underline",
-	},
-	terms: {
-		color: NeonColors.text.muted,
-		fontSize: 12,
-		textAlign: "center",
-		paddingHorizontal: 12,
-	},
-});

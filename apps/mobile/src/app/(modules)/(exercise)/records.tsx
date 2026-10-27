@@ -1,6 +1,6 @@
 import { Activity } from "lucide-react-native";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AddEntryModal } from "@/components/ui/add-entry-modal";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
@@ -20,23 +20,24 @@ export default function RecordsScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
-			<SafeAreaView edges={["top"]} style={styles.safeArea}>
+		<View className="flex-1 bg-zinc-950">
+			<SafeAreaView edges={["top"]} className="flex-1">
 				<OSHeader />
 
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.scrollContent}
-				>
-					<View style={styles.viewContainer}>
-						<View style={styles.viewHeader}>
-							<Text style={styles.viewTitle}>Records</Text>
-							<Text style={styles.viewSubtitle}>Personal bests and exercise history.</Text>
+				<ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-10">
+					<View className="px-4 pt-2">
+						<View className="mb-6">
+							<Text className="text-white text-[32px] font-light">Records</Text>
+							<Text className="text-zinc-400 text-sm mt-1">
+								Personal bests and exercise history.
+							</Text>
 						</View>
 
-						<View style={styles.logsList}>
+						<View className="px-4 mt-3">
 							{records.length === 0 ? (
-								<Text style={styles.emptyText}>No exercise records yet.</Text>
+								<Text className="text-zinc-500 text-base text-center mt-8">
+									No exercise records yet.
+								</Text>
 							) : (
 								records.map((item) => (
 									<LogListItem
@@ -69,42 +70,3 @@ export default function RecordsScreen() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	emptyText: {
-		color: NeonColors.text.muted,
-		fontSize: 16,
-		textAlign: "center",
-		marginTop: 32,
-	},
-	container: {
-		flex: 1,
-		backgroundColor: NeonColors.background,
-	},
-	safeArea: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingBottom: 40,
-	},
-	viewContainer: {
-		paddingHorizontal: 16,
-		paddingTop: 8,
-	},
-	viewHeader: {
-		marginBottom: 24,
-	},
-	viewTitle: {
-		color: NeonColors.text.primary,
-		fontSize: 32,
-		fontWeight: "300",
-	},
-	viewSubtitle: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-		marginTop: 4,
-	},
-	logsList: {
-		marginTop: 12,
-	},
-});

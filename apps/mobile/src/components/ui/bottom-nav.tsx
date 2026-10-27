@@ -1,6 +1,5 @@
 import { Activity, BarChart2, Home, Plus, User } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { Pressable, Text, View } from "react-native";
 
 export function BottomNav() {
 	const tabs = [
@@ -12,25 +11,29 @@ export function BottomNav() {
 	];
 
 	return (
-		<View style={styles.container}>
-			{tabs.map((tab, _i) => (
-				<Pressable key={tab.label} style={[styles.tab, tab.isCenter && styles.centerTab]}>
+		<View className="flex-row h-[84px] bg-zinc-950 border-t border-white/5 pb-6 px-3">
+			{tabs.map((tab) => (
+				<Pressable
+					key={tab.label}
+					className={`flex-1 items-center ${
+						tab.isCenter ? "justify-start -mt-5" : "justify-center gap-1"
+					}`}
+				>
 					{tab.isCenter ? (
-						<View style={styles.centerButton}>
-							<Plus size={28} color={NeonColors.background} strokeWidth={2.5} />
+						<View className="w-14 h-14 rounded-full bg-emerald-400 items-center justify-center shadow-lg shadow-emerald-400/30">
+							<Plus size={28} color="#09090b" strokeWidth={2.5} />
 						</View>
 					) : (
 						<>
 							<tab.icon
 								size={22}
-								color={tab.active ? NeonColors.accent.green : NeonColors.text.muted}
+								color={tab.active ? "#34d399" : "#71717a"}
 								strokeWidth={tab.active ? 2 : 1.5}
 							/>
 							<Text
-								style={[
-									styles.label,
-									{ color: tab.active ? NeonColors.accent.green : NeonColors.text.muted },
-								]}
+								className={`text-[10px] font-semibold ${
+									tab.active ? "text-emerald-400" : "text-zinc-500"
+								}`}
 							>
 								{tab.label}
 							</Text>
@@ -41,42 +44,3 @@ export function BottomNav() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: "row",
-		height: 84,
-		backgroundColor: NeonColors.background,
-		borderTopWidth: 1,
-		borderTopColor: "rgba(255, 255, 255, 0.05)",
-		paddingBottom: 24,
-		paddingHorizontal: 12,
-	},
-	tab: {
-		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
-		gap: 4,
-	},
-	centerTab: {
-		justifyContent: "flex-start",
-		marginTop: -20,
-	},
-	centerButton: {
-		width: 56,
-		height: 56,
-		borderRadius: 28,
-		backgroundColor: NeonColors.accent.green,
-		justifyContent: "center",
-		alignItems: "center",
-		shadowColor: NeonColors.accent.green,
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.3,
-		shadowRadius: 8,
-		elevation: 6,
-	},
-	label: {
-		fontSize: 10,
-		fontWeight: "600",
-	},
-});

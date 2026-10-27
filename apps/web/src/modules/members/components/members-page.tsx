@@ -65,8 +65,11 @@ export function MembersPage() {
 	const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 	const [detailOpen, setDetailOpen] = useState(false);
 
-	const members = membersQuery.data?.members ?? [];
-	const pendingInvites = membersQuery.data?.pendingInvites ?? [];
+	const members = useMemo(() => membersQuery.data?.members ?? [], [membersQuery.data]);
+	const pendingInvites = useMemo(
+		() => membersQuery.data?.pendingInvites ?? [],
+		[membersQuery.data],
+	);
 	const summary = membersQuery.data?.summary;
 	const actor = membersQuery.data?.actor;
 	const currentMembershipId = tenantContext?.id ?? null;
@@ -91,7 +94,7 @@ export function MembersPage() {
 					member.role.includes(query)
 				);
 			})
-			.sort((a, b) => {
+			.toSorted((a, b) => {
 				const roleOrder = [
 					"owner",
 					"principal",

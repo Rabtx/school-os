@@ -1,42 +1,26 @@
 import { LinearGradient } from "expo-linear-gradient";
 import type * as React from "react";
-import { StyleSheet, View, type ViewStyle } from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { View, type ViewProps } from "react-native";
 
 interface NeonCardProps {
 	children: React.ReactNode;
-	style?: ViewStyle;
+	style?: ViewProps["style"];
+	className?: string;
 	glowPosition?: "top-right" | "bottom-left" | "both-diagonal" | "none";
+	accentColor?: string;
 }
 
-export function NeonCard({ children, style }: NeonCardProps) {
+export function NeonCard({ children, style, className = "" }: NeonCardProps) {
 	return (
-		<View style={[styles.outerContainer, style]}>
-			{/* Background Gradient Card */}
+		<View className={`relative ${className}`} style={style}>
 			<LinearGradient
-				colors={NeonColors.card.gradient}
-				style={styles.card}
+				colors={["#18181b", "#09090b"]}
+				className="rounded-3xl border border-zinc-800 overflow-hidden"
 				start={{ x: 0, y: 0 }}
 				end={{ x: 0, y: 1 }}
 			>
-				<View style={styles.content}>{children}</View>
+				<View className="p-6">{children}</View>
 			</LinearGradient>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	outerContainer: {
-		position: "relative",
-		padding: 0, // Removed padding since external glows are gone
-	},
-	card: {
-		borderRadius: 32,
-		borderWidth: 1,
-		borderColor: NeonColors.card.border,
-		overflow: "hidden",
-	},
-	content: {
-		padding: 24,
-	},
-});

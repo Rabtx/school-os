@@ -17,7 +17,7 @@ type Props = {
 };
 
 export function GradeDistributionCard({ grades, insights, className }: Props) {
-	const watchGrade = [...grades].sort((a, b) => b.students - a.students)[0];
+	const watchGrade = grades.toSorted((a, b) => b.students - a.students)[0];
 
 	return (
 		<section

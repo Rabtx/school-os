@@ -361,7 +361,7 @@ export function AttendancePage() {
 		if (isTeacherScoped) {
 			return (sectionStudentsQuery.data ?? [])
 				.map((row) => row.student)
-				.sort((a, b) => a.fullName.localeCompare(b.fullName));
+				.toSorted((a, b) => a.fullName.localeCompare(b.fullName));
 		}
 
 		const students = studentsQuery.data ?? [];
@@ -370,7 +370,7 @@ export function AttendancePage() {
 			.filter((enrollment) => enrollment.status === "active")
 			.map((enrollment) => studentMap.get(enrollment.studentId))
 			.filter((student): student is NonNullable<typeof student> => Boolean(student))
-			.sort((a, b) => a.fullName.localeCompare(b.fullName));
+			.toSorted((a, b) => a.fullName.localeCompare(b.fullName));
 	}, [enrollmentsQuery.data, isTeacherScoped, sectionStudentsQuery.data, studentsQuery.data]);
 
 	const rosterIds = useMemo(() => rosterStudents.map((student) => student.id), [rosterStudents]);

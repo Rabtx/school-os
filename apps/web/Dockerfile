@@ -39,14 +39,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-RUN addgroup -S schoolos && adduser -S schoolos -G schoolos \
+RUN addgroup -S school-os && adduser -S school-os -G school-os \
 	&& apk add --no-cache wget
 
 COPY --from=build /app/apps/web/public ./apps/web/public
-COPY --from=build --chown=schoolos:schoolos /app/apps/web/.next/standalone ./
-COPY --from=build --chown=schoolos:schoolos /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=school-os:school-os /app/apps/web/.next/standalone ./
+COPY --from=build --chown=school-os:school-os /app/apps/web/.next/static ./apps/web/.next/static
 
-USER schoolos
+USER school-os
 
 EXPOSE 3000
 

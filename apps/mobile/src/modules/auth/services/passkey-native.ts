@@ -28,6 +28,6 @@ export async function assertPasskeysAvailable(): Promise<typeof import("react-na
 
 function missingNativeModuleError(): Error {
 	return new Error(
-		"Passkeys need a development build (Expo Go cannot load ReactNativePasskeys). Run: bun --cwd apps/mobile run android",
+		"Passkeys need a development build (Expo Go cannot load ReactNativePasskeys). Run: bun --cwd=apps/mobile run android",
 	);
 }

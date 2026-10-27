@@ -1,5 +1,5 @@
 import { Calendar, Sparkles } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { NeonCard } from "@/components/ui/neon-card";
 import { NeonColors } from "@/constants/design-system";
 
@@ -11,50 +11,46 @@ export function SkincareWidget() {
 	];
 
 	return (
-		<Pressable style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
+		<Pressable className="active:opacity-90">
 			<NeonCard>
-				<View style={styles.header}>
-					<Text style={styles.label}>DAILY ROUTINE</Text>
+				<View className="flex-row justify-between items-center mb-2">
+					<Text className="text-zinc-400 text-xs font-bold tracking-[2px]">DAILY ROUTINE</Text>
 					<Sparkles size={18} color={NeonColors.accent.purple} />
 				</View>
 
-				<View style={styles.statusRow}>
-					<Text style={styles.mainValue}>
-						Morning <Text style={styles.unit}>Set</Text>
+				<View className="flex-row justify-between items-center mb-6">
+					<Text className="text-white text-[32px] font-light">
+						Morning <Text className="text-lg text-zinc-400">Set</Text>
 					</Text>
-					<View style={styles.dateBadge}>
+					<View className="flex-row items-center gap-1.5 bg-zinc-900 px-2.5 py-1 rounded-xl border border-zinc-800/50">
 						<Calendar size={12} color={NeonColors.text.secondary} />
-						<Text style={styles.dateText}>May 7</Text>
+						<Text className="text-zinc-400 text-xs font-semibold">May 7</Text>
 					</View>
 				</View>
 
-				<View style={styles.list}>
+				<View className="gap-4">
 					{routine.map((item) => (
-						<View key={item.name} style={styles.item}>
-							<View style={styles.itemLeft}>
-								<View style={[styles.dot, { backgroundColor: item.color }]} />
+						<View key={item.name} className="flex-row justify-between items-center">
+							<View className="flex-row items-center gap-3">
+								<View className="w-1 h-6 rounded-sm" style={{ backgroundColor: item.color }} />
 								<View>
-									<Text style={styles.itemName}>{item.name}</Text>
-									<Text style={styles.itemTime}>{item.time}</Text>
+									<Text className="text-white text-[15px] font-semibold">{item.name}</Text>
+									<Text className="text-zinc-400 text-xs">{item.time}</Text>
 								</View>
 							</View>
 							<View
-								style={[
-									styles.statusBadge,
-									{
-										backgroundColor:
-											item.status === "Done" ? "rgba(0, 230, 118, 0.15)" : "rgba(255, 109, 0, 0.1)",
-									},
-								]}
+								className="px-2 py-1 rounded-lg"
+								style={{
+									backgroundColor:
+										item.status === "Done" ? "rgba(0, 230, 118, 0.15)" : "rgba(255, 109, 0, 0.1)",
+								}}
 							>
 								<Text
-									style={[
-										styles.statusText,
-										{
-											color:
-												item.status === "Done" ? NeonColors.accent.green : NeonColors.accent.orange,
-										},
-									]}
+									className="text-[11px] font-bold uppercase"
+									style={{
+										color:
+											item.status === "Done" ? NeonColors.accent.green : NeonColors.accent.orange,
+									}}
 								>
 									{item.status}
 								</Text>
@@ -66,84 +62,3 @@ export function SkincareWidget() {
 		</Pressable>
 	);
 }
-
-const styles = StyleSheet.create({
-	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 8,
-	},
-	label: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 2,
-	},
-	statusRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 24,
-	},
-	mainValue: {
-		color: NeonColors.text.primary,
-		fontSize: 32,
-		fontWeight: "300",
-	},
-	unit: {
-		fontSize: 18,
-		color: NeonColors.text.secondary,
-	},
-	dateBadge: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		backgroundColor: NeonColors.surface,
-		paddingHorizontal: 10,
-		paddingVertical: 4,
-		borderRadius: 12,
-	},
-	dateText: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "600",
-	},
-	list: {
-		gap: 16,
-	},
-	item: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	itemLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-	},
-	dot: {
-		width: 3,
-		height: 24,
-		borderRadius: 2,
-	},
-	itemName: {
-		color: NeonColors.text.primary,
-		fontSize: 15,
-		fontWeight: "600",
-	},
-	itemTime: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-	},
-	statusBadge: {
-		paddingHorizontal: 8,
-		paddingVertical: 4,
-		borderRadius: 8,
-	},
-	statusText: {
-		fontSize: 11,
-		fontWeight: "700",
-		textTransform: "uppercase",
-	},
-});

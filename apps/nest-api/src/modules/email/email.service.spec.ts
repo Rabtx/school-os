@@ -1,4 +1,3 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AppConfigService } from '@/config/app-config.service';
@@ -45,7 +44,7 @@ describe('EmailService', () => {
 
 		await expect(
 			service.sendPasswordResetCode('person@example.com', '123456'),
-		).rejects.toMatchObject<ServiceUnavailableException>({
+		).rejects.toMatchObject({
 			response: {
 				code: 'EMAIL_DELIVERY_FAILED',
 				message: 'The email sender is not authorized. Verify the AUTH_EMAIL_FROM domain in Resend.',

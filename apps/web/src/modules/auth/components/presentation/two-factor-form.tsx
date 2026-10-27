@@ -28,7 +28,6 @@ export function TwoFactorForm({
 						autoComplete="one-time-code"
 						placeholder="123456 or recovery code"
 						required
-						autoFocus
 					/>
 					<FieldDescription>
 						Enter the code from your authenticator or a recovery code.

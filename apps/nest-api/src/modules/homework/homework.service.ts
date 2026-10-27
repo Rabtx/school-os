@@ -227,6 +227,7 @@ export class HomeworkService {
 		for (const row of rows) {
 			if (row.assignment.status === 'draft') continue;
 			if (statusFilter && row.assignment.status !== statusFilter) continue;
+			// oxlint-disable-next-line no-await-in-loop -- known N+1 (audit S-21); fixed with the permission work
 			if (await this.homeworkAppliesToStudents(tenantId, row, studentIds)) {
 				visible.push(row);
 			}

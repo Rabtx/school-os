@@ -9,7 +9,4 @@ export type {
 	SessionInfo,
 	VerifyEmailInput as VerifyEmailRequest,
 } from "@/modules/auth/types";
-export type {
-	UpdateUserProfileInput as UpdateProfileRequest,
-	User,
-} from "@/modules/users/types";
+export type { UpdateUserProfileInput as UpdateProfileRequest, User } from "@/modules/users/types";

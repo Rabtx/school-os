@@ -5,7 +5,6 @@ import {
 	Modal,
 	Platform,
 	Pressable,
-	StyleSheet,
 	Text,
 	TextInput,
 	View,
@@ -46,41 +45,42 @@ export function AddEntryModal({
 		<Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
 			<KeyboardAvoidingView
 				behavior={Platform.OS === "ios" ? "padding" : "height"}
-				style={styles.centeredView}
+				className="flex-1 justify-end bg-black/60"
 			>
-				<View style={styles.modalView}>
-					<View style={styles.header}>
-						<Text style={[styles.modalTitle, { color }]}>{titleLabel}</Text>
-						<Pressable onPress={onClose} style={styles.closeButton}>
+				<View className="bg-zinc-900 rounded-t-[32px] p-6 pb-12 border-t border-l border-r border-zinc-800 shadow-2xl">
+					<View className="flex-row justify-between items-center mb-6">
+						<Text className="text-xl font-semibold" style={{ color }}>
+							{titleLabel}
+						</Text>
+						<Pressable onPress={onClose} className="p-1">
 							<X size={24} color={NeonColors.text.secondary} />
 						</Pressable>
 					</View>
 
-					<View style={styles.form}>
+					<View className="gap-4">
 						<TextInput
-							style={styles.input}
+							className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-white text-base"
 							placeholder="Title (e.g., Avocado Toast)"
 							placeholderTextColor={NeonColors.text.muted}
 							value={title}
 							onChangeText={setTitle}
-							autoFocus
 						/>
 						<TextInput
-							style={styles.input}
+							className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-white text-base"
 							placeholder="Subtitle (e.g., Breakfast)"
 							placeholderTextColor={NeonColors.text.muted}
 							value={subtitle}
 							onChangeText={setSubtitle}
 						/>
 						<TextInput
-							style={styles.input}
+							className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-white text-base"
 							placeholder="Value (e.g., 450 kcal)"
 							placeholderTextColor={NeonColors.text.muted}
 							value={value}
 							onChangeText={setValue}
 						/>
 						<TextInput
-							style={styles.input}
+							className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-white text-base"
 							placeholder="Secondary Info (e.g., 35g Protein)"
 							placeholderTextColor={NeonColors.text.muted}
 							value={delta}
@@ -88,14 +88,11 @@ export function AddEntryModal({
 						/>
 
 						<Pressable
-							style={({ pressed }) => [
-								styles.saveButton,
-								{ backgroundColor: color },
-								pressed && { opacity: 0.8 },
-							]}
+							className="rounded-xl p-4 items-center mt-2 active:opacity-80"
+							style={{ backgroundColor: color }}
 							onPress={handleSave}
 						>
-							<Text style={styles.saveButtonText}>Save Entry</Text>
+							<Text className="text-zinc-950 text-base font-bold">Save Entry</Text>
 						</Pressable>
 					</View>
 				</View>
@@ -103,63 +100,3 @@ export function AddEntryModal({
 		</Modal>
 	);
 }
-
-const styles = StyleSheet.create({
-	centeredView: {
-		flex: 1,
-		justifyContent: "flex-end",
-		backgroundColor: "rgba(0,0,0,0.6)",
-	},
-	modalView: {
-		backgroundColor: NeonColors.surface,
-		borderTopLeftRadius: 32,
-		borderTopRightRadius: 32,
-		padding: 24,
-		paddingBottom: 48,
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: -10 },
-		shadowOpacity: 0.3,
-		shadowRadius: 20,
-		elevation: 5,
-		borderTopWidth: 1,
-		borderLeftWidth: 1,
-		borderRightWidth: 1,
-		borderColor: "rgba(255,255,255,0.05)",
-	},
-	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 24,
-	},
-	modalTitle: {
-		fontSize: 20,
-		fontWeight: "600",
-	},
-	closeButton: {
-		padding: 4,
-	},
-	form: {
-		gap: 16,
-	},
-	input: {
-		backgroundColor: "rgba(255,255,255,0.03)",
-		borderWidth: 1,
-		borderColor: "rgba(255,255,255,0.1)",
-		borderRadius: 12,
-		padding: 16,
-		color: NeonColors.text.primary,
-		fontSize: 16,
-	},
-	saveButton: {
-		borderRadius: 12,
-		padding: 16,
-		alignItems: "center",
-		marginTop: 8,
-	},
-	saveButtonText: {
-		color: NeonColors.background,
-		fontSize: 16,
-		fontWeight: "700",
-	},
-});

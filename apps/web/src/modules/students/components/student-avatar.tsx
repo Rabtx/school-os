@@ -19,10 +19,10 @@ const sizeClasses = {
 export function StudentAvatar({ student, size = "md", className }: Props) {
 	if (student.photoUrl) {
 		return (
-			// biome-ignore lint/a11y/useAltText: portrait with adjacent name in UI
-			// biome-ignore lint/performance/noImgElement: tenant-hosted photo URLs are dynamic
+			// oxlint-disable-next-line nextjs/no-img-element -- tenant-hosted photo URLs are dynamic
 			<img
 				src={student.photoUrl}
+				alt=""
 				className={cn(
 					"inline-flex shrink-0 object-cover ring-1 ring-border",
 					sizeClasses[size],

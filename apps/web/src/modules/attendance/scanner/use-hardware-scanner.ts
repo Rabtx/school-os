@@ -23,7 +23,9 @@ export function useHardwareScanner({ active, onDecode }: UseHardwareScannerOptio
 	const bufferRef = useRef("");
 	const lastKeyTimeRef = useRef(0);
 	const onDecodeRef = useRef(onDecode);
-	onDecodeRef.current = onDecode;
+	useEffect(() => {
+		onDecodeRef.current = onDecode;
+	}, [onDecode]);
 
 	useEffect(() => {
 		if (!active) return;

@@ -129,7 +129,7 @@ export function AcademicSectionsPage() {
 				header: "Section",
 				sortable: true,
 				sortValue: (row) => row.name,
-				cell: (section) => (
+				renderCell: (section) => (
 					<span className="font-medium">
 						{formatSectionLabel(
 							section,
@@ -144,7 +144,7 @@ export function AcademicSectionsPage() {
 				header: "Year",
 				sortable: true,
 				sortValue: (row) => yearNameById.get(row.academicYearId) ?? "",
-				cell: (section) => (
+				renderCell: (section) => (
 					<span className="text-dashboard-text-secondary">
 						{yearNameById.get(section.academicYearId) ?? section.academicYearId}
 					</span>
@@ -155,7 +155,7 @@ export function AcademicSectionsPage() {
 				header: "Grade",
 				sortable: true,
 				sortValue: (row) => classNameById.get(row.classId) ?? "",
-				cell: (section) => (
+				renderCell: (section) => (
 					<span className="text-dashboard-text-secondary">
 						{classNameById.get(section.classId) ?? "Unknown grade"}
 					</span>
@@ -164,7 +164,7 @@ export function AcademicSectionsPage() {
 			{
 				id: "homeroom",
 				header: "Homeroom",
-				cell: (section) => (
+				renderCell: (section) => (
 					<span className="text-dashboard-text-secondary">
 						{section.homeroomTeacherMembershipId
 							? (teacherNameById.get(section.homeroomTeacherMembershipId) ?? "Assigned")
@@ -177,7 +177,7 @@ export function AcademicSectionsPage() {
 				header: "Status",
 				sortable: true,
 				sortValue: (row) => row.status,
-				cell: (section) => (
+				renderCell: (section) => (
 					<Badge variant="outline" className="capitalize">
 						{section.status}
 					</Badge>
@@ -188,7 +188,7 @@ export function AcademicSectionsPage() {
 				header: <span className="sr-only">Actions</span>,
 				headerClassName: "text-right",
 				className: "text-right",
-				cell: (section) =>
+				renderCell: (section) =>
 					canWrite ? (
 						<div className="flex justify-end gap-1">
 							<Button

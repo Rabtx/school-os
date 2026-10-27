@@ -18,7 +18,7 @@ import type { DataTableSortDirection, DataTableSortState } from "./use-client-da
 export type DataTableColumn<T> = {
 	id: string;
 	header: React.ReactNode;
-	cell: (row: T) => React.ReactNode;
+	renderCell: (row: T) => React.ReactNode;
 	className?: string;
 	headerClassName?: string;
 	sortable?: boolean;
@@ -148,7 +148,7 @@ export function DataTable<T>({
 												key={column.id}
 												className={cn("text-foreground", column.className)}
 											>
-												{column.cell(row)}
+												{column.renderCell(row)}
 											</TableCell>
 										))}
 									</TableRow>
@@ -197,7 +197,7 @@ export function defaultSortFn<T>(
 	const column = columns.find((item) => item.id === sort.id);
 	if (!column?.sortValue) return rows;
 
-	return [...rows].sort((left, right) => {
+	return rows.toSorted((left, right) => {
 		const leftValue = column.sortValue?.(left);
 		const rightValue = column.sortValue?.(right);
 		if (leftValue == null && rightValue == null) return 0;

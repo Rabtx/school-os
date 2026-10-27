@@ -91,7 +91,11 @@ export function PixelGridChart({ months, highlightMonth, className }: Props) {
 	}, [months]);
 
 	const maxTotal = Math.max(...months.map((month) => month.total), 1);
-	const yTicks = [0, 0.2, 0.4, 0.6, 0.8, 1].map((level) => Math.round(maxTotal * level));
+	// Keyed by level: small totals round several levels to the same value.
+	const yTicks = [0, 0.2, 0.4, 0.6, 0.8, 1].map((level) => ({
+		level,
+		value: Math.round(maxTotal * level),
+	}));
 
 	const tip = monthTotals.get(activeMonth);
 	const COLS = cols.length;
@@ -110,9 +114,9 @@ export function PixelGridChart({ months, highlightMonth, className }: Props) {
 			<div className="flex">
 				<div className="flex w-[68px] shrink-0 flex-col-reverse justify-between py-1">
 					{yTicks.map((tick) => (
-						<div key={tick} className="flex items-center gap-1.5 leading-none">
+						<div key={tick.level} className="flex items-center gap-1.5 leading-none">
 							<span className="w-7 text-end font-medium text-[10.5px] text-dashboard-text-muted">
-								{tick}
+								{tick.value}
 							</span>
 							<span
 								aria-hidden
@@ -180,7 +184,6 @@ export function PixelGridChart({ months, highlightMonth, className }: Props) {
 						})}
 
 						{cols.map((col) => (
-							// biome-ignore lint/a11y/noStaticElementInteractions: invisible hit area
 							<rect
 								key={`hit-${col.idx}`}
 								x={PAD_X + col.idx * STEP - GAP / 2}

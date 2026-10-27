@@ -15,7 +15,7 @@ function createContext(request: Partial<TenantScopedRequest>): ExecutionContext 
 		}),
 		getHandler: () => vi.fn(),
 		getClass: () => vi.fn(),
-	} as ExecutionContext;
+	} as unknown as ExecutionContext;
 }
 
 describe('PermissionsGuard', () => {
@@ -39,6 +39,7 @@ describe('PermissionsGuard', () => {
 						membershipId: 'membership-1',
 						userId: 'user-1',
 						role: 'teacher',
+						roles: ['teacher'],
 						campusId: null,
 						permissions: [],
 					},
@@ -83,8 +84,9 @@ describe('PermissionsGuard', () => {
 						membershipId: 'membership-1',
 						userId: 'user-1',
 						role: 'owner',
+						roles: ['owner'],
 						campusId: null,
-						permissions: [],
+						permissions: [PermissionCodes.TENANT_CAMPUS_CREATE],
 					},
 				}),
 			),
@@ -105,6 +107,7 @@ describe('PermissionsGuard', () => {
 						membershipId: 'membership-1',
 						userId: 'user-1',
 						role: 'teacher',
+						roles: ['teacher'],
 						campusId: null,
 						permissions: [],
 					},

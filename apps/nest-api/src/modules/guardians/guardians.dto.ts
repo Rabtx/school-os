@@ -42,6 +42,7 @@ export const updateGuardianSchema = guardianBaseSchema
 	.strict()
 	.refine((value) => Object.keys(value).length > 0, { message: 'At least one field is required' });
 
+// oxlint-disable-next-line typescript/no-extraneous-class -- the static Zod schema is what the validation pipe reads
 export class UpdateGuardianDto {
 	static schema = updateGuardianSchema;
 }

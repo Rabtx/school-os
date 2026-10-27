@@ -161,14 +161,14 @@ export function GuardiansPage() {
 				header: "Name",
 				sortable: true,
 				sortValue: (row) => row.fullName,
-				cell: (guardian) => <span className="font-medium">{guardian.fullName}</span>,
+				renderCell: (guardian) => <span className="font-medium">{guardian.fullName}</span>,
 			},
 			{
 				id: "phone",
 				header: "Phone",
 				sortable: true,
 				sortValue: (row) => row.phone ?? "",
-				cell: (guardian) => (
+				renderCell: (guardian) => (
 					<span className="text-dashboard-text-secondary">{guardian.phone ?? "—"}</span>
 				),
 			},
@@ -177,14 +177,14 @@ export function GuardiansPage() {
 				header: "Email",
 				sortable: true,
 				sortValue: (row) => row.email ?? "",
-				cell: (guardian) => (
+				renderCell: (guardian) => (
 					<span className="text-dashboard-text-secondary">{guardian.email ?? "—"}</span>
 				),
 			},
 			{
 				id: "portal",
 				header: "Portal",
-				cell: (guardian) =>
+				renderCell: (guardian) =>
 					guardian.membershipId ? (
 						<Badge variant="outline">Linked account</Badge>
 					) : (
@@ -196,7 +196,7 @@ export function GuardiansPage() {
 				header: <span className="sr-only">Actions</span>,
 				headerClassName: "text-right",
 				className: "text-right",
-				cell: (guardian) =>
+				renderCell: (guardian) =>
 					canWrite ? (
 						<Button
 							type="button"

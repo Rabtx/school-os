@@ -70,7 +70,7 @@ export function AcademicGradesPage() {
 				header: "Name",
 				sortable: true,
 				sortValue: (row) => row.name,
-				cell: (item) => <span className="font-medium">{item.name}</span>,
+				renderCell: (item) => <span className="font-medium">{item.name}</span>,
 			},
 			{
 				id: "sortOrder",
@@ -78,14 +78,16 @@ export function AcademicGradesPage() {
 				sortable: true,
 				sortValue: (row) => row.sortOrder,
 				className: "tabular-nums",
-				cell: (item) => <span className="text-dashboard-text-secondary">{item.sortOrder}</span>,
+				renderCell: (item) => (
+					<span className="text-dashboard-text-secondary">{item.sortOrder}</span>
+				),
 			},
 			{
 				id: "actions",
 				header: <span className="sr-only">Actions</span>,
 				headerClassName: "text-right",
 				className: "text-right",
-				cell: (item) =>
+				renderCell: (item) =>
 					canWrite ? (
 						<div className="flex justify-end gap-1">
 							<Button

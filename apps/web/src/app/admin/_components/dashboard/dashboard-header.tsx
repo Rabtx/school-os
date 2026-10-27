@@ -9,6 +9,7 @@ import { useSessionStore } from "@/store";
 import { DatePill } from "./date-pill";
 import { ExportButton } from "./export-button";
 import { PeriodSelect } from "./period-select";
+import { useNow } from "@/lib/use-now";
 
 type Props = {
 	name?: string;
@@ -19,10 +20,12 @@ type Props = {
 	onExport?: () => void;
 };
 
+const NO_CAMPUSES: Campus[] = [];
+
 export function DashboardHeader({
 	name,
 	tenantName,
-	campuses = [],
+	campuses = NO_CAMPUSES,
 	insights,
 	className,
 	onExport,
@@ -30,12 +33,13 @@ export function DashboardHeader({
 	const user = useSessionStore((state) => state.user);
 	const { t, intlLocale } = useDashboardI18n();
 	const greetingName = name ?? (user ? userFirstName(user.username) : "there");
-	const today = new Date().toLocaleDateString(intlLocale, {
+	const now = useNow();
+	const today = now.toLocaleDateString(intlLocale, {
 		weekday: "short",
 		month: "short",
 		day: "numeric",
 	});
-	const todayLong = new Date().toLocaleDateString(intlLocale, {
+	const todayLong = now.toLocaleDateString(intlLocale, {
 		weekday: "long",
 		month: "long",
 		day: "numeric",

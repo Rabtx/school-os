@@ -31,6 +31,7 @@ describe('CampusesService', () => {
 	};
 	let membershipsRepository: {
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
+		listRolesForMembership: ReturnType<typeof vi.fn>;
 	};
 
 	beforeEach(() => {
@@ -43,6 +44,7 @@ describe('CampusesService', () => {
 		};
 		membershipsRepository = {
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 		};
 
 		service = new CampusesService(
