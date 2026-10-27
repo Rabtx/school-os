@@ -1,117 +1,41 @@
 import { CheckCircle2, Clock, Target } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { NeonCard } from "@/components/ui/neon-card";
 import { NeonColors } from "@/constants/design-system";
 
 export function FocusWidget() {
 	return (
-		<Pressable style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
+		<Pressable className="active:opacity-90">
 			<NeonCard accentColor={NeonColors.accent.pink}>
-				<View style={styles.header}>
-					<View style={styles.headerLeft}>
+				<View className="flex-row justify-between items-center mb-5">
+					<View className="flex-row items-center gap-2">
 						<Target size={20} color={NeonColors.accent.pink} />
-						<Text style={styles.title}>Deep Work</Text>
+						<Text className="text-white text-lg font-semibold">Deep Work</Text>
 					</View>
-					<Text style={styles.subtitle}>Pomodoro</Text>
+					<Text className="text-zinc-400 text-sm">Pomodoro</Text>
 				</View>
 
-				<View style={styles.timerContainer}>
-					<View style={styles.timerCircle}>
-						<Text style={styles.timerText}>25:00</Text>
-						<Text style={styles.timerLabel}>Focus Time</Text>
+				<View className="items-center my-4">
+					<View className="w-[140px] h-[140px] rounded-full border-4 border-pink-500 items-center justify-center bg-pink-500/5">
+						<Text className="text-white text-[32px] font-bold">25:00</Text>
+						<Text className="text-pink-500 text-xs mt-1 font-semibold">Focus Time</Text>
 					</View>
 				</View>
 
-				<View style={styles.statsContainer}>
-					<View style={styles.statItem}>
+				<View className="flex-row justify-around items-center mt-4 pt-4 border-t border-zinc-800/60">
+					<View className="items-center gap-1">
 						<Clock size={16} color={NeonColors.text.secondary} />
-						<Text style={styles.statValue}>2.5h</Text>
-						<Text style={styles.statLabel}>Today</Text>
+						<Text className="text-white text-base font-semibold">2.5h</Text>
+						<Text className="text-zinc-400 text-xs">Today</Text>
 					</View>
-					<View style={styles.divider} />
-					<View style={styles.statItem}>
+					<View className="w-[1px] h-6 bg-zinc-800" />
+					<View className="items-center gap-1">
 						<CheckCircle2 size={16} color={NeonColors.text.secondary} />
-						<Text style={styles.statValue}>4</Text>
-						<Text style={styles.statLabel}>Sessions</Text>
+						<Text className="text-white text-base font-semibold">4</Text>
+						<Text className="text-zinc-400 text-xs">Sessions</Text>
 					</View>
 				</View>
 			</NeonCard>
 		</Pressable>
 	);
 }
-
-const styles = StyleSheet.create({
-	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 20,
-	},
-	headerLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	title: {
-		color: NeonColors.text.primary,
-		fontSize: 18,
-		fontWeight: "600",
-	},
-	subtitle: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-	},
-	timerContainer: {
-		alignItems: "center",
-		marginVertical: 16,
-	},
-	timerCircle: {
-		width: 140,
-		height: 140,
-		borderRadius: 70,
-		borderWidth: 4,
-		borderColor: NeonColors.accent.pink,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: "rgba(255,0,127,0.05)",
-	},
-	timerText: {
-		color: NeonColors.text.primary,
-		fontSize: 32,
-		fontWeight: "700",
-		fontVariant: ["tabular-nums"],
-	},
-	timerLabel: {
-		color: NeonColors.accent.pink,
-		fontSize: 12,
-		marginTop: 4,
-		fontWeight: "600",
-	},
-	statsContainer: {
-		flexDirection: "row",
-		justifyContent: "space-around",
-		alignItems: "center",
-		marginTop: 16,
-		paddingTop: 16,
-		borderTopWidth: 1,
-		borderTopColor: "rgba(255, 255, 255, 0.05)",
-	},
-	statItem: {
-		alignItems: "center",
-		gap: 4,
-	},
-	statValue: {
-		color: NeonColors.text.primary,
-		fontSize: 16,
-		fontWeight: "600",
-	},
-	statLabel: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-	},
-	divider: {
-		width: 1,
-		height: 24,
-		backgroundColor: "rgba(255, 255, 255, 0.1)",
-	},
-});

@@ -1,6 +1,6 @@
 import { Calendar, CheckCircle2, LogOut, Mail, ShieldOff, UserRound } from "lucide-react-native";
 import { useEffect } from "react";
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NeonCard } from "@/components/ui/neon-card";
 import { OSHeader } from "@/components/ui/os-header";
@@ -57,37 +57,57 @@ export function ProfileScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
-			<SafeAreaView edges={["top"]} style={styles.safeArea}>
+		<View className="flex-1 bg-zinc-950">
+			<SafeAreaView edges={["top"]} className="flex-1">
 				<OSHeader />
 				<ScrollView
 					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.scrollContent}
+					contentContainerClassName="pb-12"
 					keyboardShouldPersistTaps="handled"
 				>
-					<View style={styles.viewContainer}>
-						<View style={styles.viewHeader}>
-							<Text style={styles.eyebrow}>ACCOUNT</Text>
-							<Text style={styles.viewTitle}>Profile</Text>
-							<Text style={styles.viewSubtitle}>
+					<View className="px-4 pt-2 gap-6">
+						<View className="gap-1">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px]">ACCOUNT</Text>
+							<Text className="text-white text-[32px] font-light">Profile</Text>
+							<Text className="text-zinc-400 text-sm mt-1 leading-5">
 								Control how your identity appears across your personal OS.
 							</Text>
 						</View>
 
 						<AccountTabs active="profile" />
 
-						<NeonCard style={styles.heroCard}>
-							<View style={styles.hero}>
-								<View style={styles.avatarWrap}>
-									<Image source={{ uri: avatarUri }} style={styles.avatar} />
-									<View style={styles.onlineDot} />
+						<NeonCard className="mt-0">
+							<View className="items-center gap-2">
+								<View className="relative mb-2">
+									<Image
+										source={{ uri: avatarUri }}
+										style={{
+											width: 88,
+											height: 88,
+											borderRadius: 44,
+											backgroundColor: "#18181b",
+											borderWidth: 2,
+											borderColor: "rgba(255,255,255,0.08)",
+										}}
+									/>
+									<View className="absolute right-1 bottom-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-zinc-950" />
 								</View>
-								<Text style={styles.displayName}>{displayName}</Text>
-								<Text style={styles.handle}>@{user.username}</Text>
-								{user.profile?.bio ? <Text style={styles.bio}>{user.profile.bio}</Text> : null}
-								<View style={styles.badgeRow}>
+								<Text className="text-white text-2xl font-light">{displayName}</Text>
+								<Text className="text-emerald-400 text-sm font-semibold tracking-wide">
+									@{user.username}
+								</Text>
+								{user.profile?.bio ? (
+									<Text className="text-zinc-400 text-sm leading-5 text-center mt-1 px-2">
+										{user.profile.bio}
+									</Text>
+								) : null}
+								<View className="flex-row flex-wrap justify-center gap-2 mt-3">
 									<View
-										style={[styles.badge, user.emailVerified ? styles.badgeOk : styles.badgeWarn]}
+										className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border ${
+											user.emailVerified
+												? "border-emerald-500/35 bg-emerald-500/10"
+												: "border-orange-500/35 bg-orange-500/10"
+										}`}
 									>
 										{user.emailVerified ? (
 											<CheckCircle2 size={12} color={NeonColors.accent.green} strokeWidth={2.5} />
@@ -95,33 +115,38 @@ export function ProfileScreen() {
 											<Mail size={12} color={NeonColors.accent.orange} strokeWidth={2} />
 										)}
 										<Text
-											style={[
-												styles.badgeText,
-												user.emailVerified ? styles.badgeOkText : styles.badgeWarnText,
-											]}
+											className={`text-xs font-semibold ${
+												user.emailVerified ? "text-emerald-400" : "text-orange-400"
+											}`}
 										>
 											{user.emailVerified ? "Email verified" : "Verify email"}
 										</Text>
 									</View>
-									<View style={styles.badge}>
+									<View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border border-zinc-800 bg-zinc-900/40">
 										<UserRound size={12} color={NeonColors.text.secondary} strokeWidth={2} />
-										<Text style={styles.badgeText}>{user.isActive ? "Active" : "Inactive"}</Text>
+										<Text className="text-zinc-400 text-xs font-semibold">
+											{user.isActive ? "Active" : "Inactive"}
+										</Text>
 									</View>
 								</View>
 							</View>
 						</NeonCard>
 
-						<View style={styles.section}>
-							<Text style={styles.sectionLabel}>PUBLIC PROFILE</Text>
+						<View className="gap-3">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] px-1">
+								PUBLIC PROFILE
+							</Text>
 							<NeonCard>
 								<ProfileForm user={user} />
 							</NeonCard>
 						</View>
 
-						<View style={styles.section}>
-							<Text style={styles.sectionLabel}>ACCOUNT IDENTITY</Text>
+						<View className="gap-3">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] px-1">
+								ACCOUNT IDENTITY
+							</Text>
 							<NeonCard>
-								<View style={styles.identityList}>
+								<View className="gap-1">
 									<IdentityRow icon={Mail} label="Email" value={user.email} />
 									<IdentityRow
 										icon={CheckCircle2}
@@ -134,18 +159,21 @@ export function ProfileScreen() {
 							</NeonCard>
 						</View>
 
-						<View style={styles.section}>
-							<Text style={styles.sectionLabel}>SESSION</Text>
+						<View className="gap-3">
+							<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] px-1">SESSION</Text>
 							<NeonCard>
-								<View style={styles.sessionActions}>
+								<View className="gap-3">
 									<AuthButton label="Sign out" variant="outline" onPress={confirmLogout} />
-									<Pressable style={styles.logoutAll} onPress={confirmLogoutAll}>
+									<Pressable
+										className="flex-row items-center justify-center gap-2 min-h-[48px] rounded-xl border border-red-500/35 bg-red-500/10 active:opacity-80"
+										onPress={confirmLogoutAll}
+									>
 										<ShieldOff size={16} color={NeonColors.accent.red} strokeWidth={1.8} />
-										<Text style={styles.logoutAllText}>Sign out everywhere</Text>
+										<Text className="text-red-500 text-[15px] font-bold">Sign out everywhere</Text>
 									</Pressable>
-									<View style={styles.logoutHint}>
+									<View className="flex-row items-center justify-center gap-1.5 pt-1">
 										<LogOut size={14} color={NeonColors.text.muted} strokeWidth={1.8} />
-										<Text style={styles.logoutHintText}>
+										<Text className="text-zinc-500 text-xs">
 											Sign out ends only this device session
 										</Text>
 									</View>
@@ -173,219 +201,23 @@ function IdentityRow({
 	last?: boolean;
 }) {
 	return (
-		<View style={[styles.identityRow, last && styles.identityRowLast]}>
-			<View style={styles.identityIcon}>
+		<View
+			className={`flex-row items-center gap-3 py-3 ${last ? "" : "border-b border-zinc-800/60"}`}
+		>
+			<View className="w-9 h-9 rounded-xl items-center justify-center bg-zinc-900/40 border border-zinc-800">
 				<Icon size={16} color={accent ?? NeonColors.text.secondary} strokeWidth={1.8} />
 			</View>
-			<View style={styles.identityCopy}>
-				<Text style={styles.identityLabel}>{label}</Text>
-				<Text style={[styles.identityValue, accent ? { color: accent } : null]}>{value}</Text>
+			<View className="flex-1 gap-0.5">
+				<Text className="text-zinc-500 text-xs font-semibold tracking-wider uppercase">
+					{label}
+				</Text>
+				<Text
+					className="text-white text-sm font-medium"
+					style={accent ? { color: accent } : undefined}
+				>
+					{value}
+				</Text>
 			</View>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: NeonColors.background,
-	},
-	safeArea: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingBottom: 48,
-	},
-	viewContainer: {
-		paddingHorizontal: 16,
-		paddingTop: 8,
-		gap: 24,
-	},
-	viewHeader: {
-		gap: 4,
-	},
-	eyebrow: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 1.5,
-	},
-	viewTitle: {
-		color: NeonColors.text.primary,
-		fontSize: 32,
-		fontWeight: "300",
-	},
-	viewSubtitle: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-		marginTop: 4,
-		lineHeight: 20,
-	},
-	heroCard: {
-		marginTop: 0,
-	},
-	hero: {
-		alignItems: "center",
-		gap: 8,
-	},
-	avatarWrap: {
-		position: "relative",
-		marginBottom: 8,
-	},
-	avatar: {
-		width: 88,
-		height: 88,
-		borderRadius: 44,
-		backgroundColor: NeonColors.surface,
-		borderWidth: 2,
-		borderColor: "rgba(255,255,255,0.08)",
-	},
-	onlineDot: {
-		position: "absolute",
-		right: 4,
-		bottom: 4,
-		width: 16,
-		height: 16,
-		borderRadius: 8,
-		backgroundColor: NeonColors.accent.green,
-		borderWidth: 3,
-		borderColor: NeonColors.background,
-	},
-	displayName: {
-		color: NeonColors.text.primary,
-		fontSize: 24,
-		fontWeight: "300",
-	},
-	handle: {
-		color: NeonColors.accent.green,
-		fontSize: 14,
-		fontWeight: "600",
-		letterSpacing: 0.3,
-	},
-	bio: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-		lineHeight: 20,
-		textAlign: "center",
-		marginTop: 4,
-		paddingHorizontal: 8,
-	},
-	badgeRow: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		justifyContent: "center",
-		gap: 8,
-		marginTop: 12,
-	},
-	badge: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		paddingHorizontal: 12,
-		paddingVertical: 6,
-		borderRadius: 20,
-		backgroundColor: "rgba(255,255,255,0.04)",
-		borderWidth: 1,
-		borderColor: NeonColors.card.border,
-	},
-	badgeOk: {
-		borderColor: "rgba(0, 230, 118, 0.35)",
-		backgroundColor: "rgba(0, 230, 118, 0.08)",
-	},
-	badgeWarn: {
-		borderColor: "rgba(255, 109, 0, 0.35)",
-		backgroundColor: "rgba(255, 109, 0, 0.08)",
-	},
-	badgeText: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "600",
-	},
-	badgeOkText: {
-		color: NeonColors.accent.green,
-	},
-	badgeWarnText: {
-		color: NeonColors.accent.orange,
-	},
-	section: {
-		gap: 12,
-	},
-	sectionLabel: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 1.5,
-		paddingHorizontal: 4,
-	},
-	identityList: {
-		gap: 4,
-	},
-	identityRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-		paddingVertical: 12,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: "rgba(255,255,255,0.06)",
-	},
-	identityRowLast: {
-		borderBottomWidth: 0,
-		paddingBottom: 0,
-	},
-	identityIcon: {
-		width: 36,
-		height: 36,
-		borderRadius: 12,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: "rgba(255,255,255,0.04)",
-		borderWidth: 1,
-		borderColor: NeonColors.card.border,
-	},
-	identityCopy: {
-		flex: 1,
-		gap: 2,
-	},
-	identityLabel: {
-		color: NeonColors.text.muted,
-		fontSize: 12,
-		fontWeight: "600",
-		letterSpacing: 0.4,
-		textTransform: "uppercase",
-	},
-	identityValue: {
-		color: NeonColors.text.primary,
-		fontSize: 14,
-		fontWeight: "500",
-	},
-	sessionActions: {
-		gap: 12,
-	},
-	logoutAll: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 8,
-		minHeight: 48,
-		borderRadius: 14,
-		borderWidth: 1,
-		borderColor: "rgba(255, 23, 68, 0.35)",
-		backgroundColor: "rgba(255, 23, 68, 0.08)",
-	},
-	logoutAllText: {
-		color: NeonColors.accent.red,
-		fontSize: 15,
-		fontWeight: "700",
-	},
-	logoutHint: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
-		gap: 6,
-		paddingTop: 4,
-	},
-	logoutHintText: {
-		color: NeonColors.text.muted,
-		fontSize: 12,
-	},
-});

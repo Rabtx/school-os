@@ -1,5 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { Text, View } from "react-native";
 
 interface AuthAlertProps {
 	title?: string;
@@ -10,41 +9,19 @@ interface AuthAlertProps {
 export function AuthAlert({ title, message, variant = "info" }: AuthAlertProps) {
 	const destructive = variant === "destructive";
 	return (
-		<View style={[styles.box, destructive ? styles.destructive : styles.info]}>
+		<View
+			className={`rounded-xl border p-3 gap-1 ${destructive ? "border-red-500/40 bg-red-500/10" : "border-teal-500/35 bg-teal-500/10"}`}
+		>
 			{title ? (
-				<Text style={[styles.title, destructive && styles.destructiveText]}>{title}</Text>
+				<Text className={`font-bold text-sm ${destructive ? "text-red-400" : "text-zinc-100"}`}>
+					{title}
+				</Text>
 			) : null}
-			<Text style={[styles.message, destructive && styles.destructiveText]}>{message}</Text>
+			<Text
+				className={`text-[13px] leading-relaxed ${destructive ? "text-red-400" : "text-zinc-400"}`}
+			>
+				{message}
+			</Text>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	box: {
-		borderRadius: 12,
-		borderWidth: 1,
-		padding: 12,
-		gap: 4,
-	},
-	info: {
-		borderColor: "rgba(0, 230, 118, 0.35)",
-		backgroundColor: "rgba(0, 230, 118, 0.08)",
-	},
-	destructive: {
-		borderColor: "rgba(255, 23, 68, 0.4)",
-		backgroundColor: "rgba(255, 23, 68, 0.1)",
-	},
-	title: {
-		color: NeonColors.text.primary,
-		fontWeight: "700",
-		fontSize: 14,
-	},
-	message: {
-		color: NeonColors.text.secondary,
-		fontSize: 13,
-		lineHeight: 18,
-	},
-	destructiveText: {
-		color: "#FF8A9A",
-	},
-});

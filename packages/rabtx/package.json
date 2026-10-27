@@ -1,0 +1,48 @@
+{
+	"name": "@rabtx/ui",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"sideEffects": [
+		"**/*.css"
+	],
+	"exports": {
+		"./badge": "./src/badge/index.ts",
+		"./badge/styles": "./src/badge/badge.styles.ts",
+		"./button": "./src/button/index.ts",
+		"./button/styles": "./src/button/button.styles.ts",
+		"./card": "./src/card/index.ts",
+		"./card/styles": "./src/card/card.styles.ts",
+		"./checkbox": "./src/checkbox/index.ts",
+		"./checkbox/styles": "./src/checkbox/checkbox.styles.ts",
+		"./field": "./src/field/index.ts",
+		"./field/styles": "./src/field/field.styles.ts",
+		"./input": "./src/input/index.ts",
+		"./input/styles": "./src/input/input.styles.ts",
+		"./motion": "./src/motion/index.ts",
+		"./select": "./src/select/index.ts",
+		"./select/styles": "./src/select/select.styles.ts",
+		"./styles.css": "./src/styles/index.css",
+		"./textarea": "./src/textarea/index.ts",
+		"./textarea/styles": "./src/textarea/textarea.styles.ts"
+	},
+	"scripts": {
+		"springs": "bun scripts/generate-springs.ts",
+		"lint": "oxlint",
+		"lint:fix": "oxlint --fix",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"devDependencies": {
+		"@school-os/typescript-config": "workspace:*",
+		"@types/node": "^26.6.3",
+		"@types/react": "^19.3.0",
+		"react": "^19.3.0",
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.3"
+	},
+	"peerDependencies": {
+		"react": ">=19"
+	}
+}

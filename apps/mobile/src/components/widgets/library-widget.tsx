@@ -1,150 +1,50 @@
 import { BookMarked, Bookmark, BookOpen } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { NeonCard } from "@/components/ui/neon-card";
 import { NeonColors } from "@/constants/design-system";
 
 export function LibraryWidget() {
 	return (
-		<Pressable style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
+		<Pressable className="active:opacity-90">
 			<NeonCard accentColor={NeonColors.accent.teal}>
-				<View style={styles.header}>
-					<View style={styles.headerLeft}>
+				<View className="flex-row justify-between items-center mb-5">
+					<View className="flex-row items-center gap-2">
 						<BookOpen size={20} color={NeonColors.accent.teal} />
-						<Text style={styles.title}>Currently Reading</Text>
+						<Text className="text-white text-lg font-semibold">Currently Reading</Text>
 					</View>
-					<Text style={styles.subtitle}>2 Books</Text>
+					<Text className="text-zinc-400 text-sm">2 Books</Text>
 				</View>
 
-				<View style={styles.bookContainer}>
-					<View style={styles.bookCover}>
+				<View className="flex-row items-center gap-4 my-2">
+					<View className="w-[60px] h-[80px] bg-teal-500 rounded-lg items-center justify-center">
 						<BookMarked size={24} color={NeonColors.background} />
 					</View>
-					<View style={styles.bookInfo}>
-						<Text style={styles.bookTitle}>Atomic Habits</Text>
-						<Text style={styles.bookAuthor}>James Clear</Text>
-						<View style={styles.progressContainer}>
-							<View style={styles.progressBar}>
-								<View style={[styles.progressFill, { width: "70%" }]} />
+					<View className="flex-1">
+						<Text className="text-white text-base font-semibold mb-1">Atomic Habits</Text>
+						<Text className="text-zinc-400 text-sm mb-3">James Clear</Text>
+						<View className="flex-row items-center gap-3">
+							<View className="flex-1 h-1.5 bg-zinc-800/80 rounded-full overflow-hidden">
+								<View className="h-full bg-teal-500 rounded-full w-[70%]" />
 							</View>
-							<Text style={styles.progressText}>70%</Text>
+							<Text className="text-teal-500 text-xs font-semibold">70%</Text>
 						</View>
 					</View>
 				</View>
 
-				<View style={styles.statsContainer}>
-					<View style={styles.statItem}>
+				<View className="flex-row justify-around items-center mt-5 pt-4 border-t border-zinc-800/60">
+					<View className="items-center gap-1">
 						<Bookmark size={16} color={NeonColors.text.secondary} />
-						<Text style={styles.statValue}>14</Text>
-						<Text style={styles.statLabel}>Completed</Text>
+						<Text className="text-white text-base font-semibold">14</Text>
+						<Text className="text-zinc-400 text-xs">Completed</Text>
 					</View>
-					<View style={styles.divider} />
-					<View style={styles.statItem}>
+					<View className="w-[1px] h-6 bg-zinc-800" />
+					<View className="items-center gap-1">
 						<BookOpen size={16} color={NeonColors.text.secondary} />
-						<Text style={styles.statValue}>32</Text>
-						<Text style={styles.statLabel}>Wishlist</Text>
+						<Text className="text-white text-base font-semibold">32</Text>
+						<Text className="text-zinc-400 text-xs">Wishlist</Text>
 					</View>
 				</View>
 			</NeonCard>
 		</Pressable>
 	);
 }
-
-const styles = StyleSheet.create({
-	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 20,
-	},
-	headerLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
-	},
-	title: {
-		color: NeonColors.text.primary,
-		fontSize: 18,
-		fontWeight: "600",
-	},
-	subtitle: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-	},
-	bookContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 16,
-		marginVertical: 8,
-	},
-	bookCover: {
-		width: 60,
-		height: 80,
-		backgroundColor: NeonColors.accent.teal,
-		borderRadius: 8,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-	bookInfo: {
-		flex: 1,
-	},
-	bookTitle: {
-		color: NeonColors.text.primary,
-		fontSize: 16,
-		fontWeight: "600",
-		marginBottom: 4,
-	},
-	bookAuthor: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-		marginBottom: 12,
-	},
-	progressContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-	},
-	progressBar: {
-		flex: 1,
-		height: 6,
-		backgroundColor: "rgba(255,255,255,0.1)",
-		borderRadius: 3,
-		overflow: "hidden",
-	},
-	progressFill: {
-		height: "100%",
-		backgroundColor: NeonColors.accent.teal,
-		borderRadius: 3,
-	},
-	progressText: {
-		color: NeonColors.accent.teal,
-		fontSize: 12,
-		fontWeight: "600",
-	},
-	statsContainer: {
-		flexDirection: "row",
-		justifyContent: "space-around",
-		alignItems: "center",
-		marginTop: 20,
-		paddingTop: 16,
-		borderTopWidth: 1,
-		borderTopColor: "rgba(255, 255, 255, 0.05)",
-	},
-	statItem: {
-		alignItems: "center",
-		gap: 4,
-	},
-	statValue: {
-		color: NeonColors.text.primary,
-		fontSize: 16,
-		fontWeight: "600",
-	},
-	statLabel: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-	},
-	divider: {
-		width: 1,
-		height: 24,
-		backgroundColor: "rgba(255, 255, 255, 0.1)",
-	},
-});

@@ -1,4 +1,12 @@
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { ApiError } from "@/lib/api/client";
 import { usersService } from "@/modules/users/services/users.service";
 import type { User } from "@/modules/users/types/user.types";
@@ -67,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, [establishSession]);
 
 	useEffect(() => {
+		// oxlint-disable-next-line react/set-state-in-effect
 		refreshSession()
 			.catch(() => clearSession())
 			.finally(() => setLoading(false));
@@ -151,27 +160,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	}, [refreshSession, token]);
 
-	return (
-		<AuthContext.Provider
-			value={{
-				token,
-				user,
-				loading,
-				error,
-				login,
-				verifyTwoFactor,
-				register,
-				consumeMagicLink,
-				establishSession,
-				logout,
-				logoutAll,
-				refreshUser,
-				clearError: () => setError(null),
-			}}
-		>
-			{children}
-		</AuthContext.Provider>
+	const clearError = useCallback(() => setError(null), []);
+
+	const value = useMemo(
+		() => ({
+			token,
+			user,
+			loading,
+			error,
+			login,
+			verifyTwoFactor,
+			register,
+			consumeMagicLink,
+			establishSession,
+			logout,
+			logoutAll,
+			refreshUser,
+			clearError,
+		}),
+		[
+			token,
+			user,
+			loading,
+			error,
+			login,
+			verifyTwoFactor,
+			register,
+			consumeMagicLink,
+			establishSession,
+			logout,
+			logoutAll,
+			refreshUser,
+			clearError,
+		],
 	);
+
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

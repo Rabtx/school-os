@@ -1,6 +1,6 @@
 {
 	"recommendations": [
-		"biomejs.biome",
+		"oxc.oxc-vscode",
 		"bradlc.vscode-tailwindcss",
 		"rust-lang.rust-analyzer",
 		"llvm-vs-code-extensions.vscode-clangd",

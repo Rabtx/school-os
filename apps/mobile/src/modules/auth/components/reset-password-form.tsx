@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { readDevCodeParam } from "@/modules/auth/lib/dev-auth-code";
 import { authService } from "@/modules/auth/services/auth.service";
 import { AuthAlert } from "./auth-alert";
@@ -13,13 +13,9 @@ export function ResetPasswordForm() {
 	const [code, setCode] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-	const [developmentCode, setDevelopmentCode] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
-
-	useEffect(() => {
-		setDevelopmentCode(readDevCodeParam(params.devCode));
-	}, [params.devCode]);
+	const developmentCode = readDevCodeParam(params.devCode);
 
 	async function handleSubmit() {
 		setError(null);

@@ -1,16 +1,7 @@
 import { type Href, router, useSegments } from "expo-router";
 import { Bell, Check, ChevronDown, Scan } from "lucide-react-native";
 import * as React from "react";
-import {
-	Image,
-	Modal,
-	Pressable,
-	StyleSheet,
-	Text,
-	TouchableWithoutFeedback,
-	View,
-} from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { Image, Modal, Pressable, Text, TouchableWithoutFeedback, View } from "react-native";
 import { resolveMediaUrl } from "@/lib/media-url";
 import { useAuth } from "@/modules/auth";
 
@@ -25,6 +16,10 @@ export type OSModule =
 	| "Focus"
 	| "Library";
 
+function handleAvatarPress() {
+	router.replace("/(modules)/(profile)" as Href);
+}
+
 export function OSHeader() {
 	const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 	const segments = useSegments() as string[];
@@ -35,10 +30,6 @@ export function OSHeader() {
 		(user
 			? `https://avatar.vercel.sh/${encodeURIComponent(user.username)}`
 			: "https://avatar.vercel.sh/guest");
-
-	const handleAvatarPress = () => {
-		router.replace("/(modules)/(profile)" as Href);
-	};
 
 	const currentModule: OSModule = React.useMemo(() => {
 		if (segments.includes("(profile)")) return "Profile";
@@ -70,44 +61,48 @@ export function OSHeader() {
 	};
 
 	return (
-		<View style={styles.container}>
-			<View style={styles.left}>
-				<Pressable style={styles.avatarContainer} onPress={handleAvatarPress}>
-					<Image source={{ uri: avatarUri }} style={styles.avatar} />
-					<View style={styles.onlineDot} />
+		<View className="flex-row justify-between items-center px-4 py-3 z-50">
+			<View className="flex-row items-center gap-3">
+				<Pressable className="relative" onPress={handleAvatarPress}>
+					<Image source={{ uri: avatarUri }} className="w-9 h-9 rounded-full bg-zinc-900" />
+					<View className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-zinc-950" />
 				</Pressable>
 
-				<View style={styles.dropdownContainer}>
-					<Pressable style={styles.accountSelector} onPress={() => setIsDropdownOpen(true)}>
-						<Text style={styles.accountName}>{currentModule}</Text>
-						<ChevronDown size={16} color={NeonColors.text.secondary} />
+				<View className="relative">
+					<Pressable
+						className="flex-row items-center gap-1 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5"
+						onPress={() => setIsDropdownOpen(true)}
+					>
+						<Text className="text-white text-sm font-bold tracking-wider">{currentModule}</Text>
+						<ChevronDown size={16} color="#a1a1aa" />
 					</Pressable>
 
 					<Modal
 						visible={isDropdownOpen}
-						transparent={true}
+						transparent
 						animationType="fade"
 						onRequestClose={() => setIsDropdownOpen(false)}
 					>
 						<TouchableWithoutFeedback onPress={() => setIsDropdownOpen(false)}>
-							<View style={styles.modalOverlay}>
-								<View style={styles.dropdownMenu}>
+							<View className="flex-1 bg-black/40 pt-14 pl-16">
+								<View className="w-44 bg-zinc-900 rounded-2xl p-2 border border-white/10 shadow-2xl">
 									{modules.map((mod) => (
 										<Pressable
 											key={mod.label}
-											style={styles.dropdownItem}
+											className="flex-row justify-between items-center py-3 px-3 rounded-lg active:bg-zinc-800"
 											onPress={() => handleSelect(mod.route)}
 										>
 											<Text
-												style={[
-													styles.dropdownItemText,
-													currentModule === mod.label && styles.activeDropdownItemText,
-												]}
+												className={`text-sm ${
+													currentModule === mod.label
+														? "text-white font-bold"
+														: "text-zinc-400 font-medium"
+												}`}
 											>
 												{mod.label}
 											</Text>
 											{currentModule === mod.label && (
-												<Check size={16} color={NeonColors.accent.green} strokeWidth={3} />
+												<Check size={16} color="#34d399" strokeWidth={3} />
 											)}
 										</Pressable>
 									))}
@@ -118,132 +113,17 @@ export function OSHeader() {
 				</View>
 			</View>
 
-			<View style={styles.right}>
-				<Pressable style={styles.iconButton}>
-					<Scan size={22} color={NeonColors.text.primary} strokeWidth={1.5} />
+			<View className="flex-row items-center gap-4">
+				<Pressable className="p-1">
+					<Scan size={22} color="#ffffff" strokeWidth={1.5} />
 				</Pressable>
-				<View style={styles.notificationContainer}>
-					<Pressable style={styles.iconButton}>
-						<Bell size={22} color={NeonColors.text.primary} strokeWidth={1.5} />
+				<View className="relative">
+					<Pressable className="p-1">
+						<Bell size={22} color="#ffffff" strokeWidth={1.5} />
 					</Pressable>
-					<View style={styles.badge} />
+					<View className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 border border-zinc-950" />
 				</View>
 			</View>
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-		zIndex: 100,
-	},
-	left: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-	},
-	avatarContainer: {
-		position: "relative",
-	},
-	avatar: {
-		width: 36,
-		height: 36,
-		borderRadius: 18,
-		backgroundColor: NeonColors.surface,
-	},
-	onlineDot: {
-		position: "absolute",
-		bottom: 0,
-		right: 0,
-		width: 10,
-		height: 10,
-		borderRadius: 5,
-		backgroundColor: NeonColors.accent.green,
-		borderWidth: 2,
-		borderColor: NeonColors.background,
-	},
-	dropdownContainer: {
-		position: "relative",
-	},
-	accountSelector: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 4,
-		backgroundColor: NeonColors.surface,
-		paddingHorizontal: 12,
-		paddingVertical: 6,
-		borderRadius: 20,
-		borderWidth: 1,
-		borderColor: "rgba(255, 255, 255, 0.05)",
-	},
-	accountName: {
-		color: NeonColors.text.primary,
-		fontSize: 14,
-		fontWeight: "700",
-		letterSpacing: 0.5,
-	},
-	modalOverlay: {
-		flex: 1,
-		backgroundColor: "rgba(0, 0, 0, 0.4)",
-		justifyContent: "flex-start",
-		paddingTop: 60,
-		paddingLeft: 64,
-	},
-	dropdownMenu: {
-		width: 180,
-		backgroundColor: NeonColors.surface,
-		borderRadius: 16,
-		padding: 8,
-		borderWidth: 1,
-		borderColor: "rgba(255, 255, 255, 0.1)",
-		shadowColor: "#000",
-		shadowOffset: { width: 0, height: 10 },
-		shadowOpacity: 0.5,
-		shadowRadius: 20,
-		elevation: 10,
-	},
-	dropdownItem: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		paddingVertical: 12,
-		paddingHorizontal: 12,
-		borderRadius: 8,
-	},
-	dropdownItemText: {
-		color: NeonColors.text.secondary,
-		fontSize: 15,
-		fontWeight: "500",
-	},
-	activeDropdownItemText: {
-		color: NeonColors.text.primary,
-		fontWeight: "700",
-	},
-	right: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 16,
-	},
-	iconButton: {
-		padding: 4,
-	},
-	notificationContainer: {
-		position: "relative",
-	},
-	badge: {
-		position: "absolute",
-		top: 4,
-		right: 4,
-		width: 8,
-		height: 8,
-		borderRadius: 4,
-		backgroundColor: NeonColors.accent.green,
-		borderWidth: 1.5,
-		borderColor: NeonColors.background,
-	},
-});

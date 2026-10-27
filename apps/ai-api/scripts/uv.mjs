@@ -42,7 +42,7 @@ if (!uv) {
 		[
 			"[ai-api] uv not found.",
 			"Install: https://docs.astral.sh/uv/getting-started/installation/",
-			"Windows: powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"",
+			'Windows: powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"',
 			"Then add %USERPROFILE%\\.local\\bin to PATH, or set UV_BIN to the uv executable.",
 		].join("\n"),
 	);

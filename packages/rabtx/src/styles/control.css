@@ -1,0 +1,182 @@
+/*
+ * The surface everything shares (DESIGN.md, "depth"): a real 1px gradient edge, a hairline ring
+ * and a faint sheen/shade, all driven by variables. Tones set the variables, the depth mode swaps
+ * them, and Tailwind classes (see button/button.styles.ts) do everything else. A control adds
+ * hover, press and disabled on top; a card is just the surface.
+ */
+@source "../button";
+@source "../card";
+@source "../field";
+@source "../input";
+@source "../textarea";
+
+@utility rx-surface {
+	border: 1px solid transparent;
+	background:
+		linear-gradient(180deg, var(--rx-sheen), transparent 40%, transparent 60%, var(--rx-shade))
+			padding-box,
+		linear-gradient(var(--rx-fill), var(--rx-fill)) padding-box,
+		linear-gradient(180deg, var(--rx-edge-a), var(--rx-edge-b)) border-box;
+	box-shadow:
+		0 0 0 1px var(--rx-ring),
+		0 0 0 4px var(--rx-halo, transparent);
+	-webkit-tap-highlight-color: transparent;
+	transition:
+		--rx-fill 150ms var(--rx-ease),
+		color 150ms var(--rx-ease),
+		box-shadow 150ms var(--rx-ease),
+		scale var(--rx-spring-press-d) var(--rx-spring-press);
+}
+
+@utility rx-control {
+	@apply rx-surface;
+
+	@media (hover: hover) {
+		&:hover:not(:disabled, [aria-disabled="true"], [data-loading]) {
+			--rx-fill: var(--rx-fill-hover);
+		}
+	}
+	&:active:not(:disabled, [aria-disabled="true"], [data-loading], [data-static]) {
+		scale: var(--rx-press, 0.93);
+	}
+	&:disabled,
+	&[aria-disabled="true"],
+	&:has(> :disabled) {
+		--rx-fill: var(--rx-dis-fill, var(--rx-pressed));
+		--rx-flat: var(--rx-dis-edge, var(--rx-pressed));
+		--rx-edge-a: var(--rx-flat);
+		--rx-edge-b: var(--rx-flat);
+		--rx-sheen: transparent;
+		--rx-shade: transparent;
+		--rx-ring: transparent;
+		color: var(--rx-text-disabled);
+		cursor: not-allowed;
+	}
+}
+
+/* Tones. `--rx-flat` is the single border color used when depth is Flat. */
+@utility rx-primary {
+	--rx-fill: var(--rx-inverse);
+	--rx-fill-hover: var(--rx-inverse-hover);
+	--rx-flat: var(--rx-fill);
+	--rx-ring: var(--rx-primary-ring);
+	--rx-edge-a: var(--rx-primary-edge-a);
+	--rx-edge-b: var(--rx-primary-edge-b);
+	--rx-sheen: var(--rx-solid-sheen);
+	--rx-shade: var(--rx-solid-shade);
+	color: var(--rx-text-inverse);
+}
+@utility rx-accent {
+	--rx-fill: var(--rx-accent);
+	--rx-fill-hover: var(--rx-accent-hover);
+	--rx-flat: var(--rx-fill);
+	--rx-ring: color-mix(in oklab, var(--rx-accent) 50%, black);
+	--rx-edge-a: var(--rx-solid-edge-a);
+	--rx-edge-b: var(--rx-solid-edge-b);
+	--rx-sheen: var(--rx-solid-sheen);
+	--rx-shade: var(--rx-solid-shade);
+	color: #fff;
+}
+@utility rx-danger {
+	--rx-fill: var(--rx-danger);
+	--rx-fill-hover: color-mix(in oklab, var(--rx-danger) 92%, black);
+	--rx-flat: var(--rx-fill);
+	--rx-ring: color-mix(in oklab, var(--rx-danger) 50%, black);
+	--rx-edge-a: var(--rx-solid-edge-a);
+	--rx-edge-b: var(--rx-solid-edge-b);
+	--rx-sheen: var(--rx-solid-sheen);
+	--rx-shade: var(--rx-solid-shade);
+	color: #fff;
+}
+@utility rx-secondary {
+	--rx-fill: var(--rx-surface);
+	--rx-fill-hover: var(--rx-selected);
+	--rx-flat: var(--rx-border-strong);
+	--rx-dis-edge: var(--rx-border);
+	--rx-ring: var(--rx-surface-ring);
+	--rx-edge-a: var(--rx-surface-edge-a);
+	--rx-edge-b: var(--rx-surface-edge-b);
+	--rx-sheen: var(--rx-surface-sheen);
+	--rx-shade: var(--rx-surface-shade);
+	color: var(--rx-text);
+}
+@utility rx-ghost {
+	--rx-fill: transparent;
+	--rx-fill-hover: var(--rx-selected);
+	--rx-flat: transparent;
+	--rx-dis-fill: transparent;
+	--rx-dis-edge: transparent;
+	--rx-ring: transparent;
+	--rx-edge-a: transparent;
+	--rx-edge-b: transparent;
+	--rx-sheen: transparent;
+	--rx-shade: transparent;
+	color: var(--rx-text);
+}
+
+/* A text field: recessed instead of raised, never scales, and shows focus and error on its own edge. */
+@utility rx-field {
+	--rx-fill: var(--rx-field);
+	--rx-fill-hover: var(--rx-field);
+	--rx-flat: var(--rx-border-strong);
+	--rx-dis-fill: var(--rx-field-disabled);
+	--rx-dis-edge: var(--rx-border);
+	--rx-press: 1;
+	--rx-ring: transparent;
+	--rx-edge-a: var(--rx-field-edge-a);
+	--rx-edge-b: var(--rx-field-edge-b);
+	--rx-sheen: var(--rx-field-shade);
+	--rx-shade: transparent;
+	color: var(--rx-text);
+
+	&:focus-within {
+		--rx-flat: var(--rx-focus);
+		--rx-edge-a: var(--rx-focus);
+		--rx-edge-b: var(--rx-focus);
+		--rx-halo: color-mix(in oklab, var(--rx-focus) 20%, transparent);
+	}
+	&:has([aria-invalid="true"]),
+	&[aria-invalid="true"] {
+		--rx-flat: var(--rx-danger);
+		--rx-edge-a: var(--rx-danger);
+		--rx-edge-b: var(--rx-danger);
+		--rx-halo: color-mix(in oklab, var(--rx-danger) 10%, transparent);
+	}
+}
+
+/* A card: the plain surface with a white fill. `--rx-flat` is Figma's default border. */
+@utility rx-card {
+	--rx-fill: var(--rx-surface);
+	--rx-flat: var(--rx-border);
+	--rx-ring: var(--rx-surface-ring);
+	--rx-edge-a: var(--rx-surface-edge-a);
+	--rx-edge-b: var(--rx-surface-edge-b);
+	--rx-sheen: var(--rx-surface-sheen);
+	--rx-shade: var(--rx-surface-shade);
+	color: var(--rx-text);
+}
+
+/* Flat: one border color, nothing else. Beats the tones above because it is not layered. */
+[data-depth="flat"] :is(.rx-control, .rx-surface) {
+	--rx-edge-a: var(--rx-flat);
+	--rx-edge-b: var(--rx-flat);
+	--rx-sheen: transparent;
+	--rx-shade: transparent;
+	--rx-ring: transparent;
+}
+
+/* Motion off, or the OS asks for less: every state is still visible, nothing travels. */
+[data-motion="off"] .rx-surface,
+[data-motion="off"] .rx-control *,
+[data-motion="off"] .rx-control {
+	transition-duration: 0ms !important;
+	animation-duration: 2400ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+	.rx-surface,
+	.rx-control,
+	.rx-control * {
+		transition-duration: 0ms !important;
+		animation-duration: 2400ms !important;
+	}
+}

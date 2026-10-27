@@ -1,3 +1,4 @@
+import "../global.css";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -35,8 +36,7 @@ function SplashScreenController() {
 }
 
 function RootNavigator() {
-	const { user, loading } = useAuth();
-	const signedIn = !!user;
+	const { loading } = useAuth();
 
 	if (loading) {
 		return null;
@@ -44,12 +44,14 @@ function RootNavigator() {
 
 	return (
 		<Stack screenOptions={{ headerShown: false }}>
-			<Stack.Protected guard={signedIn}>
-				<Stack.Screen name="(modules)" />
-			</Stack.Protected>
-			<Stack.Protected guard={!signedIn}>
+			{/* <Stack.Protected guard={signedIn}> */}
+			<Stack.Screen name="ui" />
+
+			<Stack.Screen name="(modules)" />
+			{/* </Stack.Protected> */}
+			{/* <Stack.Protected guard={!signedIn}>
 				<Stack.Screen name="(auth)" />
-			</Stack.Protected>
+			</Stack.Protected> */}
 		</Stack>
 	);
 }

@@ -25,8 +25,10 @@ export type ActionSwapAnimation = "blur" | "roll" | "cascade";
 /** Animations with a single-element variant set (cascade animates per letter). */
 type CoreAnimation = "blur" | "roll";
 
-export interface ActionSwapButtonProps
-	extends Omit<HTMLMotionProps<"button">, "children" | "onChange"> {
+export interface ActionSwapButtonProps extends Omit<
+	HTMLMotionProps<"button">,
+	"children" | "onChange"
+> {
 	items: ActionSwapItem[];
 	value?: string;
 	defaultValue?: string;

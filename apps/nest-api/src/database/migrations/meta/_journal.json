@@ -1,160 +1,160 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1783952700031,
-      "tag": "0000_supreme_hellfire_club",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1783968371180,
-      "tag": "0001_tired_hellcat",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1783977546984,
-      "tag": "0002_tearful_dorian_gray",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1784059578300,
-      "tag": "0003_abnormal_kate_bishop",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1784800647371,
-      "tag": "0004_tenant_foundation",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1784900647371,
-      "tag": "0005_session_tenant_context",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1785000647371,
-      "tag": "0006_roles_permissions",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1785100647371,
-      "tag": "0007_tenant_config",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1785200647371,
-      "tag": "0008_academic_structure",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1785300647371,
-      "tag": "0009_students_enrollment",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1785400647371,
-      "tag": "0010_attendance",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1785500647371,
-      "tag": "0011_membership_management",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1785600647371,
-      "tag": "0012_navigation_items",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1785700647371,
-      "tag": "0013_staff_guardians_subjects",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1785800647371,
-      "tag": "0014_teacher_navigation_scope",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1785900647371,
-      "tag": "0015_teacher_nav_section_order",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1786000647371,
-      "tag": "0016_timetable",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1786100647371,
-      "tag": "0017_homework_assessments",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1786300647371,
-      "tag": "0019_student_membership_link",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1786500647371,
-      "tag": "0021_student_photo_url",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1786600647371,
-      "tag": "0022_grades_gradebook",
-      "breakpoints": true
-    },
-    {
-      "idx": 23,
-      "version": "7",
-      "when": 1786700647371,
-      "tag": "0023_homework_submissions",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1783952700031,
+			"tag": "0000_supreme_hellfire_club",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1783968371180,
+			"tag": "0001_tired_hellcat",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1783977546984,
+			"tag": "0002_tearful_dorian_gray",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1784059578300,
+			"tag": "0003_abnormal_kate_bishop",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1784800647371,
+			"tag": "0004_tenant_foundation",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1784900647371,
+			"tag": "0005_session_tenant_context",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1785000647371,
+			"tag": "0006_roles_permissions",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1785100647371,
+			"tag": "0007_tenant_config",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "7",
+			"when": 1785200647371,
+			"tag": "0008_academic_structure",
+			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "7",
+			"when": 1785300647371,
+			"tag": "0009_students_enrollment",
+			"breakpoints": true
+		},
+		{
+			"idx": 10,
+			"version": "7",
+			"when": 1785400647371,
+			"tag": "0010_attendance",
+			"breakpoints": true
+		},
+		{
+			"idx": 11,
+			"version": "7",
+			"when": 1785500647371,
+			"tag": "0011_membership_management",
+			"breakpoints": true
+		},
+		{
+			"idx": 12,
+			"version": "7",
+			"when": 1785600647371,
+			"tag": "0012_navigation_items",
+			"breakpoints": true
+		},
+		{
+			"idx": 13,
+			"version": "7",
+			"when": 1785700647371,
+			"tag": "0013_staff_guardians_subjects",
+			"breakpoints": true
+		},
+		{
+			"idx": 14,
+			"version": "7",
+			"when": 1785800647371,
+			"tag": "0014_teacher_navigation_scope",
+			"breakpoints": true
+		},
+		{
+			"idx": 15,
+			"version": "7",
+			"when": 1785900647371,
+			"tag": "0015_teacher_nav_section_order",
+			"breakpoints": true
+		},
+		{
+			"idx": 16,
+			"version": "7",
+			"when": 1786000647371,
+			"tag": "0016_timetable",
+			"breakpoints": true
+		},
+		{
+			"idx": 17,
+			"version": "7",
+			"when": 1786100647371,
+			"tag": "0017_homework_assessments",
+			"breakpoints": true
+		},
+		{
+			"idx": 19,
+			"version": "7",
+			"when": 1786300647371,
+			"tag": "0019_student_membership_link",
+			"breakpoints": true
+		},
+		{
+			"idx": 21,
+			"version": "7",
+			"when": 1786500647371,
+			"tag": "0021_student_photo_url",
+			"breakpoints": true
+		},
+		{
+			"idx": 22,
+			"version": "7",
+			"when": 1786600647371,
+			"tag": "0022_grades_gradebook",
+			"breakpoints": true
+		},
+		{
+			"idx": 23,
+			"version": "7",
+			"when": 1786700647371,
+			"tag": "0023_homework_submissions",
+			"breakpoints": true
+		}
+	]
 }

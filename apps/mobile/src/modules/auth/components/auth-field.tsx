@@ -1,6 +1,5 @@
 import { Eye, EyeOff } from "lucide-react-native";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { Pressable, Text, TextInput, type TextInputProps, View } from "react-native";
 
 interface AuthFieldProps {
 	label: string;
@@ -11,7 +10,7 @@ interface AuthFieldProps {
 	showPasswordToggle?: boolean;
 	onTogglePassword?: () => void;
 	keyboardType?: "default" | "email-address" | "number-pad";
-	autoComplete?: TextInput["props"]["autoComplete"];
+	autoComplete?: TextInputProps["autoComplete"];
 	autoCapitalize?: "none" | "sentences" | "words" | "characters";
 	editable?: boolean;
 	hint?: string;
@@ -42,22 +41,24 @@ export function AuthField({
 	rightLink,
 }: AuthFieldProps) {
 	return (
-		<View style={styles.field}>
-			<View style={styles.labelRow}>
-				<Text style={styles.label}>{label}</Text>
+		<View className="gap-2">
+			<View className="flex-row items-center justify-between">
+				<Text className="text-zinc-100 text-sm font-semibold">{label}</Text>
 				{rightLink ? (
 					<Pressable onPress={rightLink.onPress} hitSlop={8}>
-						<Text style={styles.link}>{rightLink.label}</Text>
+						<Text className="text-zinc-400 text-[13px]">{rightLink.label}</Text>
 					</Pressable>
 				) : null}
 			</View>
-			<View style={[styles.inputWrap, multiline && styles.inputWrapMultiline]}>
+			<View
+				className={`flex-row border border-zinc-800 rounded-2xl bg-white/5 px-3.5 min-h-[48px] ${multiline ? "items-start min-h-[112px] py-1" : "items-center"}`}
+			>
 				<TextInput
-					style={[styles.input, multiline && styles.inputMultiline]}
+					className={`flex-1 text-zinc-100 text-base py-3 ${multiline ? "min-h-[96px] pt-3" : ""}`}
 					value={value}
 					onChangeText={onChangeText}
 					placeholder={placeholder}
-					placeholderTextColor={NeonColors.text.muted}
+					placeholderTextColor="#a1a1aa"
 					secureTextEntry={secureTextEntry}
 					keyboardType={keyboardType}
 					autoComplete={autoComplete}
@@ -69,73 +70,17 @@ export function AuthField({
 					textAlignVertical={multiline ? "top" : "center"}
 				/>
 				{showPasswordToggle ? (
-					<Pressable onPress={onTogglePassword} hitSlop={8} style={styles.eye}>
+					<Pressable onPress={onTogglePassword} hitSlop={8} className="pl-2">
 						{secureTextEntry ? (
-							<Eye size={18} color={NeonColors.text.secondary} />
+							<Eye size={18} color="#a1a1aa" />
 						) : (
-							<EyeOff size={18} color={NeonColors.text.secondary} />
+							<EyeOff size={18} color="#a1a1aa" />
 						)}
 					</Pressable>
 				) : null}
 			</View>
-			{errorHint ? <Text style={styles.errorHint}>{errorHint}</Text> : null}
-			{!errorHint && hint ? <Text style={styles.hint}>{hint}</Text> : null}
+			{errorHint ? <Text className="text-red-500 text-xs">{errorHint}</Text> : null}
+			{!errorHint && hint ? <Text className="text-zinc-500 text-xs">{hint}</Text> : null}
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	field: {
-		gap: 8,
-	},
-	labelRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	label: {
-		color: NeonColors.text.primary,
-		fontSize: 14,
-		fontWeight: "600",
-	},
-	link: {
-		color: NeonColors.text.secondary,
-		fontSize: 13,
-	},
-	inputWrap: {
-		flexDirection: "row",
-		alignItems: "center",
-		borderWidth: 1,
-		borderColor: NeonColors.card.border,
-		borderRadius: 14,
-		backgroundColor: "rgba(255,255,255,0.03)",
-		paddingHorizontal: 14,
-		minHeight: 48,
-	},
-	inputWrapMultiline: {
-		alignItems: "flex-start",
-		minHeight: 112,
-		paddingVertical: 4,
-	},
-	input: {
-		flex: 1,
-		color: NeonColors.text.primary,
-		fontSize: 16,
-		paddingVertical: 12,
-	},
-	inputMultiline: {
-		minHeight: 96,
-		paddingTop: 12,
-	},
-	eye: {
-		paddingLeft: 8,
-	},
-	hint: {
-		color: NeonColors.text.muted,
-		fontSize: 12,
-	},
-	errorHint: {
-		color: NeonColors.accent.red,
-		fontSize: 12,
-	},
-});

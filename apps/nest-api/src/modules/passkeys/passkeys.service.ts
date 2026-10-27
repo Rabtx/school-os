@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import {
 	type AuthenticationResponseJSON,
-	type AuthenticatorTransportFuture,
+	type AuthenticatorTransport,
 	generateAuthenticationOptions,
 	generateRegistrationOptions,
 	type RegistrationResponseJSON,
@@ -37,7 +37,7 @@ export class PasskeysService {
 			attestationType: 'none',
 			excludeCredentials: existing.map((passkey) => ({
 				id: passkey.credentialId,
-				transports: passkey.transports as AuthenticatorTransportFuture[],
+				transports: passkey.transports as AuthenticatorTransport[],
 			})),
 			authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
 			preferredAuthenticatorType: 'localDevice',
@@ -100,7 +100,7 @@ export class PasskeysService {
 				? {
 						allowCredentials: passkeys.map((passkey) => ({
 							id: passkey.credentialId,
-							transports: passkey.transports as AuthenticatorTransportFuture[],
+							transports: passkey.transports as AuthenticatorTransport[],
 						})),
 					}
 				: {}),
@@ -147,7 +147,7 @@ export class PasskeysService {
 				id: passkey.credentialId,
 				publicKey: new Uint8Array(Buffer.from(passkey.publicKey, 'base64url')),
 				counter: passkey.counter,
-				transports: passkey.transports as AuthenticatorTransportFuture[],
+				transports: passkey.transports as AuthenticatorTransport[],
 			},
 		});
 		if (!verification.verified) throw invalidPasskey();

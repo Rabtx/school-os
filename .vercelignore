@@ -1,0 +1,32 @@
+# Vercel rebuilds from source, so local build output must never be uploaded.
+# Without this the deployment payload is ~460MB of .next and target directories.
+
+node_modules
+**/node_modules
+
+# Build output
+**/.next
+**/.turbo
+**/dist
+**/build
+**/target
+**/.expo
+
+# Python: apps/ai-api ships a 74MB .venv that the docs build never touches
+**/.venv
+**/__pycache__
+**/.ruff_cache
+**/.pytest_cache
+
+# Test and tooling artifacts
+**/coverage
+**/playwright-report
+**/test-results
+
+# Local env and editor state
+.env
+.env.*
+!.env.example
+!env.docker.example
+.claude
+.agents

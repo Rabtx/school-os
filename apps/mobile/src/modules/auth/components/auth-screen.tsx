@@ -4,13 +4,11 @@ import {
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
-	StyleSheet,
 	Text,
 	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NeonCard } from "@/components/ui/neon-card";
-import { NeonColors } from "@/constants/design-system";
 
 interface AuthScreenProps {
 	brand?: string;
@@ -31,88 +29,38 @@ export function AuthScreen({
 }: AuthScreenProps) {
 	if (busy) {
 		return (
-			<SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-				<View style={styles.loading}>
-					<ActivityIndicator color={NeonColors.accent.green} size="large" />
+			<SafeAreaView className="flex-1 bg-zinc-950" edges={["top", "bottom"]}>
+				<View className="flex-1 items-center justify-center">
+					<ActivityIndicator color="#14b8a6" size="large" />
 				</View>
 			</SafeAreaView>
 		);
 	}
 
 	return (
-		<SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+		<SafeAreaView className="flex-1 bg-zinc-950" edges={["top", "bottom"]}>
 			<KeyboardAvoidingView
-				style={styles.flex}
+				className="flex-1"
 				behavior={Platform.OS === "ios" ? "padding" : undefined}
 			>
 				<ScrollView
-					contentContainerStyle={styles.scroll}
+					contentContainerClassName="flex-grow justify-center px-5 py-8"
 					keyboardShouldPersistTaps="handled"
 					showsVerticalScrollIndicator={false}
 				>
-					<NeonCard style={styles.card}>
-						<Text style={styles.brand}>{brand}</Text>
-						<Text style={styles.title}>{title}</Text>
-						<Text style={styles.description}>{description}</Text>
-						<View style={styles.content}>{children}</View>
+					<NeonCard className="w-full max-w-[420px] self-center">
+						<Text className="text-zinc-400 text-[13px] font-semibold text-center mb-2">
+							{brand}
+						</Text>
+						<Text className="text-zinc-100 text-2xl font-bold text-center mb-2">{title}</Text>
+						<Text className="text-zinc-400 text-[15px] text-center mb-6 leading-relaxed">
+							{description}
+						</Text>
+						<View className="gap-4">{children}</View>
 					</NeonCard>
-					{footer ? <View style={styles.footer}>{footer}</View> : null}
+					{footer ? <View className="mt-5 items-center">{footer}</View> : null}
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>
 	);
 }
-
-const styles = StyleSheet.create({
-	safe: {
-		flex: 1,
-		backgroundColor: NeonColors.background,
-	},
-	flex: {
-		flex: 1,
-	},
-	scroll: {
-		flexGrow: 1,
-		justifyContent: "center",
-		paddingHorizontal: 20,
-		paddingVertical: 32,
-	},
-	card: {
-		width: "100%",
-		maxWidth: 420,
-		alignSelf: "center",
-	},
-	brand: {
-		color: NeonColors.text.secondary,
-		fontSize: 13,
-		fontWeight: "600",
-		textAlign: "center",
-		marginBottom: 8,
-	},
-	title: {
-		color: NeonColors.text.primary,
-		fontSize: 28,
-		fontWeight: "700",
-		textAlign: "center",
-		marginBottom: 8,
-	},
-	description: {
-		color: NeonColors.text.secondary,
-		fontSize: 15,
-		textAlign: "center",
-		marginBottom: 24,
-		lineHeight: 22,
-	},
-	content: {
-		gap: 16,
-	},
-	footer: {
-		marginTop: 20,
-		alignItems: "center",
-	},
-	loading: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-	},
-});

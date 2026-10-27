@@ -6,19 +6,16 @@ description = "Rust app for school-os monorepo"
 rust-version = "1.86"
 
 [dependencies]
-school-logger = { path = "../../packages/logger/rust" }
 axum = "0.8.9"
 tokio = { version = "1.52.3", features = ["full"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-tower-http = { version = "0.6.10", features = ["cors", "trace"] }
 sqlx = { version = "0.9.0-alpha.1", features = ["runtime-tokio", "postgres", "uuid", "chrono"] }
 dotenvy = "0.15.7"
 jsonwebtoken = "10.4.0"
-totp-rs = "5.7.1"
-qrcode = "0.14.1"
 uuid = { version = "1.23.1", features = ["v4"] }
 bcrypt = "0.19.1"
+sha2 = "0.10.9"
 chrono = { version = "0.4.44", features = ["serde"] }
 time = "0.3.47"
 axum-extra = { version = "0.12.6", features = ["cookie"] }

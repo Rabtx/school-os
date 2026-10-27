@@ -53,8 +53,10 @@ export const THEME_VARIANT_OPTIONS: ReadonlyArray<{
 const VARIANT_STORAGE_KEY = "theme-vt-variant";
 const DEFAULT_VARIANT: ThemeVariant = "circle";
 
-export interface ThemeToggleProps
-	extends Omit<ComponentPropsWithoutRef<"button">, "children" | "onClick"> {
+export interface ThemeToggleProps extends Omit<
+	ComponentPropsWithoutRef<"button">,
+	"children" | "onClick"
+> {
 	/** Animation variant. Default: controlled by preference or "circle". */
 	variant?: ThemeVariant;
 	/** Origin direction for the reveal. Default: "pointer" (from the button). */

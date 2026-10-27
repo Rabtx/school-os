@@ -50,21 +50,21 @@ Do not use schema push in shared or production environments.
 
 All routes are under `/api/v1/auth`.
 
-| Method | Route | Purpose |
-| --- | --- | --- |
-| `POST` | `/register` | Create an unverified account and send an OTP |
-| `POST` | `/verify-email` | Verify an email OTP |
-| `POST` | `/resend-verification` | Replace the current verification OTP |
-| `POST` | `/login` | Create a secure session |
-| `POST` | `/refresh` | Rotate the refresh token and issue a new access token |
-| `POST` | `/logout` | Revoke the current refresh session |
-| `POST` | `/logout-all` | Revoke all sessions |
-| `GET` | `/me` | Return the authenticated user |
-| `POST` | `/forgot-password` | Request a reset OTP |
-| `POST` | `/reset-password` | Reset a password and revoke all sessions |
-| `POST` | `/change-password` | Change a password and revoke other sessions |
-| `GET` | `/sessions` | List active sessions |
-| `DELETE` | `/sessions/:sessionId` | Revoke an active session |
+| Method   | Route                  | Purpose                                               |
+| -------- | ---------------------- | ----------------------------------------------------- |
+| `POST`   | `/register`            | Create an unverified account and send an OTP          |
+| `POST`   | `/verify-email`        | Verify an email OTP                                   |
+| `POST`   | `/resend-verification` | Replace the current verification OTP                  |
+| `POST`   | `/login`               | Create a secure session                               |
+| `POST`   | `/refresh`             | Rotate the refresh token and issue a new access token |
+| `POST`   | `/logout`              | Revoke the current refresh session                    |
+| `POST`   | `/logout-all`          | Revoke all sessions                                   |
+| `GET`    | `/me`                  | Return the authenticated user                         |
+| `POST`   | `/forgot-password`     | Request a reset OTP                                   |
+| `POST`   | `/reset-password`      | Reset a password and revoke all sessions              |
+| `POST`   | `/change-password`     | Change a password and revoke other sessions           |
+| `GET`    | `/sessions`            | List active sessions                                  |
+| `DELETE` | `/sessions/:sessionId` | Revoke an active session                              |
 
 Additional authentication methods live under `/api/v1/auth/methods` and authenticated factor
 management lives under `/api/v1/auth/security`. User profile reads and writes use
@@ -79,13 +79,13 @@ webhooks to:
 - Stripe: `POST /api/v1/billing/webhooks/stripe`
 - Razorpay: `POST /api/v1/billing/webhooks/razorpay`
 
-| Method | Route | Purpose |
-| --- | --- | --- |
-| `GET` | `/billing/providers` | Providers with keys configured |
-| `GET` | `/billing/subscription` | Current user subscription (auth) |
-| `POST` | `/billing/checkout` | Create hosted checkout URL (auth) |
-| `POST` | `/billing/portal` | Stripe customer portal (auth) |
-| `POST` | `/billing/webhooks/:provider` | Provider webhook |
+| Method | Route                         | Purpose                           |
+| ------ | ----------------------------- | --------------------------------- |
+| `GET`  | `/billing/providers`          | Providers with keys configured    |
+| `GET`  | `/billing/subscription`       | Current user subscription (auth)  |
+| `POST` | `/billing/checkout`           | Create hosted checkout URL (auth) |
+| `POST` | `/billing/portal`             | Stripe customer portal (auth)     |
+| `POST` | `/billing/webhooks/:provider` | Provider webhook                  |
 
 Refresh tokens never appear in JSON responses. Browser clients must use `credentials: "include"`.
 Unsafe browser requests must send `X-Requested-With: XMLHttpRequest`.

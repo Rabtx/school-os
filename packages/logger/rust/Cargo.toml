@@ -1,5 +1,5 @@
 [package]
-name = "school-logger"
+name = "school-os-logger"
 version = "0.1.0"
 edition = "2021"
 description = "Beautiful, injectable logger for Rust"

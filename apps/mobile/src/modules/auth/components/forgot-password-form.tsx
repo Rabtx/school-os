@@ -1,7 +1,6 @@
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text } from "react-native";
-import { NeonColors } from "@/constants/design-system";
+import { Text } from "react-native";
 import { devCodeRouteParams } from "@/modules/auth/lib/dev-auth-code";
 import { authService } from "@/modules/auth/services/auth.service";
 import { AuthAlert } from "./auth-alert";
@@ -45,22 +44,11 @@ export function ForgotPasswordForm() {
 				autoComplete="email"
 			/>
 			<AuthButton label="Send reset code" onPress={handleSubmit} pending={submitting} />
-			<Text style={styles.footerText}>
-				<Link href="/login" style={styles.link}>
+			<Text className="text-center text-sm">
+				<Link href="/login" className="text-teal-500 underline">
 					Back to sign in
 				</Link>
 			</Text>
 		</AuthScreen>
 	);
 }
-
-const styles = StyleSheet.create({
-	footerText: {
-		textAlign: "center",
-		fontSize: 14,
-	},
-	link: {
-		color: NeonColors.accent.green,
-		textDecorationLine: "underline",
-	},
-});

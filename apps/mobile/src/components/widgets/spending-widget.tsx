@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { NeonCard } from "@/components/ui/neon-card";
 import { NeonColors } from "@/constants/design-system";
 
@@ -11,18 +11,18 @@ export function SpendingWidget() {
 	];
 
 	return (
-		<Pressable style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}>
+		<Pressable className="active:opacity-90">
 			<NeonCard>
-				<Text style={styles.label}>TODAY SPENDING</Text>
-				<View style={styles.amountContainer}>
-					<Text style={styles.amount}>
-						$192<Text style={styles.decimal}>.45</Text>
+				<Text className="text-zinc-400 text-xs font-bold tracking-[2px] mb-2">TODAY SPENDING</Text>
+				<View className="flex-row justify-between items-baseline mb-5">
+					<Text className="text-white text-[42px] font-medium">
+						$192<Text className="text-2xl text-zinc-400">.45</Text>
 					</Text>
-					<Text style={styles.percentage}>78%</Text>
+					<Text className="text-zinc-400 text-xl font-normal">78%</Text>
 				</View>
 
 				{/* Segmented Progress Bar */}
-				<View style={styles.progressBar}>
+				<View className="flex-row justify-between mb-6">
 					{[...Array(30)].map((_, i) => {
 						let color = NeonColors.text.muted;
 						if (i < 8) color = NeonColors.accent.orange;
@@ -33,21 +33,24 @@ export function SpendingWidget() {
 						return (
 							<View
 								key={`segment-${i}`}
-								style={[styles.progressSegment, { backgroundColor: color }]}
+								className="w-[3px] h-3.5 rounded-sm"
+								style={{ backgroundColor: color }}
 							/>
 						);
 					})}
 				</View>
 
 				{/* Legend */}
-				<View style={styles.legend}>
+				<View className="gap-3">
 					{categories.map((cat) => (
-						<View key={cat.name} style={styles.legendItem}>
-							<View style={styles.legendLeft}>
-								<View style={[styles.dot, { backgroundColor: cat.color }]} />
-								<Text style={styles.categoryName}>{cat.name}</Text>
+						<View key={cat.name} className="flex-row justify-between items-center">
+							<View className="flex-row items-center gap-3">
+								<View className="w-1 h-3 rounded-sm" style={{ backgroundColor: cat.color }} />
+								<Text className="text-white text-sm font-medium">{cat.name}</Text>
 							</View>
-							<Text style={styles.categoryAmount}>${cat.amount.toFixed(2)}</Text>
+							<Text className="text-zinc-400 text-sm font-normal font-mono">
+								${cat.amount.toFixed(2)}
+							</Text>
 						</View>
 					))}
 				</View>
@@ -55,72 +58,3 @@ export function SpendingWidget() {
 		</Pressable>
 	);
 }
-
-const styles = StyleSheet.create({
-	label: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 2,
-		marginBottom: 8,
-	},
-	amountContainer: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "baseline",
-		marginBottom: 20,
-	},
-	amount: {
-		color: NeonColors.text.primary,
-		fontSize: 42,
-		fontWeight: "500",
-	},
-	decimal: {
-		fontSize: 24,
-		color: NeonColors.text.secondary,
-	},
-	percentage: {
-		color: NeonColors.text.secondary,
-		fontSize: 20,
-		fontWeight: "400",
-	},
-	progressBar: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		marginBottom: 24,
-	},
-	progressSegment: {
-		width: 3,
-		height: 14,
-		borderRadius: 2,
-	},
-	legend: {
-		gap: 12,
-	},
-	legendItem: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	legendLeft: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 12,
-	},
-	dot: {
-		width: 3,
-		height: 12,
-		borderRadius: 2,
-	},
-	categoryName: {
-		color: NeonColors.text.primary,
-		fontSize: 14,
-		fontWeight: "500",
-	},
-	categoryAmount: {
-		color: NeonColors.text.secondary,
-		fontSize: 14,
-		fontWeight: "400",
-		fontFamily: "monospace",
-	},
-});

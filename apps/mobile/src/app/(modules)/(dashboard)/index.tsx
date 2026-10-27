@@ -1,5 +1,5 @@
 import { CheckCircle2, Coffee, Droplet, Mic, TrendingUp, Zap } from "lucide-react-native";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { LogListItem } from "@/components/ui/log-list-item";
@@ -15,30 +15,29 @@ import { NeonColors } from "@/constants/design-system";
 
 export default function DashboardIndex() {
 	return (
-		<View style={styles.container}>
-			<SafeAreaView edges={["top"]} style={styles.safeArea}>
+		<View className="flex-1 bg-zinc-950">
+			<SafeAreaView edges={["top"]} className="flex-1">
 				<OSHeader />
 
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.scrollContent}
-				>
+				<ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-10">
 					{/* Status Section */}
-					<View style={styles.statusSection}>
-						<Text style={styles.statusLabel}>SYSTEM READINESS</Text>
-						<View style={styles.scoreRow}>
-							<Text style={styles.score}>
-								94.2<Text style={styles.scorePercent}>%</Text>
+					<View className="px-4 mt-3 mb-5">
+						<Text className="text-zinc-400 text-xs font-bold tracking-[1.5px] mb-1">
+							SYSTEM READINESS
+						</Text>
+						<View className="flex-row items-baseline gap-3">
+							<Text className="text-white text-5xl font-light">
+								94.2<Text className="text-2xl text-zinc-400">%</Text>
 							</Text>
-							<View style={styles.trendBadge}>
+							<View className="flex-row items-center gap-1 bg-[#00E67626] px-2 py-1 rounded-xl">
 								<TrendingUp size={12} color={NeonColors.accent.green} />
-								<Text style={styles.trendText}>+2.4%</Text>
+								<Text className="text-[#00E676] text-xs font-bold">+2.4%</Text>
 							</View>
 						</View>
 					</View>
 
 					{/* Quick Actions */}
-					<View style={styles.quickActionsRow}>
+					<View className="flex-row justify-between px-4 mb-8">
 						<QuickAction icon={Zap} label="Workout" />
 						<QuickAction icon={Droplet} label="Log Water" />
 						<QuickAction icon={Mic} label="Record" />
@@ -46,43 +45,43 @@ export default function DashboardIndex() {
 					</View>
 
 					{/* Vital Signs Carousel */}
-					<View style={styles.sectionHeader}>
-						<Text style={styles.sectionTitle}>VITAL SIGNS</Text>
+					<View className="flex-row justify-between items-center px-4 mb-4">
+						<Text className="text-white text-sm font-bold tracking-[1px]">VITAL SIGNS</Text>
 					</View>
 
 					<ScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={styles.carouselContent}
+						contentContainerClassName="px-4 gap-3 mb-8"
 						snapToAlignment="center"
 						decelerationRate="fast"
 					>
-						<View style={styles.widgetWrapper}>
+						<View className="w-[320px]">
 							<WaterWidget />
 						</View>
-						<View style={styles.widgetWrapper}>
+						<View className="w-[320px]">
 							<HeartRateWidget />
 						</View>
-						<View style={styles.widgetWrapper}>
+						<View className="w-[320px]">
 							<SpendingWidget />
 						</View>
-						<View style={styles.widgetWrapper}>
+						<View className="w-[320px]">
 							<RecorderWidget />
 						</View>
-						<View style={styles.widgetWrapper}>
+						<View className="w-[320px]">
 							<NutritionWidget />
 						</View>
-						<View style={styles.widgetWrapper}>
+						<View className="w-[320px]">
 							<MindfulnessWidget />
 						</View>
 					</ScrollView>
 
 					{/* Recent Activity */}
-					<View style={styles.sectionHeader}>
-						<Text style={styles.sectionTitle}>RECENT ACTIVITY</Text>
+					<View className="flex-row justify-between items-center px-4 mb-4">
+						<Text className="text-white text-sm font-bold tracking-[1px]">RECENT ACTIVITY</Text>
 					</View>
 
-					<View style={styles.logsList}>
+					<View className="px-4 mt-3">
 						<LogListItem
 							icon={CheckCircle2}
 							iconColor={NeonColors.accent.green}
@@ -99,88 +98,3 @@ export default function DashboardIndex() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: NeonColors.background,
-	},
-	safeArea: {
-		flex: 1,
-	},
-	scrollContent: {
-		paddingBottom: 40,
-	},
-	statusSection: {
-		paddingHorizontal: 16,
-		marginTop: 12,
-		marginBottom: 20,
-	},
-	statusLabel: {
-		color: NeonColors.text.secondary,
-		fontSize: 12,
-		fontWeight: "700",
-		letterSpacing: 1.5,
-		marginBottom: 4,
-	},
-	scoreRow: {
-		flexDirection: "row",
-		alignItems: "baseline",
-		gap: 12,
-	},
-	score: {
-		color: NeonColors.text.primary,
-		fontSize: 48,
-		fontWeight: "300",
-	},
-	scorePercent: {
-		fontSize: 24,
-		color: NeonColors.text.secondary,
-	},
-	trendBadge: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 4,
-		backgroundColor: "rgba(0, 230, 118, 0.15)",
-		paddingHorizontal: 8,
-		paddingVertical: 4,
-		borderRadius: 12,
-	},
-	trendText: {
-		color: NeonColors.accent.green,
-		fontSize: 12,
-		fontWeight: "700",
-	},
-	quickActionsRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		paddingHorizontal: 16,
-		marginBottom: 32,
-	},
-	sectionHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		paddingHorizontal: 16,
-		marginBottom: 16,
-	},
-	sectionTitle: {
-		color: NeonColors.text.primary,
-		fontSize: 14,
-		fontWeight: "700",
-		letterSpacing: 1,
-	},
-	carouselContent: {
-		paddingLeft: 16,
-		paddingRight: 16,
-		gap: 12,
-		marginBottom: 32,
-	},
-	widgetWrapper: {
-		width: 320,
-	},
-	logsList: {
-		paddingHorizontal: 16,
-		marginTop: 12,
-	},
-});

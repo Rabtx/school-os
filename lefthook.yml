@@ -1,5 +1,4 @@
-# Git hooks: format staged files, lint, typecheck, large-file guard, secret scan, commit message.
-# Full-repo format: bun run format (manual / CI). Pre-commit only formats staged files.
+# Git hooks: format, lint, typecheck, large-file guard, secret scan, commit message.
 # Install: bun run prepare (or lefthook install)
 
 pre-commit:
@@ -9,9 +8,9 @@ pre-commit:
       run: bash scripts/git-hooks/fix-trailing-whitespace.sh
       stage_fixed: true
     format:
-      run: bash scripts/git-hooks/format-staged.sh
+      run: bun run format
     lint:
-      run: TURBO_FORCE=true bun run lint:fix && bunx turbo run lint
+      run: bun run lint:fix
     typecheck:
       run: bun run typecheck
     architecture:

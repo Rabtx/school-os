@@ -1,0 +1,176 @@
+/*
+ * @rabtx/ui tokens. See DESIGN.md.
+ *
+ * Light values are read from the Figma Button section. Dark values are derived from the dark
+ * Sidebar and are not yet confirmed in Figma.
+ *
+ * Modes are CSS variables switched by attributes on any ancestor, so components never branch:
+ *   data-theme   light | dark          (also follows a `.dark` class on an ancestor)
+ *   data-depth   flat | floating       (default floating)
+ *   data-radius  sharp | default | round (default default)
+ *   data-motion  on | off              (default on; prefers-reduced-motion also turns motion off)
+ */
+
+/* Registered so colors inside gradients can transition (gradients themselves cannot). */
+@property --rx-fill {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
+}
+@property --rx-edge-a {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
+}
+@property --rx-edge-b {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
+}
+@property --rx-sheen {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
+}
+@property --rx-shade {
+	syntax: "<color>";
+	inherits: false;
+	initial-value: transparent;
+}
+
+:root,
+[data-theme="light"] {
+	color-scheme: light;
+	--rx-font-sans: "SF Pro Text", "SF Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+		Inter, sans-serif;
+	--rx-ease: cubic-bezier(0.25, 1, 0.5, 1);
+	--rx-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+	--rx-ease-swap: cubic-bezier(0.2, 0, 0, 1);
+
+	--rx-app: #ffffff;
+	--rx-surface: #ffffff;
+	--rx-inverse: #1b1b1b;
+	--rx-inverse-hover: #292929;
+	--rx-pressed: #f2f2f2;
+	--rx-selected: #ebebeb;
+	--rx-border: #f2f2f2;
+	--rx-border-strong: #e3e3e3;
+	--rx-text: #292929;
+	--rx-text-secondary: #5d5d5d;
+	--rx-text-tertiary: #9e9e9e;
+	--rx-text-disabled: #a3a3a3;
+	--rx-text-inverse: #ffffff;
+	--rx-accent: #2d7cf6;
+	--rx-accent-hover: #1f66db;
+	--rx-danger: #e5484d;
+	--rx-focus: #2d7cf6;
+
+	/* Status tones (Figma). Tints and ink are derived from these in badge.css. */
+	--rx-success: #30a46c;
+	--rx-warning: #f0803c;
+	--rx-violet: #8e5cf0;
+	--rx-ink-base: #000000;
+
+	/* Text fields are recessed: a dark top edge fading to a light bottom edge, plus a faint top shade. */
+	--rx-field: #f5f5f5;
+	--rx-field-disabled: #fafafa;
+	--rx-field-edge-a: rgb(0 0 0 / 0.14);
+	--rx-field-edge-b: rgb(0 0 0 / 0.05);
+	--rx-field-shade: rgb(0 0 0 / 0.04);
+
+	/* Depth ink for solid fills and for the hairline secondary surface. */
+	--rx-primary-ring: #0e0e0e;
+	--rx-primary-edge-a: rgb(255 255 255 / 0.18);
+	--rx-primary-edge-b: rgb(0 0 0 / 0.3);
+	--rx-solid-edge-a: rgb(255 255 255 / 0.22);
+	--rx-solid-edge-b: rgb(0 0 0 / 0.26);
+	--rx-solid-sheen: rgb(255 255 255 / 0.06);
+	--rx-solid-shade: rgb(0 0 0 / 0.12);
+	--rx-surface-ring: rgb(0 0 0 / 0.1);
+	--rx-surface-edge-a: #ffffff;
+	--rx-surface-edge-b: rgb(0 0 0 / 0.08);
+	--rx-surface-sheen: rgb(255 255 255 / 0.5);
+	--rx-surface-shade: rgb(0 0 0 / 0.03);
+}
+
+.dark,
+[data-theme="dark"] {
+	color-scheme: dark;
+	--rx-app: #161616;
+	--rx-surface: #212121;
+	--rx-inverse: #ebebeb;
+	--rx-inverse-hover: #ffffff;
+	--rx-pressed: #303030;
+	--rx-selected: #2a2a2a;
+	--rx-border: #303030;
+	--rx-border-strong: #3d3d3d;
+	--rx-text: #ebebeb;
+	--rx-text-secondary: #a3a3a3;
+	--rx-text-tertiary: #7f7f7f;
+	--rx-text-disabled: #5f5f5f;
+	--rx-text-inverse: #1b1b1b;
+	--rx-accent: #2d7cf6;
+	--rx-accent-hover: #4a8ff7;
+	--rx-danger: #f0686d;
+	--rx-focus: #6aa4fa;
+
+	--rx-success: #30a46c;
+	--rx-warning: #f0803c;
+	--rx-violet: #8e5cf0;
+	--rx-ink-base: #ffffff;
+
+	--rx-field: #1b1b1b;
+	--rx-field-disabled: #161616;
+	--rx-field-edge-a: rgb(0 0 0 / 0.55);
+	--rx-field-edge-b: rgb(255 255 255 / 0.07);
+	--rx-field-shade: rgb(0 0 0 / 0.25);
+
+	--rx-primary-ring: rgb(0 0 0 / 0.55);
+	--rx-primary-edge-a: rgb(255 255 255 / 0.85);
+	--rx-primary-edge-b: rgb(0 0 0 / 0.22);
+	--rx-solid-edge-a: rgb(255 255 255 / 0.22);
+	--rx-solid-edge-b: rgb(0 0 0 / 0.32);
+	--rx-solid-sheen: rgb(255 255 255 / 0.06);
+	--rx-solid-shade: rgb(0 0 0 / 0.16);
+	--rx-surface-ring: rgb(0 0 0 / 0.6);
+	--rx-surface-edge-a: rgb(255 255 255 / 0.14);
+	--rx-surface-edge-b: rgb(0 0 0 / 0.4);
+	--rx-surface-sheen: rgb(255 255 255 / 0.05);
+	--rx-surface-shade: rgb(0 0 0 / 0.16);
+}
+
+/*
+ * Radius, tiered so Round never over-rounds a box or a menu item and clips text.
+ * `btn` follows Figma: Rounded is the small and control radius, Pill is full.
+ */
+:root,
+[data-radius="default"] {
+	--rx-r-btn-sm: 6px;
+	--rx-r-btn: 8px;
+	--rx-r-ctl: 8px;
+	--rx-r-item: 6px;
+	--rx-r-box: 12px;
+	--rx-r-badge: 4px;
+	--rx-r-check: 4px;
+	--rx-r-pill: 999px;
+}
+[data-radius="sharp"] {
+	--rx-r-btn-sm: 2px;
+	--rx-r-btn: 2px;
+	--rx-r-ctl: 2px;
+	--rx-r-item: 2px;
+	--rx-r-box: 4px;
+	--rx-r-badge: 2px;
+	--rx-r-check: 2px;
+	--rx-r-pill: 2px;
+}
+[data-radius="round"] {
+	--rx-r-btn-sm: 999px;
+	--rx-r-btn: 999px;
+	--rx-r-ctl: 12px;
+	--rx-r-item: 10px;
+	--rx-r-box: 20px;
+	--rx-r-badge: 999px;
+	--rx-r-check: 6px;
+	--rx-r-pill: 999px;
+}

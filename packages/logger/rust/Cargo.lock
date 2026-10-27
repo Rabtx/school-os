@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "school-logger"
+name = "school-os-logger"
 version = "0.1.0"
