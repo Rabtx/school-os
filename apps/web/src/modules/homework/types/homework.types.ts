@@ -17,7 +17,10 @@ export type HomeworkAssignment = {
 	estimatedMinutes: number | null;
 	materials: string | null;
 	recipientCount: number;
+	/** Recipients who handed it in (submitted, late or graded). */
+	submittedCount: number;
 	createdByMembershipId: string;
+	teacherName: string | null;
 	createdAt: string;
 	updatedAt: string;
 };

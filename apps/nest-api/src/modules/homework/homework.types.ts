@@ -16,7 +16,10 @@ export type PublicHomeworkAssignment = {
 	estimatedMinutes: number | null;
 	materials: string | null;
 	recipientCount: number;
+	/** Recipients who handed it in (submitted, late or graded). */
+	submittedCount: number;
 	createdByMembershipId: string;
+	teacherName: string | null;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -40,6 +43,8 @@ export function toPublicHomework(
 		subjectCode: string;
 		subjectName: string;
 		recipientCount?: number;
+		submittedCount?: number;
+		teacherName?: string | null;
 	},
 ): PublicHomeworkAssignment {
 	return {
@@ -58,7 +63,9 @@ export function toPublicHomework(
 		estimatedMinutes: record.estimatedMinutes,
 		materials: record.materials,
 		recipientCount: context.recipientCount ?? 0,
+		submittedCount: context.submittedCount ?? 0,
 		createdByMembershipId: record.createdByMembershipId,
+		teacherName: context.teacherName ?? null,
 		createdAt: record.createdAt.toISOString(),
 		updatedAt: record.updatedAt.toISOString(),
 	};

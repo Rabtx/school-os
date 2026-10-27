@@ -346,6 +346,8 @@ export class HomeworkService {
 			assignment: Parameters<typeof toPublicHomework>[0];
 			section: { id: string; name: string };
 			subject: { id: string; code: string; name: string };
+			submittedCount?: number;
+			teacherName?: string | null;
 		},
 	) {
 		let recipientCount = 0;
@@ -365,6 +367,8 @@ export class HomeworkService {
 			subjectCode: row.subject.code,
 			subjectName: row.subject.name,
 			recipientCount,
+			submittedCount: row.submittedCount,
+			teacherName: row.teacherName,
 		});
 	}
 

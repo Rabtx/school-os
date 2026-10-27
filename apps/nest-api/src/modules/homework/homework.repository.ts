@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
 import {
 	homeworkAssignments,
 	homeworkRecipients,
+	homeworkSubmissions,
+	memberships,
 	sectionSubjects,
 	sections,
 	subjects,
+	userProfiles,
+	users,
 } from '@/database/schema';
 import type { ListHomeworkQuery } from './homework.dto';
 
@@ -41,6 +45,18 @@ export class HomeworkRepository {
 				sectionSubject: sectionSubjects,
 				section: sections,
 				subject: subjects,
+				submittedCount: sql<number>`(
+					select count(*)::int from ${homeworkSubmissions}
+					where ${homeworkSubmissions.homeworkId} = ${homeworkAssignments.id}
+						and ${homeworkSubmissions.status} in ('submitted', 'late', 'graded')
+				)`,
+				teacherName: sql<string | null>`(
+					select coalesce(nullif(${userProfiles.displayName}, ''), ${users.username})
+					from ${memberships}
+					join ${users} on ${users.id} = ${memberships.userId}
+					left join ${userProfiles} on ${userProfiles.userId} = ${users.id}
+					where ${memberships.id} = ${homeworkAssignments.createdByMembershipId}
+				)`,
 			})
 			.from(homeworkAssignments)
 			.innerJoin(sectionSubjects, eq(homeworkAssignments.sectionSubjectId, sectionSubjects.id))
