@@ -9,7 +9,6 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
-import { Badge } from "@school-os/ui/components/badge";
 import { Button } from "@school-os/ui/components/button";
 import {
 	Drawer,
@@ -34,6 +33,7 @@ import { ToggleGroup, ToggleGroupItem } from "@school-os/ui/components/toggle-gr
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminPageShell, FormDrawer } from "@/components/admin";
+import { cn } from "@/lib/utils";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -55,7 +55,7 @@ import {
 } from "@/modules/students";
 import type { Student } from "@/modules/students/types/student.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
-import { formatStudentGender, studentStatusBadgeVariant } from "../utils/student-ui.utils";
+import { formatStudentGender, studentStatusTone } from "../utils/student-ui.utils";
 import { AdmitStudentWizard } from "./admit-student-wizard";
 import { StudentAvatar } from "./student-avatar";
 import { StudentIdCard } from "./student-id-card";
@@ -193,8 +193,8 @@ export function StudentsPage() {
 				sortValue: (row) => row.fullName,
 				renderCell: (student) => (
 					<div className="min-w-[140px]">
-						<p className="font-medium text-foreground">{student.fullName}</p>
-						<p className="font-mono text-[12px] text-muted-foreground">{student.studentCode}</p>
+						<p className="font-medium text-dashboard-text-primary">{student.fullName}</p>
+						<p className="font-mono text-[12px] text-dashboard-text-dim">{student.studentCode}</p>
 					</div>
 				),
 			},
@@ -204,7 +204,7 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => sectionLabelByStudentId.get(row.id) ?? "",
 				renderCell: (student) => (
-					<span className="text-muted-foreground text-sm">
+					<span className="text-dashboard-text-secondary">
 						{sectionLabelByStudentId.get(student.id) ?? "—"}
 					</span>
 				),
@@ -215,7 +215,7 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => row.phone ?? "",
 				renderCell: (student) => (
-					<span className="text-muted-foreground text-sm">{student.phone ?? "—"}</span>
+					<span className="text-dashboard-text-secondary">{student.phone ?? "—"}</span>
 				),
 			},
 			{
@@ -225,7 +225,7 @@ export function StudentsPage() {
 				sortValue: (row) => row.dateOfBirth ?? "",
 				className: "tabular-nums",
 				renderCell: (student) => (
-					<span className="text-muted-foreground text-sm">{student.dateOfBirth ?? "—"}</span>
+					<span className="text-dashboard-text-secondary">{student.dateOfBirth ?? "—"}</span>
 				),
 			},
 			{
@@ -234,7 +234,7 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => row.gender ?? "",
 				renderCell: (student) => (
-					<span className="text-muted-foreground text-sm capitalize">
+					<span className="text-dashboard-text-secondary capitalize">
 						{formatStudentGender(student.gender)}
 					</span>
 				),
@@ -245,10 +245,10 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => row.emergencyContactName ?? "",
 				renderCell: (student) => (
-					<div className="min-w-[120px] text-muted-foreground text-sm">
+					<div className="min-w-[120px] text-dashboard-text-secondary">
 						<p>{student.emergencyContactName ?? "—"}</p>
 						{student.emergencyContactPhone ? (
-							<p className="text-[12px]">{student.emergencyContactPhone}</p>
+							<p className="text-[12px] text-dashboard-text-dim">{student.emergencyContactPhone}</p>
 						) : null}
 					</div>
 				),
@@ -259,9 +259,9 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => row.status,
 				renderCell: (student) => (
-					<Badge variant={studentStatusBadgeVariant(student.status)} className="capitalize">
+					<span className={cn("capitalize", studentStatusTone(student.status))}>
 						{student.status}
-					</Badge>
+					</span>
 				),
 			},
 			{
