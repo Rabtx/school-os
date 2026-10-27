@@ -10,7 +10,15 @@ const ONBOARDING_PREFIX = "/admin/onboarding";
 export function TenantOnboardingGate({ children }: { children: ReactNode }) {
 	const router = useRouter();
 	const pathname = usePathname();
-	const { tenants, tenantsLoading, campuses, campusesLoading, activeTenant } = useTenantContext();
+	const {
+		tenants,
+		tenantsLoading,
+		tenantsLoaded,
+		campuses,
+		campusesLoading,
+		campusesReady,
+		activeTenant,
+	} = useTenantContext();
 	const { can } = usePermissions();
 	const canCreateCampus = can(PermissionCodes.TENANT_CAMPUS_CREATE);
 
@@ -18,7 +26,9 @@ export function TenantOnboardingGate({ children }: { children: ReactNode }) {
 	const onCampuses = pathname.includes("/campuses") || pathname.startsWith("/admin/tenants/");
 
 	useEffect(() => {
-		if (tenantsLoading || campusesLoading) return;
+		// Wait for real data: on a fresh page load this effect runs before the session provider has
+		// started fetching, when both lists are still empty and nothing reports "loading".
+		if (tenantsLoading || campusesLoading || !tenantsLoaded) return;
 
 		if (tenants.length === 0 && !onOnboarding && !onCampuses) {
 			router.replace("/admin/onboarding/tenant");
@@ -35,10 +45,13 @@ export function TenantOnboardingGate({ children }: { children: ReactNode }) {
 			return;
 		}
 
+		// Only send someone to campus setup once their campus list has really loaded: on a fresh
+		// page load this effect runs before the campus fetch starts, when the list is still empty.
 		if (
 			!onOnboarding &&
 			!onCampuses &&
 			tenants.length > 0 &&
+			campusesReady &&
 			campuses.length === 0 &&
 			activeTenant &&
 			canCreateCampus
@@ -49,11 +62,13 @@ export function TenantOnboardingGate({ children }: { children: ReactNode }) {
 		activeTenant,
 		campuses.length,
 		campusesLoading,
+		campusesReady,
 		canCreateCampus,
 		onCampuses,
 		onOnboarding,
 		router,
 		tenants,
+		tenantsLoaded,
 		tenantsLoading,
 	]);
 

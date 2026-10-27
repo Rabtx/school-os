@@ -25,10 +25,14 @@ type SessionState = {
 
 	tenants: Tenant[];
 	tenantsLoading: boolean;
+	/** True once the tenant list has loaded for the current session (not merely "not loading"). */
+	tenantsLoaded: boolean;
 	activeTenantId: string | null;
 	activeCampusId: string | null;
 	campuses: Campus[];
 	campusesLoading: boolean;
+	/** Tenant whose campus list is in `campuses` (null until the first load finishes). */
+	campusesTenantId: string | null;
 	tenantSwitching: boolean;
 	membershipLoading: boolean;
 
@@ -39,9 +43,9 @@ type SessionState = {
 	setUser: (user: User | null) => void;
 	setMembership: (membership: TenantMembership | null) => void;
 	setMembershipLoading: (loading: boolean) => void;
-	setTenants: (tenants: Tenant[]) => void;
+	setTenants: (tenants: Tenant[], loaded: boolean) => void;
 	setTenantsLoading: (loading: boolean) => void;
-	setCampuses: (campuses: Campus[]) => void;
+	setCampuses: (campuses: Campus[], tenantId: string | null) => void;
 	setCampusesLoading: (loading: boolean) => void;
 	setTenantSwitching: (switching: boolean) => void;
 	setActiveTenantId: (tenantId: string) => void;
@@ -75,10 +79,12 @@ export const useSessionStore = create<SessionState>()(
 
 			tenants: [],
 			tenantsLoading: false,
+			tenantsLoaded: false,
 			activeTenantId: null,
 			activeCampusId: null,
 			campuses: [],
 			campusesLoading: false,
+			campusesTenantId: null,
 			tenantSwitching: false,
 			membershipLoading: false,
 
@@ -114,10 +120,12 @@ export const useSessionStore = create<SessionState>()(
 					authError: null,
 					tenants: [],
 					tenantsLoading: false,
+					tenantsLoaded: false,
 					activeTenantId: null,
 					activeCampusId: null,
 					campuses: [],
 					campusesLoading: false,
+					campusesTenantId: null,
 					tenantSwitching: false,
 					membershipLoading: false,
 				});
@@ -136,9 +144,9 @@ export const useSessionStore = create<SessionState>()(
 				}),
 
 			setMembershipLoading: (membershipLoading) => set({ membershipLoading }),
-			setTenants: (tenants) => set({ tenants }),
+			setTenants: (tenants, tenantsLoaded) => set({ tenants, tenantsLoaded }),
 			setTenantsLoading: (tenantsLoading) => set({ tenantsLoading }),
-			setCampuses: (campuses) => set({ campuses }),
+			setCampuses: (campuses, campusesTenantId) => set({ campuses, campusesTenantId }),
 			setCampusesLoading: (campusesLoading) => set({ campusesLoading }),
 			setTenantSwitching: (tenantSwitching) => set({ tenantSwitching }),
 

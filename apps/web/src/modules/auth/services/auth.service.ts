@@ -22,6 +22,13 @@ import type {
 	VerifyEmailInput,
 } from "../types/auth.types";
 
+/**
+ * Refresh tokens rotate on every use, and presenting a used one counts as theft (all sessions are
+ * revoked). Concurrent callers (StrictMode effects, the bootstrap and the expiry timer) therefore
+ * share one in-flight request instead of each sending the same cookie.
+ */
+let inFlightRefresh: Promise<AuthSession> | null = null;
+
 export const authService = {
 	register: (input: RegisterInput) => apiClient.post<RegistrationResult>("/auth/register", input),
 	verifyEmail: (input: VerifyEmailInput) => apiClient.post<User>("/auth/verify-email", input),
@@ -30,7 +37,12 @@ export const authService = {
 	login: (input: LoginInput) => apiClient.post<LoginResult>("/auth/login", input),
 	verifyTwoFactor: (input: TwoFactorInput) =>
 		apiClient.post<AuthSession>("/auth/methods/two-factor/verify", input),
-	refresh: () => apiClient.post<AuthSession>("/auth/refresh"),
+	refresh: () => {
+		inFlightRefresh ??= apiClient.post<AuthSession>("/auth/refresh").finally(() => {
+			inFlightRefresh = null;
+		});
+		return inFlightRefresh;
+	},
 	switchTenant: (accessToken: string, tenantId: string) =>
 		apiClient.post<AuthSession>("/auth/switch-tenant", { tenantId }, { accessToken }),
 	logout: () => apiClient.post<void>("/auth/logout"),
