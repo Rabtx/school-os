@@ -26,12 +26,14 @@ The short version: claim a card before coding, work in your own worktree on
 
 ## UI design context
 
-Before changing UI components, read [DESIGN.md](DESIGN.md), especially **Rabtx UI: shared design intent**.
-It records the agreed direction (rebuild `@rabtx/ui` from scratch against the Reptex/Grid Figma
-system, with its file key and section IDs), the dependency policy (no animation library; motion is
-CSS only), the tiered radius and the Flat / Floating depth (no shadows), the beUI spring values and
-the open decisions. Do not infer the design solely from existing code, and do not extend
-`@school-os/ui` components: new work goes in `@rabtx/ui`.
+Before changing UI, read [DESIGN.md](DESIGN.md), starting with **School OS design source** and
+**Rabtx UI: shared design intent**. Product screens follow the School OS Figma file
+(`fD9WERKwofFmMtjGC0K46P`); components follow the rabtx design system. Figma wins over this repo on
+visual decisions. Tokens live in `packages/rabtx/src/styles/tokens.css` and the web app's theme
+points at them. The dependency policy still holds (no animation library; motion is CSS only), as do
+the tiered radius and the Flat / Floating depth (Floating includes Figma's soft cast shadows). Do not
+infer the design solely from existing code, and do not extend `@school-os/ui` components: new work
+goes in `@rabtx/ui`.
 Keep that document as the shared source of truth instead of copying design rules into agent-specific folders.
 
 ## Documentation

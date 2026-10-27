@@ -19,7 +19,8 @@
 		linear-gradient(180deg, var(--rx-edge-a), var(--rx-edge-b)) border-box;
 	box-shadow:
 		0 0 0 1px var(--rx-ring),
-		0 0 0 4px var(--rx-halo, transparent);
+		0 0 0 4px var(--rx-halo, transparent),
+		var(--rx-cast, 0 0 #0000);
 	-webkit-tap-highlight-color: transparent;
 	transition:
 		--rx-fill 150ms var(--rx-ease),
@@ -42,6 +43,7 @@
 	&:disabled,
 	&[aria-disabled="true"],
 	&:has(> :disabled) {
+		--rx-cast: 0 0 #0000;
 		--rx-fill: var(--rx-dis-fill, var(--rx-pressed));
 		--rx-flat: var(--rx-dis-edge, var(--rx-pressed));
 		--rx-edge-a: var(--rx-flat);
@@ -56,6 +58,7 @@
 
 /* Tones. `--rx-flat` is the single border color used when depth is Flat. */
 @utility rx-primary {
+	--rx-cast: var(--rx-cast-solid);
 	--rx-fill: var(--rx-inverse);
 	--rx-fill-hover: var(--rx-inverse-hover);
 	--rx-flat: var(--rx-fill);
@@ -67,6 +70,7 @@
 	color: var(--rx-text-inverse);
 }
 @utility rx-accent {
+	--rx-cast: var(--rx-cast-solid);
 	--rx-fill: var(--rx-accent);
 	--rx-fill-hover: var(--rx-accent-hover);
 	--rx-flat: var(--rx-fill);
@@ -78,6 +82,7 @@
 	color: #fff;
 }
 @utility rx-danger {
+	--rx-cast: var(--rx-cast-solid);
 	--rx-fill: var(--rx-danger);
 	--rx-fill-hover: color-mix(in oklab, var(--rx-danger) 92%, black);
 	--rx-flat: var(--rx-fill);
@@ -89,6 +94,7 @@
 	color: #fff;
 }
 @utility rx-secondary {
+	--rx-cast: var(--rx-cast-soft);
 	--rx-fill: var(--rx-surface);
 	--rx-fill-hover: var(--rx-selected);
 	--rx-flat: var(--rx-border-strong);
@@ -146,6 +152,7 @@
 
 /* A card: the plain surface with a white fill. `--rx-flat` is Figma's default border. */
 @utility rx-card {
+	--rx-cast: var(--rx-cast-card);
 	--rx-fill: var(--rx-surface);
 	--rx-flat: var(--rx-border);
 	--rx-ring: var(--rx-surface-ring);
@@ -156,8 +163,9 @@
 	color: var(--rx-text);
 }
 
-/* Flat: one border color, nothing else. Beats the tones above because it is not layered. */
+/* Flat: one border color, nothing else (no cast shadow). Beats the tones above because it is not layered. */
 [data-depth="flat"] :is(.rx-control, .rx-surface) {
+	--rx-cast: 0 0 #0000;
 	--rx-edge-a: var(--rx-flat);
 	--rx-edge-b: var(--rx-flat);
 	--rx-sheen: transparent;

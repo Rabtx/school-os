@@ -1,8 +1,9 @@
 /*
  * @rabtx/ui tokens. See DESIGN.md.
  *
- * Light values are read from the Figma Button section. Dark values are derived from the dark
- * Sidebar and are not yet confirmed in Figma.
+ * Values follow the School OS Figma file (fD9WERKwofFmMtjGC0K46P), which is built on the rabtx
+ * design system: light from the Parent app and the light forms, dark from the web screens
+ * (Dashboard, Approvals). Values marked "derived" are not drawn in Figma.
  *
  * Modes are CSS variables switched by attributes on any ancestor, so components never branch:
  *   data-theme   light | dark          (also follows a `.dark` class on an ancestor)
@@ -43,12 +44,15 @@
 	color-scheme: light;
 	--rx-font-sans: "SF Pro Text", "SF Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
 		Inter, sans-serif;
+	--rx-font-mono: "Geist Mono", ui-monospace, "SF Mono", SFMono-Regular, Consolas, monospace;
 	--rx-ease: cubic-bezier(0.25, 1, 0.5, 1);
 	--rx-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
 	--rx-ease-swap: cubic-bezier(0.2, 0, 0, 1);
 
 	--rx-app: #ffffff;
+	--rx-canvas: #f5f5f5;
 	--rx-surface: #ffffff;
+	--rx-subtle: #fafafa;
 	--rx-inverse: #1b1b1b;
 	--rx-inverse-hover: #292929;
 	--rx-pressed: #f2f2f2;
@@ -62,6 +66,7 @@
 	--rx-text-inverse: #ffffff;
 	--rx-accent: #2d7cf6;
 	--rx-accent-hover: #1f66db;
+	--rx-accent-subtle: #eaf2fe;
 	--rx-danger: #e5484d;
 	--rx-focus: #2d7cf6;
 
@@ -70,6 +75,12 @@
 	--rx-warning: #f0803c;
 	--rx-violet: #8e5cf0;
 	--rx-ink-base: #000000;
+
+	/* Cast shadows (Figma "Depth" effects). Floating draws them, Flat drops them. A cast is always
+	   a shadow list item, never `none`, because it joins the ring and halo in one box-shadow. */
+	--rx-cast-solid: 0 1px 3px rgb(0 0 0 / 0.18); /* derived: Figma draws Depth/Primary on dark only */
+	--rx-cast-soft: 0 1px 2px rgb(0 0 0 / 0.08); /* derived */
+	--rx-cast-card: 0 1px 3px rgb(0 0 0 / 0.1), 0 8px 24px -4px rgb(0 0 0 / 0.1); /* depth/md */
 
 	/* Text fields are recessed: a dark top edge fading to a light bottom edge, plus a faint top shade. */
 	--rx-field: #f5f5f5;
@@ -96,12 +107,14 @@
 .dark,
 [data-theme="dark"] {
 	color-scheme: dark;
-	--rx-app: #161616;
+	--rx-app: #141414;
+	--rx-canvas: #141414;
 	--rx-surface: #212121;
+	--rx-subtle: #1b1b1b;
 	--rx-inverse: #ebebeb;
 	--rx-inverse-hover: #ffffff;
 	--rx-pressed: #303030;
-	--rx-selected: #2a2a2a;
+	--rx-selected: #292929;
 	--rx-border: #303030;
 	--rx-border-strong: #3d3d3d;
 	--rx-text: #ebebeb;
@@ -110,17 +123,22 @@
 	--rx-text-disabled: #5f5f5f;
 	--rx-text-inverse: #1b1b1b;
 	--rx-accent: #2d7cf6;
-	--rx-accent-hover: #4a8ff7;
+	--rx-accent-hover: #5b9bf8;
+	--rx-accent-subtle: #0b2144;
 	--rx-danger: #f0686d;
 	--rx-focus: #6aa4fa;
 
-	--rx-success: #30a46c;
-	--rx-warning: #f0803c;
+	--rx-success: #4bbe88;
+	--rx-warning: #f5985c;
 	--rx-violet: #8e5cf0;
 	--rx-ink-base: #ffffff;
 
-	--rx-field: #1b1b1b;
-	--rx-field-disabled: #161616;
+	--rx-cast-solid: 0 1px 3px rgb(0 0 0 / 0.5); /* Depth/Primary */
+	--rx-cast-soft: 0 1px 2px rgb(0 0 0 / 0.4); /* Depth/Soft */
+	--rx-cast-card: 0 1px 2px rgb(0 0 0 / 0.3); /* Shadow/sm */
+
+	--rx-field: #141414;
+	--rx-field-disabled: #1b1b1b;
 	--rx-field-edge-a: rgb(0 0 0 / 0.55);
 	--rx-field-edge-b: rgb(255 255 255 / 0.07);
 	--rx-field-shade: rgb(0 0 0 / 0.25);

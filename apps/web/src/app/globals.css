@@ -2,150 +2,88 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@school-os/ui/globals.css";
+@import "@rabtx/ui/styles.css";
 
 /* Scan UI package for Tailwind classes */
 @source "../../../../packages/ui/src";
 
 :root {
-	--font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-		"Segoe UI", sans-serif;
-	--font-geist-mono: ui-monospace, "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono",
+	/* School OS type: SF Pro on Apple platforms, Inter elsewhere (SF Pro cannot ship as a web font). */
+	--font-sans: "SF Pro Text", "SF Pro", -apple-system, BlinkMacSystemFont, var(--font-inter),
+		ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+	--font-geist-mono: var(--font-geist-mono-face), ui-monospace, "SF Mono", SFMono-Regular, Consolas,
 		monospace;
 
-	/* Chat-derived application palette. Keep semantic names stable for future themes. */
-	--background: #ffffff;
-	--foreground: #171717;
-	--card: #ffffff;
-	--card-foreground: #171717;
-	--popover: #ffffff;
-	--popover-foreground: #171717;
-	--primary: #212121;
-	--primary-foreground: #fafafa;
-	--secondary: #f5f5f5;
-	--secondary-foreground: #212121;
-	--muted: #f5f5f5;
-	--muted-foreground: #737373;
-	--accent: #f5f5f5;
-	--accent-foreground: #212121;
-	--destructive: oklch(0.577 0.245 27.325);
-	--border: #e8e8e8;
-	--input: #e8e8e8;
-	--ring: #737373;
-	--chart-1: #dedede;
-	--chart-2: #737373;
-	--chart-3: #525252;
-	--chart-4: #404040;
-	--chart-5: #262626;
-	--radius: 0.625rem;
-	--sidebar: #fcfcfc;
-	--sidebar-foreground: #171717;
-	--sidebar-primary: #212121;
-	--sidebar-primary-foreground: #fafafa;
-	--sidebar-accent: #f5f5f5;
-	--sidebar-accent-foreground: #212121;
-	--sidebar-border: #e8e8e8;
-	--sidebar-ring: #737373;
-
-	--dashboard-bg: #fcfcfc;
-	--dashboard-sidebar-bg: #fcfcfc;
-	--dashboard-topbar-bg: #ffffff;
-	--dashboard-card-outer: #ffffff;
-	--dashboard-card-inner: #fcfcfc;
-	--dashboard-surface: #ffffff;
-	--dashboard-surface-elevated: #fcfcfc;
-	--dashboard-surface-hover: #f7f7f7;
-	--dashboard-surface-strong: #f5f5f5;
-	--dashboard-border: #e8e8e8;
-	--dashboard-border-subtle: #f1f1f1;
-	--dashboard-border-strong: #dedede;
-	--dashboard-border-focus: #737373;
-	--dashboard-text-primary: #171717;
-	--dashboard-text-secondary: #404040;
-	--dashboard-text-muted: #737373;
-	--dashboard-text-dim: #a3a3a3;
-	--dashboard-text-faint: #d4d4d4;
-	--dashboard-hover: #f7f7f7;
-	--dashboard-hover-strong: #f5f5f5;
-	--dashboard-chart-grid: #f1f1f1;
-	--dashboard-chart-dot: #737373;
-	--dashboard-chart-muted-bar: #e8e8e8;
-	--dashboard-tooltip-bg: rgba(255, 255, 255, 0.98);
-	--dashboard-chart-line: #404040;
-	--dashboard-chart-leader: rgba(115, 115, 115, 0.5);
-	/* Teal — school-ops accent; avoids generic indigo/purple SaaS default */
-	--dashboard-accent: #0f766e;
-	--dashboard-accent-hover: #0d9488;
-	--dashboard-accent-fg: #ffffff;
-	--dashboard-accent-soft: color-mix(in oklab, #0f766e 12%, transparent);
-	--dashboard-shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.8),
-		0 1px 2px rgba(23, 23, 23, 0.04), 0 12px 32px -20px rgba(23, 23, 23, 0.12);
-}
-
-.dark {
-	--background: #141414;
-	--foreground: #ffffff;
-	--card: #141414;
-	--card-foreground: #ffffff;
-	--popover: #141414;
-	--popover-foreground: #ffffff;
-	--primary: #eeeeee;
-	--primary-foreground: #212121;
-	--secondary: #212121;
-	--secondary-foreground: #ffffff;
-	--muted: #212121;
-	--muted-foreground: #b5b5b5;
-	--accent: #212121;
-	--accent-foreground: #ffffff;
-	--destructive: oklch(0.704 0.191 22.216);
-	--border: rgba(255, 255, 255, 0.08);
-	--input: rgba(255, 255, 255, 0.15);
-	--ring: #b5b5b5;
-	--chart-1: #dedede;
-	--chart-2: #8c8c8c;
-	--chart-3: #666666;
-	--chart-4: #4d4d4d;
-	--chart-5: #333333;
-	--sidebar: #101010;
-	--sidebar-foreground: #ffffff;
-	--sidebar-primary: oklch(0.488 0.243 264.376);
+	/*
+	 * Every color below points at an @rabtx/ui token, so the app follows the School OS Figma file
+	 * (see DESIGN.md) and switches light/dark with the same `.dark` class. Change values in
+	 * packages/rabtx/src/styles/tokens.css, not here.
+	 */
+	--background: var(--rx-app);
+	--foreground: var(--rx-text);
+	--card: var(--rx-surface);
+	--card-foreground: var(--rx-text);
+	--popover: var(--rx-surface);
+	--popover-foreground: var(--rx-text);
+	--primary: var(--rx-accent);
+	--primary-foreground: #ffffff;
+	--secondary: var(--rx-pressed);
+	--secondary-foreground: var(--rx-text);
+	--muted: var(--rx-subtle);
+	--muted-foreground: var(--rx-text-secondary);
+	--accent: var(--rx-selected);
+	--accent-foreground: var(--rx-text);
+	--destructive: var(--rx-danger);
+	--border: var(--rx-border);
+	--input: var(--rx-border-strong);
+	--ring: var(--rx-focus);
+	--chart-1: var(--rx-accent);
+	--chart-2: var(--rx-success);
+	--chart-3: var(--rx-violet);
+	--chart-4: var(--rx-warning);
+	--chart-5: var(--rx-text-tertiary);
+	/* Figma radius: 4 (sm), 6 (md), 8 (lg, controls and cards), 12 (xl, boxes). */
+	--radius: 0.5rem;
+	--sidebar: var(--rx-subtle);
+	--sidebar-foreground: var(--rx-text);
+	--sidebar-primary: var(--rx-accent);
 	--sidebar-primary-foreground: #ffffff;
-	--sidebar-accent: #212121;
-	--sidebar-accent-foreground: #ffffff;
-	--sidebar-border: rgba(255, 255, 255, 0.08);
-	--sidebar-ring: #b5b5b5;
+	--sidebar-accent: var(--rx-selected);
+	--sidebar-accent-foreground: var(--rx-text);
+	--sidebar-border: var(--rx-border);
+	--sidebar-ring: var(--rx-focus);
 
-	--dashboard-bg: #101010;
-	--dashboard-sidebar-bg: #101010;
-	--dashboard-topbar-bg: #141414;
-	--dashboard-card-outer: #141414;
-	--dashboard-card-inner: #101010;
-	--dashboard-surface: #141414;
-	--dashboard-surface-elevated: #1c1c1c;
-	--dashboard-surface-hover: #1c1c1c;
-	--dashboard-surface-strong: #212121;
-	--dashboard-border: rgba(255, 255, 255, 0.08);
-	--dashboard-border-subtle: rgba(255, 255, 255, 0.06);
-	--dashboard-border-strong: rgba(255, 255, 255, 0.12);
-	--dashboard-border-focus: #b5b5b5;
-	--dashboard-text-primary: #ffffff;
-	--dashboard-text-secondary: #eeeeee;
-	--dashboard-text-muted: #b5b5b5;
-	--dashboard-text-dim: #737373;
-	--dashboard-text-faint: #404040;
-	--dashboard-hover: #1c1c1c;
-	--dashboard-hover-strong: #212121;
-	--dashboard-chart-grid: rgba(255, 255, 255, 0.06);
-	--dashboard-chart-dot: #737373;
-	--dashboard-chart-muted-bar: #333333;
-	--dashboard-tooltip-bg: rgba(20, 20, 20, 0.98);
-	--dashboard-chart-line: #eeeeee;
-	--dashboard-chart-leader: rgba(181, 181, 181, 0.5);
-	--dashboard-accent: #2dd4bf;
-	--dashboard-accent-hover: #5eead4;
-	--dashboard-accent-fg: #042f2e;
-	--dashboard-accent-soft: color-mix(in oklab, #2dd4bf 16%, transparent);
-	--dashboard-shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.04),
-		0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.55);
+	--dashboard-bg: var(--rx-app);
+	--dashboard-sidebar-bg: var(--rx-subtle);
+	--dashboard-topbar-bg: var(--rx-app);
+	--dashboard-card-outer: var(--rx-surface);
+	--dashboard-card-inner: var(--rx-subtle);
+	--dashboard-surface: var(--rx-surface);
+	--dashboard-surface-elevated: var(--rx-subtle);
+	--dashboard-surface-hover: var(--rx-selected);
+	--dashboard-surface-strong: var(--rx-pressed);
+	--dashboard-border: var(--rx-border);
+	--dashboard-border-subtle: var(--rx-border);
+	--dashboard-border-strong: var(--rx-border-strong);
+	--dashboard-border-focus: var(--rx-focus);
+	--dashboard-text-primary: var(--rx-text);
+	--dashboard-text-secondary: var(--rx-text-secondary);
+	--dashboard-text-muted: var(--rx-text-secondary);
+	--dashboard-text-dim: var(--rx-text-tertiary);
+	--dashboard-text-faint: var(--rx-text-disabled);
+	--dashboard-hover: var(--rx-selected);
+	--dashboard-hover-strong: var(--rx-pressed);
+	--dashboard-chart-grid: var(--rx-border);
+	--dashboard-chart-dot: var(--rx-text-tertiary);
+	--dashboard-chart-muted-bar: var(--rx-border-strong);
+	--dashboard-tooltip-bg: var(--rx-surface);
+	--dashboard-chart-line: var(--rx-accent);
+	--dashboard-chart-leader: color-mix(in oklab, var(--rx-text-tertiary) 50%, transparent);
+	--dashboard-accent: var(--rx-accent);
+	--dashboard-accent-hover: var(--rx-accent-hover);
+	--dashboard-accent-fg: #ffffff;
+	--dashboard-accent-soft: var(--rx-accent-subtle);
+	--dashboard-shadow-card: var(--rx-cast-card);
 }
 
 @theme inline {
