@@ -54,6 +54,8 @@ export type AppConfig = {
 	outboxWorkerEnabled: boolean;
 	outboxPollIntervalMs: number;
 	outboxBatchSize: number;
+	outboxLeaseMs: number;
+	outboxMaxAttempts: number;
 };
 
 export function createAppConfig(env: Env = parseEnv()): AppConfig {
@@ -139,5 +141,7 @@ export function createAppConfig(env: Env = parseEnv()): AppConfig {
 				: env.NODE_ENV !== 'test',
 		outboxPollIntervalMs: env.OUTBOX_POLL_INTERVAL_MS,
 		outboxBatchSize: env.OUTBOX_BATCH_SIZE,
+		outboxLeaseMs: env.OUTBOX_LEASE_MS,
+		outboxMaxAttempts: env.OUTBOX_MAX_ATTEMPTS,
 	};
 }

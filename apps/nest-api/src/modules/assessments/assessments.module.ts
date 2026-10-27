@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
+import { AccessScopeModule } from '@/modules/access-scope/access-scope.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { PermissionsModule } from '@/modules/authorization/permissions.module';
-import { GuardiansModule } from '@/modules/guardians/guardians.module';
 import { MembershipsModule } from '@/modules/memberships/memberships.module';
 import { StaffModule } from '@/modules/staff/staff.module';
 import { StudentsModule } from '@/modules/students/students.module';
@@ -20,7 +20,7 @@ import { StudentGradesController } from './student-grades.controller';
 		TenantsModule,
 		StaffModule,
 		StudentsModule,
-		GuardiansModule,
+		AccessScopeModule,
 	],
 	controllers: [AssessmentsController, StudentGradesController],
 	providers: [AssessmentsRepository, AssessmentsService],

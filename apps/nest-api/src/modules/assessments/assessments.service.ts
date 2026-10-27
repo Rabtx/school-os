@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 
 import type { MembershipRecord } from '@/database/schema';
+import { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { PermissionCodes } from '@/modules/authorization/permission-codes';
-import { GuardiansRepository } from '@/modules/guardians/guardians.repository';
 import { hasManagementRole } from '@/modules/memberships/membership-roles';
 import { MembershipsService } from '@/modules/memberships/memberships.service';
 import { StaffRepository } from '@/modules/staff/staff.repository';
@@ -34,7 +34,7 @@ export class AssessmentsService {
 		private readonly staff: StaffRepository,
 		private readonly students: StudentsRepository,
 		private readonly membershipAccess: MembershipsService,
-		private readonly guardians: GuardiansRepository,
+		private readonly accessScope: AccessScopeService,
 	) {}
 
 	async list(userId: string, tenantId: string, filters: ListAssessmentsQuery) {
@@ -297,7 +297,7 @@ export class AssessmentsService {
 
 	async getStudentGrades(userId: string, tenantId: string, studentId: string) {
 		const membership = await this.requireRead(userId, tenantId);
-		await this.requireStudentGradeAccess(tenantId, membership, studentId);
+		await this.accessScope.requireStudentAccess(tenantId, membership, studentId);
 		const rows = await this.assessments.listResultsForStudent(tenantId, studentId);
 
 		return {
@@ -465,35 +465,6 @@ export class AssessmentsService {
 		sectionSubjectId: string,
 	) {
 		await this.requireSectionSubjectAccess(tenantId, membership, roles, sectionSubjectId);
-	}
-
-	/**
-	 * `assessments.read` is granted to whole roles, so a single student's grades also need a link:
-	 * management sees everyone, a teacher their own classes, a parent their linked children and a
-	 * student only themselves. Anything else reads as not found, like another school's student.
-	 */
-	private async requireStudentGradeAccess(
-		tenantId: string,
-		membership: MembershipRecord,
-		studentId: string,
-	) {
-		const roles = await this.membershipAccess.listRoleCodes(membership.id, membership.role);
-		if (hasManagementRole(roles)) return;
-		if (
-			roles.includes('teacher') &&
-			(await this.staff.teacherCanAccessStudent(tenantId, membership.id, studentId))
-		) {
-			return;
-		}
-		if (roles.includes('parent')) {
-			const linked = await this.guardians.listLinkedStudentsForMembership(tenantId, membership.id);
-			if (linked.some((row) => row.student.id === studentId)) return;
-		}
-		if (roles.includes('student')) {
-			const self = await this.students.findStudentByMembershipId(tenantId, membership.id);
-			if (self?.id === studentId) return;
-		}
-		throw new NotFoundException({ code: 'STUDENT_NOT_FOUND', message: 'Student not found' });
 	}
 
 	private async requireRead(userId: string, tenantId: string) {

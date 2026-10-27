@@ -1,17 +1,19 @@
 # syntax=docker/dockerfile:1
 
-ARG BUN_VERSION=1.3.13
+ARG BUN_VERSION=1.4.2
 
 FROM oven/bun:${BUN_VERSION}-alpine AS base
 WORKDIR /app
 
 FROM base AS deps
 COPY package.json bun.lock ./
+COPY apps/ai-api/package.json ./apps/ai-api/
 COPY apps/nest-api/package.json ./apps/nest-api/
 COPY apps/web/package.json ./apps/web/
 COPY apps/mobile/package.json ./apps/mobile/
 COPY apps/docs/package.json ./apps/docs/
 COPY apps/rust/package.json ./apps/rust/
+COPY packages/rabtx/package.json ./packages/rabtx/
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/logger/package.json ./packages/logger/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
@@ -22,9 +24,12 @@ ARG NEXT_PUBLIC_NEST_API_URL=http://localhost:4000
 ENV NEXT_PUBLIC_NEST_API_URL=${NEXT_PUBLIC_NEST_API_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY --from=deps /app/node_modules ./node_modules
+# Bun links each workspace's dependencies into its own node_modules (pointing into the root
+# store), so take the whole install, not just the root node_modules.
+COPY --from=deps /app ./
 COPY package.json bun.lock turbo.json ./
 COPY apps/web ./apps/web
+COPY packages/rabtx ./packages/rabtx
 COPY packages/ui ./packages/ui
 COPY packages/typescript-config ./packages/typescript-config
 

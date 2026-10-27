@@ -21,9 +21,12 @@
 !.env.example
 env.docker.example
 
-# Host-only / unused for Nest + web images
-apps/mobile
-apps/docs
+# Host-only / unused for Nest + web images. Their package.json files stay: bun install
+# --frozen-lockfile needs every workspace manifest the lockfile lists.
+apps/mobile/**
+!apps/mobile/package.json
+apps/docs/**
+!apps/docs/package.json
 apps/c
 scripts
 *.log

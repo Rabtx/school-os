@@ -169,6 +169,20 @@
 			"when": 1786900647371,
 			"tag": "0020_vice_principal_role",
 			"breakpoints": true
+		},
+		{
+			"idx": 26,
+			"version": "7",
+			"when": 1787000647371,
+			"tag": "0024_outbox_reliability",
+			"breakpoints": true
+		},
+		{
+			"idx": 27,
+			"version": "7",
+			"when": 1787100647371,
+			"tag": "0025_audit_logs_append_only",
+			"breakpoints": true
 		}
 	]
 }

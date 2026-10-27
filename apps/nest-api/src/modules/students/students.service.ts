@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import type { MembershipRecord, StudentRecord } from '@/database/schema';
+import { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { AcademicRepository } from '@/modules/academic/academic.repository';
 import { PermissionCodes } from '@/modules/authorization/permission-codes';
 import { CampusesRepository } from '@/modules/campuses/campuses.repository';
@@ -34,6 +35,7 @@ export class StudentsService {
 		private readonly membershipAccess: MembershipsService,
 		private readonly staff: StaffRepository,
 		private readonly studentPhotos: StudentPhotoStorageService,
+		private readonly accessScope: AccessScopeService,
 	) {}
 
 	async listStudents(
@@ -59,7 +61,7 @@ export class StudentsService {
 	async getStudent(userId: string, tenantId: string, studentId: string) {
 		const membership = await this.requireRead(userId, tenantId);
 		const student = await this.requireStudent(tenantId, studentId);
-		await this.requireTeacherStudentAccess(membership, tenantId, studentId);
+		await this.accessScope.requireStudentAccess(tenantId, membership, studentId);
 		const guardianRows = await this.guardians.listStudentGuardians(tenantId, studentId);
 		return {
 			student: toPublicStudent(student),
@@ -232,7 +234,7 @@ export class StudentsService {
 		const membership = await this.requireRead(userId, tenantId);
 		if (filters?.studentId) {
 			await this.requireStudent(tenantId, filters.studentId);
-			await this.requireTeacherStudentAccess(membership, tenantId, filters.studentId);
+			await this.accessScope.requireStudentAccess(tenantId, membership, filters.studentId);
 		}
 		if (filters?.sectionId) {
 			await this.requireSection(tenantId, filters.sectionId);
@@ -340,21 +342,6 @@ export class StudentsService {
 			throw new ForbiddenException({
 				code: 'STUDENT_SECTION_FORBIDDEN',
 				message: 'You are not assigned to this section',
-			});
-		}
-	}
-
-	private async requireTeacherStudentAccess(
-		membership: MembershipRecord,
-		tenantId: string,
-		studentId: string,
-	) {
-		if (!(await this.isTeacherScopedMember(membership))) return;
-		const hasAccess = await this.staff.teacherCanAccessStudent(tenantId, membership.id, studentId);
-		if (!hasAccess) {
-			throw new ForbiddenException({
-				code: 'STUDENT_ACCESS_FORBIDDEN',
-				message: 'This student is not in one of your assigned classes',
 			});
 		}
 	}

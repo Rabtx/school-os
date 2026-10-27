@@ -31,9 +31,14 @@ export class TenantGuard implements CanActivate {
 			});
 		}
 
+		// Fail closed: a route guarded by TenantGuard must name its tenant in the path. Letting a
+		// request through without one would skip the membership check entirely.
 		const tenantId = request.params.tenantId;
 		if (typeof tenantId !== 'string' || !tenantId) {
-			return true;
+			throw new ForbiddenException({
+				code: 'TENANT_REQUIRED',
+				message: 'This route must be called with a tenant',
+			});
 		}
 
 		const membership = await this.memberships.requireActiveMembership(request.user.sub, tenantId);

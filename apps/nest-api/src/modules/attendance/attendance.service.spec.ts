@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { AcademicRepository } from '@/modules/academic/academic.repository';
 import { createMockPermissionsService } from '@/modules/authorization/testing/mock-permissions.service';
 import { MembershipsRepository } from '@/modules/memberships/memberships.repository';
@@ -99,6 +100,7 @@ describe('AttendanceService', () => {
 				createMockPermissionsService(),
 			),
 			staffRepository as unknown as StaffRepository,
+			{ requireStudentAccess: vi.fn() } as unknown as AccessScopeService,
 		);
 	});
 

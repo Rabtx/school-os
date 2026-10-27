@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
 
 import type { AccessTokenPayload } from '@/modules/auth/auth.types';
@@ -80,5 +80,19 @@ describe('TenantGuard', () => {
 			campusId: null,
 			permissions: expect.arrayContaining(Object.values(PermissionCodes)),
 		});
+	});
+
+	it('fails closed when the route has no tenant', async () => {
+		const request = {
+			user: { sub: 'user-id', sid: 'session-id' },
+			params: {},
+		} as unknown as AuthenticatedRequest;
+
+		await expect(
+			guard.canActivate({
+				switchToHttp: () => ({ getRequest: () => request }),
+			} as never),
+		).rejects.toBeInstanceOf(ForbiddenException);
+		expect(memberships.requireActiveMembership).not.toHaveBeenCalled();
 	});
 });

@@ -51,7 +51,7 @@ export function setupApp(app: INestApplication, config: AppConfigService): void 
 
 	if (!config.isProduction) {
 		const swaggerConfig = new DocumentBuilder()
-			.setTitle('Starter API')
+			.setTitle('School OS API')
 			.setDescription('Starter authentication and user API')
 			.setVersion(config.apiVersion)
 			.addBearerAuth()

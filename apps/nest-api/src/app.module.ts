@@ -18,6 +18,7 @@ import { HealthModule } from '@/modules/health/health.module';
 import { HomeworkModule } from '@/modules/homework/homework.module';
 import { MembersModule } from '@/modules/members/members.module';
 import { NavigationModule } from '@/modules/navigation/navigation.module';
+import { MaintenanceModule } from '@/modules/maintenance/maintenance.module';
 import { NotificationsModule } from '@/modules/notifications/notifications.module';
 import { ProfilesModule } from '@/modules/profiles/profiles.module';
 import { ReportsModule } from '@/modules/reports/reports.module';
@@ -43,6 +44,7 @@ import { UsersModule } from '@/modules/users/users.module';
 		StudentsModule,
 		AttendanceModule,
 		NotificationsModule,
+		MaintenanceModule,
 		HomeworkModule,
 		AssessmentsModule,
 		GradebookModule,

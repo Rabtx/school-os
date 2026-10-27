@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import type { MembershipRecord } from '@/database/schema';
+import { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { AcademicRepository } from '@/modules/academic/academic.repository';
 import { PermissionCodes } from '@/modules/authorization/permission-codes';
 import { hasManagementRole, managementRoles } from '@/modules/memberships/membership-roles';
@@ -33,6 +34,7 @@ export class AttendanceService {
 		private readonly students: StudentsRepository,
 		private readonly membershipAccess: MembershipsService,
 		private readonly staff: StaffRepository,
+		private readonly accessScope: AccessScopeService,
 	) {}
 
 	async getOrCreateSession(userId: string, tenantId: string, input: CreateAttendanceSessionInput) {
@@ -264,22 +266,7 @@ export class AttendanceService {
 				message: 'Student not found',
 			});
 		}
-		if (membership.role === 'teacher') {
-			const roles = await this.membershipAccess.listRoleCodes(membership.id, membership.role);
-			if (!hasManagementRole(roles)) {
-				const hasAccess = await this.staff.teacherCanAccessStudent(
-					tenantId,
-					membership.id,
-					studentId,
-				);
-				if (!hasAccess) {
-					throw new ForbiddenException({
-						code: 'STUDENT_ACCESS_FORBIDDEN',
-						message: 'This student is not in one of your assigned classes',
-					});
-				}
-			}
-		}
+		await this.accessScope.requireStudentAccess(tenantId, membership, studentId);
 
 		const rows = await this.attendance.listMarksForStudent(tenantId, studentId, limit ?? 50);
 		return {

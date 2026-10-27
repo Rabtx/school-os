@@ -16,7 +16,11 @@ export class AiClient {
 
 	constructor(private readonly config: AppConfigService) {}
 
-	async assist(userId: string, body: AssistRequestInput): Promise<AssistResponse> {
+	async assist(
+		tenantId: string,
+		userId: string,
+		body: AssistRequestInput,
+	): Promise<AssistResponse> {
 		const url = `${this.config.aiApiUrl}/api/v1/assist`;
 
 		let response: Response;
@@ -26,6 +30,7 @@ export class AiClient {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-AI-Service-Token': this.config.aiServiceToken,
+					'X-Tenant-Id': tenantId,
 					'X-User-Id': userId,
 				},
 				body: JSON.stringify(body),

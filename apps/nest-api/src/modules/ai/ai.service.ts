@@ -12,11 +12,12 @@ import type {
 export class AiService {
 	constructor(private readonly client: AiClient) {}
 
-	assist(userId: string, body: AssistRequestInput): Promise<AssistResponse> {
-		return this.client.assist(userId, body);
+	assist(tenantId: string, userId: string, body: AssistRequestInput): Promise<AssistResponse> {
+		return this.client.assist(tenantId, userId, body);
 	}
 
 	async draftAcademics(
+		tenantId: string,
 		userId: string,
 		body: AcademicDraftRequestInput,
 	): Promise<AcademicDraftResponse> {
@@ -40,7 +41,7 @@ export class AiService {
 			'Description should include numbered tasks students can follow. No markdown fences.',
 		].filter(Boolean);
 
-		const response = await this.client.assist(userId, {
+		const response = await this.client.assist(tenantId, userId, {
 			context: contextParts.join('\n'),
 			messages: [
 				{

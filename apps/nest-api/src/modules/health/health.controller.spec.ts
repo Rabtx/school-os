@@ -21,7 +21,7 @@ describe('HealthController', () => {
 	it('returns the API health status', () => {
 		expect(controller.getHealth()).toEqual({
 			status: 'ok',
-			service: 'starter-api',
+			service: 'school-os-api',
 		});
 	});
 });
