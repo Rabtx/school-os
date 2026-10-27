@@ -1,0 +1,105 @@
+version: 1
+
+# A card may narrow these paths but may not widen them without human approval. The backend is one
+# accountable role; auth, domain, billing, and migrations are card-level focus areas.
+policy:
+  default: deny-unowned-writes
+  read_access: broad-for-understanding
+  write_access: card-scope-only
+
+roles:
+  backend:
+    team: backend
+    paths:
+      - apps/nest-api/**
+    reviewers:
+      - reviewer
+      - qa
+  ai-python:
+    team: ai
+    paths:
+      - apps/ai-api/**
+      - scripts/python/**
+    reviewers:
+      - reviewer
+      - qa
+  web:
+    team: web
+    paths:
+      - apps/web/**
+    reviewers:
+      - reviewer
+      - qa
+      - ui-ux
+  mobile:
+    team: mobile
+    paths:
+      - apps/mobile/**
+    reviewers:
+      - reviewer
+      - qa
+      - ui-ux
+  rust:
+    team: backend
+    paths:
+      - apps/rust/**
+    reviewers:
+      - reviewer
+      - qa
+  qa:
+    team: quality
+    mode: read-only
+    paths: []
+    reviewers:
+      - reviewer
+  reviewer:
+    team: quality
+    mode: read-only
+    paths: []
+    reviewers:
+      - human
+  ui-ux:
+    team: design
+    paths:
+      - DESIGN.md
+      - packages/ui/**
+      - packages/rabtx/**
+      - apps/web/src/app/ui/**
+    reviewers:
+      - reviewer
+      - web
+      - mobile
+  pm:
+    team: product
+    operator: codex
+    final_approver: human
+    paths:
+      - .agents/board/**
+      - apps/docs/content/docs/production-roadmap.mdx
+    reviewers:
+      - human
+
+shared:
+  api-contract:
+    paths:
+      - apps/docs/content/docs/backend-api.mdx
+    writers:
+      - backend
+    reviewers:
+      - reviewer
+      - web
+      - mobile
+  project-policy:
+    paths:
+      - .agents/agent-contract.md
+      - .agents/roles/**
+      - .agents/ownership.yaml
+    writers:
+      - human
+    reviewers:
+      - human
+  coordination:
+    paths:
+      - .agents/board/**
+      - .agents/notes/**
+    policy: Follow `.agents/README.md`; agents may update their own card lifecycle or owned note.

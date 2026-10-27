@@ -1,0 +1,9 @@
+version: "1.0"
+
+defaults:
+  base_dir: "../school-os-worktrees"
+
+hooks:
+  post_create:
+    - type: command
+      command: "bun install --frozen-lockfile"

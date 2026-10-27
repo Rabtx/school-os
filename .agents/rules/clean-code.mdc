@@ -11,5 +11,5 @@ alwaysApply: true
 - **Types**: Prefer explicit types for props and public APIs. Avoid `any`; use `unknown` and narrow when needed.
 - **Errors**: Handle errors explicitly. Log and rethrow or return result types; avoid silent catches.
 - **Comments**: Only explain non-obvious intent, trade-offs, or constraints. No narrating what code does. No dead/commented-out code.
-- **Format**: Use Biome (tabs, line width 100). Run `bun run format` or rely on pre-commit. Don't commit lint/format fixes in the same commit as feature changes when avoidable.
+- **Format**: Use oxfmt (tabs, line width 100). Run `bun run format` or rely on pre-commit. Don't commit lint/format fixes in the same commit as feature changes when avoidable.
 - **Dead code**: Remove unused variables, functions, imports, and files. Don't leave `TODO` or `FIXME` without a tracking issue.
