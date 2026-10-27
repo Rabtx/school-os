@@ -2,7 +2,7 @@
 	"name": "nest-api",
 	"version": "0.0.1",
 	"private": true,
-	"description": "Production NestJS authentication and user school-os API",
+	"description": "School OS API (NestJS): tenancy, academics, attendance, homework, assessments and auth",
 	"license": "MIT OR Apache-2.0",
 	"scripts": {
 		"build": "nest build",

@@ -27,7 +27,7 @@ describe('EmailService', () => {
 
 		expect(fetchMock).toHaveBeenCalledOnce();
 		const [, request] = fetchMock.mock.calls[0] as [string, RequestInit];
-		expect(request.body).toContain('Starter <onboarding@resend.dev>');
+		expect(request.body).toContain('School OS <onboarding@resend.dev>');
 		expect(request.body).not.toContain('test-resend-key');
 	});
 
@@ -56,7 +56,7 @@ describe('EmailService', () => {
 function config(overrides: { resendApiKey?: string } = {}): AppConfigService {
 	return {
 		resendApiKey: 'test-resend-key',
-		authEmailFrom: 'Starter <onboarding@resend.dev>',
+		authEmailFrom: 'School OS <onboarding@resend.dev>',
 		...overrides,
 	} as AppConfigService;
 }
