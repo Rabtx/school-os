@@ -24,6 +24,7 @@ export class MembershipInvitesService {
 		const results = [];
 		for (const invite of invites) {
 			if (invite.expiresAt <= new Date()) continue;
+			// oxlint-disable-next-line no-await-in-loop -- a user has few invites; each is activated in order
 			const tenant = await this.tenants.findById(invite.tenantId);
 			if (!tenant) continue;
 			results.push({
@@ -109,7 +110,9 @@ export class MembershipInvitesService {
 		const activated = [];
 		for (const invite of invites) {
 			if (invite.expiresAt <= new Date()) continue;
+			// oxlint-disable-next-line no-await-in-loop -- a user has few invites; each is activated in order
 			const membership = await this.activateInviteForUser(user, invite);
+			// oxlint-disable-next-line no-await-in-loop -- a user has few invites; each is activated in order
 			const tenant = await this.tenants.findById(invite.tenantId);
 			if (tenant) {
 				activated.push({

@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@school-os/ui/components/button";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useNow } from "@/lib/use-now";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"] as const;
 
@@ -63,7 +64,7 @@ function buildMatrix(view: Date) {
 }
 
 export function CalendarPicker({ value, onChange, className }: Props) {
-	const today = new Date();
+	const today = useNow();
 	const [view, setView] = useState<Date>(value ?? today);
 	const [selected, setSelected] = useState<Date | undefined>(value);
 

@@ -41,6 +41,7 @@ describe('AcademicService', () => {
 	};
 	let membershipsRepository: {
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
+		listRolesForMembership: ReturnType<typeof vi.fn>;
 		findActiveById: ReturnType<typeof vi.fn>;
 	};
 

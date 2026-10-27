@@ -55,6 +55,7 @@ async function chunkedAll<O>(promises: Promise<O>[]): Promise<O[]> {
 	const SIZE = 50;
 	const out: O[] = [];
 	for (let i = 0; i < promises.length; i += SIZE) {
+		// oxlint-disable-next-line eslint/no-await-in-loop, no-await-in-loop
 		out.push(...(await Promise.all(promises.slice(i, i + SIZE))));
 	}
 	return out;

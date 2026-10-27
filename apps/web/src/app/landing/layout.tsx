@@ -36,10 +36,7 @@ export default function LandingLayout({ children }: Readonly<{ children: React.R
 	return (
 		<>
 			{/* Apply the stored landing theme before paint to avoid a flash. */}
-			<script
-				// biome-ignore lint/security/noDangerouslySetInnerHtml: required to run the theme script before hydration
-				dangerouslySetInnerHTML={{ __html: atlasThemeScript }}
-			/>
+			<script dangerouslySetInnerHTML={{ __html: atlasThemeScript }} />
 			<div className={cn(jakarta.variable, playfair.variable, jetbrains.variable)}>{children}</div>
 		</>
 	);

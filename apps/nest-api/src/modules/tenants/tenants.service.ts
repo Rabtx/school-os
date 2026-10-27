@@ -81,6 +81,7 @@ export class TenantsService {
 
 		let candidate = base;
 		let suffix = 2;
+		// oxlint-disable-next-line no-await-in-loop -- probes slugs until a free one is found
 		while (await this.tenants.slugExists(candidate)) {
 			candidate = `${base}-${suffix}`;
 			suffix += 1;

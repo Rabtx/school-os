@@ -233,10 +233,10 @@ export function AdmitStudentWizard({
 							</p>
 							<label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 transition-colors hover:bg-muted/40">
 								{photoPreview ? (
-									// biome-ignore lint/a11y/useAltText: decorative preview
-									// biome-ignore lint/performance/noImgElement: blob preview before upload
+									// oxlint-disable-next-line nextjs/no-img-element -- blob preview before upload
 									<img
 										src={photoPreview}
+										alt="Preview of the selected portrait"
 										className="size-28 rounded-2xl object-cover ring-1 ring-border"
 									/>
 								) : (

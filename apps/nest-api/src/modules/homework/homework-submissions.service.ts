@@ -40,11 +40,12 @@ export class HomeworkSubmissionsService {
 		);
 
 		const rows = await this.submissions.listForHomework(tenantId, homeworkId);
-		const submissions = rows.map(({ submission, student }) => ({
-			...toPublicHomeworkSubmission(submission),
-			studentName: `${student.firstName} ${student.lastName}`.trim(),
-			studentCode: student.studentCode,
-		}));
+		const submissions = rows.map(({ submission, student }) =>
+			Object.assign(toPublicHomeworkSubmission(submission), {
+				studentName: `${student.firstName} ${student.lastName}`.trim(),
+				studentCode: student.studentCode,
+			}),
+		);
 
 		return {
 			submissions,
@@ -138,13 +139,14 @@ export class HomeworkSubmissionsService {
 		}
 
 		const rows = await this.submissions.listForStudent(tenantId, studentId);
-		const history = rows.map(({ submission, assignment, section, subject }) => ({
-			...toPublicHomeworkSubmission(submission),
-			homeworkTitle: assignment.title,
-			sectionName: section.name,
-			subjectName: subject.name,
-			dueAt: assignment.dueAt?.toISOString() ?? null,
-		}));
+		const history = rows.map(({ submission, assignment, section, subject }) =>
+			Object.assign(toPublicHomeworkSubmission(submission), {
+				homeworkTitle: assignment.title,
+				sectionName: section.name,
+				subjectName: subject.name,
+				dueAt: assignment.dueAt?.toISOString() ?? null,
+			}),
+		);
 
 		return {
 			student: {
@@ -208,11 +210,12 @@ export class HomeworkSubmissionsService {
 
 	private async getSubmissionsInternal(tenantId: string, homeworkId: string) {
 		const rows = await this.submissions.listForHomework(tenantId, homeworkId);
-		const submissions = rows.map(({ submission, student }) => ({
-			...toPublicHomeworkSubmission(submission),
-			studentName: `${student.firstName} ${student.lastName}`.trim(),
-			studentCode: student.studentCode,
-		}));
+		const submissions = rows.map(({ submission, student }) =>
+			Object.assign(toPublicHomeworkSubmission(submission), {
+				studentName: `${student.firstName} ${student.lastName}`.trim(),
+				studentCode: student.studentCode,
+			}),
+		);
 
 		return {
 			submissions,

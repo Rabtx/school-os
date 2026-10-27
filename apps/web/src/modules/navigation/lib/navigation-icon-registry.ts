@@ -85,7 +85,7 @@ export function resolveActiveNavigationKey(
 		}
 	}
 
-	const sorted = matches.sort((a, b) => b.href.length - a.href.length);
+	const sorted = matches.toSorted((a, b) => b.href.length - a.href.length);
 	const hit = sorted.find(
 		(entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`),
 	);

@@ -28,12 +28,15 @@ export class TimetableService {
 	async getMyWeekSchedule(tenant: TenantContext, date: string): Promise<PublicTeacherWeekSchedule> {
 		this.requireTeacher(tenant);
 		const weekStart = startOfIsoWeek(date);
-		const days: PublicTeacherDaySchedule[] = [];
-
-		for (let offset = 0; offset < 5; offset += 1) {
-			const dayDate = addDaysToDate(weekStart, offset);
-			days.push(await this.buildDaySchedule(tenant.tenantId, tenant.membershipId, dayDate));
-		}
+		const days: PublicTeacherDaySchedule[] = await Promise.all(
+			Array.from({ length: 5 }, (_, offset) =>
+				this.buildDaySchedule(
+					tenant.tenantId,
+					tenant.membershipId,
+					addDaysToDate(weekStart, offset),
+				),
+			),
+		);
 
 		return { weekStart, days };
 	}

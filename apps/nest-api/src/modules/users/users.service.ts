@@ -61,6 +61,7 @@ export class UsersService {
 			const suffix = randomUUID().replaceAll('-', '').slice(0, 8);
 			const username = `${base || 'user'}-${suffix}`;
 			try {
+				// oxlint-disable-next-line no-await-in-loop -- retries until a free username is found
 				return await this.usersRepository.create({
 					email,
 					username,

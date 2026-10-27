@@ -121,6 +121,7 @@ export class AttendanceRepository {
 			}
 
 			for (const update of toUpdate) {
+				// oxlint-disable-next-line no-await-in-loop -- updates share one transaction connection
 				const [updated] = await transaction
 					.update(attendanceMarks)
 					.set({

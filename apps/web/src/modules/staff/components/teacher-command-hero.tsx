@@ -12,6 +12,7 @@ import {
 } from "../lib/teacher-dashboard-mode";
 import type { TeacherOnboardingPrefs } from "../lib/teacher-onboarding.storage";
 import type { TeacherDashboard, TeacherDashboardMorningDigest } from "../types/staff.types";
+import { useNow } from "@/lib/use-now";
 
 type Props = {
 	greeting: string;
@@ -103,7 +104,7 @@ export function TeacherCommandHero({
 	preferences,
 	className,
 }: Props) {
-	const now = new Date();
+	const now = useNow();
 	const hour = now.getHours();
 	const modeMeta = resolveTeacherDashboardMode(hour);
 	const quietEnabled = preferences?.quietHours ?? true;

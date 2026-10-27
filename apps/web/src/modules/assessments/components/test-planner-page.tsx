@@ -15,6 +15,7 @@ import { useSectionSubjectOptions } from "@/modules/academics/hooks/use-section-
 import { useAssessmentsPlannerQuery } from "@/modules/assessments/hooks/use-assessments-queries";
 import type { Assessment } from "@/modules/assessments/types/assessments.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { useNow } from "@/lib/use-now";
 
 function startOfWeek(date: Date) {
 	const copy = new Date(date);
@@ -51,7 +52,9 @@ export function TestPlannerPage() {
 	const [weekOffset, setWeekOffset] = useState(0);
 	const [sectionSubjectFilter, setSectionSubjectFilter] = useState("all");
 
-	const weekStart = useMemo(() => addDays(startOfWeek(new Date()), weekOffset * 7), [weekOffset]);
+	const now = useNow();
+	const todayKey = now.toLocaleDateString("en-CA");
+	const weekStart = useMemo(() => addDays(startOfWeek(now), weekOffset * 7), [now, weekOffset]);
 	const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
 	const from = weekStart.toLocaleDateString("en-CA");
 	const to = weekEnd.toLocaleDateString("en-CA");
@@ -147,7 +150,7 @@ export function TestPlannerPage() {
 				{days.map((day) => {
 					const key = day.toLocaleDateString("en-CA");
 					const items = byDay.get(key) ?? [];
-					const isToday = key === new Date().toLocaleDateString("en-CA");
+					const isToday = key === todayKey;
 
 					return (
 						<div

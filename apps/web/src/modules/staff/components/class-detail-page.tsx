@@ -156,14 +156,14 @@ export function ClassDetailPage({ sectionId }: Props) {
 				id: "avatar",
 				header: "",
 				className: "w-[52px]",
-				cell: (row) => <StudentAvatar student={row.student} size="sm" />,
+				renderCell: (row) => <StudentAvatar student={row.student} size="sm" />,
 			},
 			{
 				id: "student",
 				header: "Student",
 				sortable: true,
 				sortValue: (row) => row.student.fullName,
-				cell: (row) => (
+				renderCell: (row) => (
 					<div className="flex min-w-[140px] items-center gap-2">
 						<div className="min-w-0 flex-1">
 							<Button
@@ -187,7 +187,7 @@ export function ClassDetailPage({ sectionId }: Props) {
 				header: "Contact",
 				sortable: true,
 				sortValue: (row) => row.student.email ?? row.student.phone ?? "",
-				cell: (row) => (
+				renderCell: (row) => (
 					<div className="flex min-w-[160px] items-center gap-2">
 						<div className="min-w-0 flex-1 text-muted-foreground text-sm">
 							<p className="truncate">{row.student.email ?? "—"}</p>
@@ -202,7 +202,7 @@ export function ClassDetailPage({ sectionId }: Props) {
 				header: "Gender",
 				sortable: true,
 				sortValue: (row) => row.student.gender ?? "",
-				cell: (row) => (
+				renderCell: (row) => (
 					<span className="text-muted-foreground text-sm capitalize">
 						{formatStudentGender(row.student.gender)}
 					</span>
@@ -213,7 +213,7 @@ export function ClassDetailPage({ sectionId }: Props) {
 				header: "Blood",
 				sortable: true,
 				sortValue: (row) => row.student.bloodGroup ?? "",
-				cell: (row) =>
+				renderCell: (row) =>
 					row.student.bloodGroup ? (
 						<Badge variant="outline" className="font-mono">
 							{row.student.bloodGroup}
@@ -227,7 +227,7 @@ export function ClassDetailPage({ sectionId }: Props) {
 				header: "Emergency",
 				sortable: true,
 				sortValue: (row) => row.student.emergencyContactName ?? "",
-				cell: (row) => (
+				renderCell: (row) => (
 					<div className="flex min-w-[120px] items-center gap-2">
 						<div className="min-w-0 flex-1 text-muted-foreground text-sm">
 							<p className="truncate">{row.student.emergencyContactName ?? "—"}</p>
@@ -246,7 +246,7 @@ export function ClassDetailPage({ sectionId }: Props) {
 				header: "Status",
 				sortable: true,
 				sortValue: (row) => row.student.status,
-				cell: (row) => (
+				renderCell: (row) => (
 					<Badge variant={studentStatusBadgeVariant(row.student.status)} className="capitalize">
 						{row.student.status}
 					</Badge>

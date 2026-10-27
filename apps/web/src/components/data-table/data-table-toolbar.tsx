@@ -29,11 +29,13 @@ type Props = {
 	className?: string;
 };
 
+const NO_FILTERS: NonNullable<Props["filters"]> = [];
+
 export function DataTableToolbar({
 	search,
 	onSearchChange,
 	searchPlaceholder = "Search…",
-	filters = [],
+	filters = NO_FILTERS,
 	onAdd,
 	addLabel = "Add row",
 	canAdd = false,

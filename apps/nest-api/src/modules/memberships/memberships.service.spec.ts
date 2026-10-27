@@ -60,6 +60,7 @@ describe('MembershipsService', () => {
 				status: 'active',
 			});
 
+			// oxlint-disable-next-line no-await-in-loop -- each role is checked against a fresh mock in turn
 			await expect(service.requireManagementAccess('user-1', 'tenant-1')).resolves.toMatchObject({
 				role,
 			});

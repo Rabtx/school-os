@@ -37,7 +37,7 @@ export function AvatarPicker({
 				<div className="flex items-center gap-4">
 					<div className="relative size-16 overflow-hidden rounded-full border border-dashboard-border bg-dashboard-surface">
 						{value ? (
-							// biome-ignore lint/performance/noImgElement: remote avatar URLs (upload + dicebear)
+							// oxlint-disable-next-line nextjs/no-img-element -- remote avatar URLs (upload + dicebear)
 							<img src={value} alt="" className="size-full object-cover" />
 						) : (
 							<div className="flex size-full items-center justify-center text-[11px] text-dashboard-text-muted">
@@ -109,7 +109,7 @@ export function AvatarPicker({
 											: "border-dashboard-border hover:border-dashboard-text-muted",
 									)}
 								>
-									{/* biome-ignore lint/performance/noImgElement: dicebear template previews */}
+									{/* oxlint-disable-next-line nextjs/no-img-element -- dicebear template previews */}
 									<img
 										src={template.url}
 										alt={template.label}

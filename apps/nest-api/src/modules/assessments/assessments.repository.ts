@@ -176,6 +176,7 @@ export class AssessmentsRepository {
 			const saved = [];
 
 			for (const resultInput of input.results) {
+				// oxlint-disable-next-line no-await-in-loop -- upserts share one transaction connection
 				const [upserted] = await transaction
 					.insert(assessmentResults)
 					.values({

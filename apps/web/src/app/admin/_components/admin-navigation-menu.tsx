@@ -31,7 +31,7 @@ export function AdminNavigationMenu({ isCollapsed, mobile = false, onNavigate }:
 	const { dir } = useDashboardI18n();
 	const tooltipSide = dir === "rtl" ? "left" : "right";
 
-	const sections = navigationQuery.data?.sections ?? [];
+	const sections = useMemo(() => navigationQuery.data?.sections ?? [], [navigationQuery.data]);
 	const flatItems = useMemo(() => sections.flatMap((section) => section.items), [sections]);
 	const activeKey = resolveActiveNavigationKey(pathname, flatItems);
 

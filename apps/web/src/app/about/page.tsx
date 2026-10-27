@@ -31,10 +31,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
 	return (
 		<>
-			<script
-				// biome-ignore lint/security/noDangerouslySetInnerHtml: theme before paint
-				dangerouslySetInnerHTML={{ __html: atlasThemeScript }}
-			/>
+			<script dangerouslySetInnerHTML={{ __html: atlasThemeScript }} />
 			<div className={cn(jakarta.variable, playfair.variable, jetbrains.variable)}>
 				<AgentShell>
 					<AboutPageContent />

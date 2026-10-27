@@ -70,6 +70,9 @@ describe('AuthService', () => {
 			{ isTotpEnabled: vi.fn().mockResolvedValue(false) } as unknown as MfaService,
 			{} as PasskeysService,
 			{} as SocialAuthService,
+			{
+				applyPendingInvitesForUser: vi.fn().mockResolvedValue([]),
+			} as unknown as import('@/modules/memberships/membership-invites.service').MembershipInvitesService,
 		);
 	});
 

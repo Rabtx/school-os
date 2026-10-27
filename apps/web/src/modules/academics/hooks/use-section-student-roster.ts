@@ -40,7 +40,7 @@ export function useSectionStudentRoster(
 					name: row.student.fullName,
 					code: row.student.studentCode,
 				}))
-				.sort((a, b) => a.name.localeCompare(b.name));
+				.toSorted((a, b) => a.name.localeCompare(b.name));
 		}
 
 		const studentMap = new Map((studentsQuery.data ?? []).map((student) => [student.id, student]));
@@ -53,7 +53,7 @@ export function useSectionStudentRoster(
 				name: `${student.firstName} ${student.lastName}`.trim(),
 				code: student.studentCode,
 			}))
-			.sort((a, b) => a.name.localeCompare(b.name));
+			.toSorted((a, b) => a.name.localeCompare(b.name));
 	}, [enrollmentsQuery.data, isTeacherScoped, studentsQuery.data, teacherStudentsQuery.data]);
 
 	return {

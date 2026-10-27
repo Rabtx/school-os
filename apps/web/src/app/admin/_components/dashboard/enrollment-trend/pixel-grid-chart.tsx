@@ -180,7 +180,6 @@ export function PixelGridChart({ months, highlightMonth, className }: Props) {
 						})}
 
 						{cols.map((col) => (
-							// biome-ignore lint/a11y/noStaticElementInteractions: invisible hit area
 							<rect
 								key={`hit-${col.idx}`}
 								x={PAD_X + col.idx * STEP - GAP / 2}

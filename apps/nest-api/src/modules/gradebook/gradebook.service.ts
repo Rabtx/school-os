@@ -261,6 +261,7 @@ export class GradebookService {
 			const obtained = Number(result.score);
 			const percentage = totalMarks > 0 ? (obtained / totalMarks) * 100 : 0;
 
+			// oxlint-disable-next-line no-await-in-loop -- entries are upserted in order so a failure stops cleanly
 			await this.gradebook.upsertEntry({
 				tenantId,
 				studentId: result.studentId,

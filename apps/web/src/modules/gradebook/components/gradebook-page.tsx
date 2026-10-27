@@ -114,7 +114,7 @@ export function GradebookPage() {
 			) : gridQuery.isLoading ? (
 				<div className="space-y-2">
 					{Array.from({ length: 6 }).map((_, index) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+						// oxlint-disable-next-line react/no-array-index-key -- skeleton placeholders
 						<Skeleton key={index} className="h-10 w-full" />
 					))}
 				</div>

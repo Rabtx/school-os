@@ -1,3 +1,4 @@
+/* oxlint-disable no-await-in-loop -- seeding runs in order so each row exists before its dependents */
 import 'dotenv/config';
 
 import { hash } from 'bcryptjs';
@@ -340,7 +341,7 @@ async function ensureClasses(db: Db, tenantId: string): Promise<ClassRow[]> {
 		.where(eq(schema.classes.tenantId, tenantId));
 
 	if (existing.length >= GRADE_NAMES.length) {
-		return existing.sort((a, b) => a.sortOrder - b.sortOrder);
+		return existing.toSorted((a, b) => a.sortOrder - b.sortOrder);
 	}
 
 	const existingNames = new Set(existing.map((row) => row.name));
@@ -616,7 +617,7 @@ async function seedStudentsAndGuardians(
 	let created = 0;
 	let sequence = 1;
 
-	const sectionsSorted = [...sections].sort((a, b) => {
+	const sectionsSorted = sections.toSorted((a, b) => {
 		const campusA = campusById.get(a.campusId)?.code ?? '';
 		const campusB = campusById.get(b.campusId)?.code ?? '';
 		return campusA.localeCompare(campusB) || a.name.localeCompare(b.name);
@@ -899,7 +900,7 @@ async function seedTimetable(db: Db, tenantId: string): Promise<void> {
 
 	const teachingPeriods = periods
 		.filter((period) => period.kind === 'period')
-		.sort((a, b) => a.sortOrder - b.sortOrder);
+		.toSorted((a, b) => a.sortOrder - b.sortOrder);
 	if (teachingPeriods.length === 0) return;
 
 	const assignments = await db

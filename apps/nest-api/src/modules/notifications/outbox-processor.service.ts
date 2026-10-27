@@ -52,13 +52,16 @@ export class OutboxProcessorService implements OnModuleInit, OnModuleDestroy {
 
 			for (const event of events) {
 				try {
+					// oxlint-disable-next-line no-await-in-loop -- events are dispatched in claim order, one at a time
 					await this.outboxDispatch.dispatch(event);
+					// oxlint-disable-next-line no-await-in-loop -- events are dispatched in claim order, one at a time
 					await this.outboxRepository.markProcessed(event.id);
 				} catch (error) {
 					this.logger.error(
 						`Failed to process outbox event ${event.id} (${event.eventType})`,
 						error instanceof Error ? error.stack : error,
 					);
+					// oxlint-disable-next-line no-await-in-loop -- events are dispatched in claim order, one at a time
 					await this.outboxRepository.markFailed(event.id);
 				}
 			}

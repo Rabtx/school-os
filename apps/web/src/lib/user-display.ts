@@ -9,6 +9,6 @@ export function userInitials(name: string): string {
 
 /** First name for greetings. */
 export function userFirstName(name: string): string {
-	const first = name.trim().split(/\s+/).filter(Boolean)[0];
+	const first = name.trim().split(/\s+/).find(Boolean);
 	return first ?? name;
 }

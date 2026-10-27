@@ -76,7 +76,7 @@ export class NavigationService {
 
 		return sectionOrder.map((heading) => ({
 			heading,
-			items: (sections.get(heading) ?? []).sort((a, b) => {
+			items: (sections.get(heading) ?? []).toSorted((a, b) => {
 				const aOrder = rows.find((row) => row.key === a.key)?.sortOrder ?? 0;
 				const bOrder = rows.find((row) => row.key === b.key)?.sortOrder ?? 0;
 				return aOrder - bOrder;

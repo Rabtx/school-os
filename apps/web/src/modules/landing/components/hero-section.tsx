@@ -22,7 +22,7 @@ export function HeroSection() {
 					>
 						<span className="flex">
 							{HERO_AVATARS.map((avatar) => (
-								// biome-ignore lint/performance/noImgElement: external dicebear avatar SVG, not optimizable via next/image
+								// oxlint-disable-next-line nextjs/no-img-element -- external dicebear avatar SVG, not optimizable via next/image
 								<img
 									key={avatar.seed}
 									src={dicebearUrl(avatar.seed)}

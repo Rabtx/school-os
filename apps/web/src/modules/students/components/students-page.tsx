@@ -184,14 +184,14 @@ export function StudentsPage() {
 				id: "avatar",
 				header: "",
 				className: "w-[52px]",
-				cell: (student) => <StudentAvatar student={student} size="sm" />,
+				renderCell: (student) => <StudentAvatar student={student} size="sm" />,
 			},
 			{
 				id: "name",
 				header: "Student",
 				sortable: true,
 				sortValue: (row) => row.fullName,
-				cell: (student) => (
+				renderCell: (student) => (
 					<div className="min-w-[140px]">
 						<p className="font-medium text-foreground">{student.fullName}</p>
 						<p className="font-mono text-[12px] text-muted-foreground">{student.studentCode}</p>
@@ -203,7 +203,7 @@ export function StudentsPage() {
 				header: "Section",
 				sortable: true,
 				sortValue: (row) => sectionLabelByStudentId.get(row.id) ?? "",
-				cell: (student) => (
+				renderCell: (student) => (
 					<span className="text-muted-foreground text-sm">
 						{sectionLabelByStudentId.get(student.id) ?? "—"}
 					</span>
@@ -214,7 +214,7 @@ export function StudentsPage() {
 				header: "Phone",
 				sortable: true,
 				sortValue: (row) => row.phone ?? "",
-				cell: (student) => (
+				renderCell: (student) => (
 					<span className="text-muted-foreground text-sm">{student.phone ?? "—"}</span>
 				),
 			},
@@ -224,7 +224,7 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => row.dateOfBirth ?? "",
 				className: "tabular-nums",
-				cell: (student) => (
+				renderCell: (student) => (
 					<span className="text-muted-foreground text-sm">{student.dateOfBirth ?? "—"}</span>
 				),
 			},
@@ -233,7 +233,7 @@ export function StudentsPage() {
 				header: "Gender",
 				sortable: true,
 				sortValue: (row) => row.gender ?? "",
-				cell: (student) => (
+				renderCell: (student) => (
 					<span className="text-muted-foreground text-sm capitalize">
 						{formatStudentGender(student.gender)}
 					</span>
@@ -244,7 +244,7 @@ export function StudentsPage() {
 				header: "Emergency",
 				sortable: true,
 				sortValue: (row) => row.emergencyContactName ?? "",
-				cell: (student) => (
+				renderCell: (student) => (
 					<div className="min-w-[120px] text-muted-foreground text-sm">
 						<p>{student.emergencyContactName ?? "—"}</p>
 						{student.emergencyContactPhone ? (
@@ -258,7 +258,7 @@ export function StudentsPage() {
 				header: "Status",
 				sortable: true,
 				sortValue: (row) => row.status,
-				cell: (student) => (
+				renderCell: (student) => (
 					<Badge variant={studentStatusBadgeVariant(student.status)} className="capitalize">
 						{student.status}
 					</Badge>
@@ -269,7 +269,7 @@ export function StudentsPage() {
 				header: <span className="sr-only">Actions</span>,
 				headerClassName: "text-right",
 				className: "text-right",
-				cell: (student) => (
+				renderCell: (student) => (
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={

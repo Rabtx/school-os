@@ -32,7 +32,9 @@ export function useCameraScanner({ active, onDecode }: UseCameraScannerOptions) 
 	const rafRef = useRef<number | null>(null);
 	const lastCodeRef = useRef<{ value: string; at: number } | null>(null);
 	const onDecodeRef = useRef(onDecode);
-	onDecodeRef.current = onDecode;
+	useEffect(() => {
+		onDecodeRef.current = onDecode;
+	}, [onDecode]);
 
 	const stop = useCallback(() => {
 		if (rafRef.current !== null) {

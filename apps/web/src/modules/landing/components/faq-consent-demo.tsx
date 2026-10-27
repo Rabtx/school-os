@@ -20,7 +20,7 @@ export function FaqConsentDemo() {
 	return (
 		<DemoGlassCard variant="panel" innerClassName="p-4 sm:p-5">
 			<div className="flex items-start gap-3">
-				{/* biome-ignore lint/performance/noImgElement: external dicebear avatar SVG, not optimizable via next/image */}
+				{/* oxlint-disable-next-line nextjs/no-img-element -- external dicebear avatar SVG, not optimizable via next/image */}
 				<img
 					src={dicebearUrl(DEMO_PARENT.seed)}
 					alt=""

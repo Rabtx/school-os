@@ -54,7 +54,7 @@ export function findConsecutiveAbsenceAlerts(rows: HistoryRow[]): ConsecutiveAbs
 			}
 		}
 
-		const sortedDates = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
+		const sortedDates = [...byDate.keys()].toSorted((a, b) => b.localeCompare(a));
 		let streak = 0;
 		let anchor: HistoryRow | null = null;
 
@@ -80,5 +80,5 @@ export function findConsecutiveAbsenceAlerts(rows: HistoryRow[]): ConsecutiveAbs
 		}
 	}
 
-	return alerts.sort((a, b) => b.consecutiveDays - a.consecutiveDays);
+	return alerts.toSorted((a, b) => b.consecutiveDays - a.consecutiveDays);
 }

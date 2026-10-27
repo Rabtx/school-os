@@ -49,8 +49,10 @@ export function InviteMemberSheet({
 	const [role, setRole] = useState<Exclude<MembershipRole, "owner">>("teacher");
 	const [campusId, setCampusId] = useState("");
 
-	const roles: Array<Exclude<MembershipRole, "owner">> =
-		invitableRoles.length > 0 ? invitableRoles : ["teacher"];
+	const roles = useMemo<Array<Exclude<MembershipRole, "owner">>>(
+		() => (invitableRoles.length > 0 ? invitableRoles : ["teacher"]),
+		[invitableRoles],
+	);
 
 	useEffect(() => {
 		if (!open) {

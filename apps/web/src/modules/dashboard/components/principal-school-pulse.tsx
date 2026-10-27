@@ -18,6 +18,7 @@ import { useDashboardMetricsQuery } from "../hooks/use-dashboard-queries";
 import { DashboardForwardIcon } from "../i18n/dashboard-directional-icon";
 import { useDashboardI18n } from "../i18n/dashboard-i18n-provider";
 import { localizeDashboardMetrics } from "../i18n/localize-dashboard-metrics";
+import { useNow } from "@/lib/use-now";
 
 function computeSchoolHealthScore(input: {
 	activeStudents: number;
@@ -52,15 +53,16 @@ export function PrincipalSchoolPulse({ tenantName, enabled = true }: Props) {
 		[metrics, t],
 	);
 
+	const now = useNow();
 	const todayLabel = useMemo(
 		() =>
-			new Date().toLocaleDateString(intlLocale, {
+			now.toLocaleDateString(intlLocale, {
 				weekday: "long",
 				month: "long",
 				day: "numeric",
 				year: "numeric",
 			}),
-		[intlLocale],
+		[intlLocale, now],
 	);
 
 	if (!enabled) {

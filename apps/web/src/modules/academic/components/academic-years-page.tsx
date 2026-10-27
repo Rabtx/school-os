@@ -88,7 +88,7 @@ export function AcademicYearsPage() {
 				header: "Name",
 				sortable: true,
 				sortValue: (row) => row.name,
-				cell: (year) => <span className="font-medium">{year.name}</span>,
+				renderCell: (year) => <span className="font-medium">{year.name}</span>,
 			},
 			{
 				id: "dates",
@@ -96,7 +96,7 @@ export function AcademicYearsPage() {
 				sortable: true,
 				sortValue: (row) => row.startsOn,
 				className: "tabular-nums",
-				cell: (year) => (
+				renderCell: (year) => (
 					<span className="text-muted-foreground">
 						{year.startsOn} → {year.endsOn}
 					</span>
@@ -107,14 +107,14 @@ export function AcademicYearsPage() {
 				header: "Status",
 				sortable: true,
 				sortValue: (row) => row.status,
-				cell: (year) => <Badge variant="outline">{year.status}</Badge>,
+				renderCell: (year) => <Badge variant="outline">{year.status}</Badge>,
 			},
 			{
 				id: "actions",
 				header: <span className="sr-only">Actions</span>,
 				headerClassName: "text-right",
 				className: "text-right",
-				cell: (year) =>
+				renderCell: (year) =>
 					canWrite ? (
 						<div className="flex justify-end gap-1">
 							<Button

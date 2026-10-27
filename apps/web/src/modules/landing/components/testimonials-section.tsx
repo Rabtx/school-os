@@ -60,7 +60,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 				“{testimonial.quote}”
 			</blockquote>
 			<figcaption className="mt-6 flex items-center gap-3">
-				{/* biome-ignore lint/performance/noImgElement: external dicebear avatar SVG, not optimizable via next/image */}
+				{/* oxlint-disable-next-line nextjs/no-img-element -- external dicebear avatar SVG, not optimizable via next/image */}
 				<img
 					src={dicebearUrl(testimonial.seed)}
 					alt={testimonial.name}

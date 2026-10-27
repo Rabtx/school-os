@@ -24,6 +24,7 @@ import {
 } from "@/modules/staff/lib/teacher-onboarding.storage";
 import { useTenantContext } from "@/modules/tenants";
 import { useSessionStore } from "@/store";
+import { useNow } from "@/lib/use-now";
 
 function localSessionDate(): string {
 	return new Date().toLocaleDateString("en-CA");
@@ -111,6 +112,7 @@ export function TeacherDashboard() {
 		setOnboardingOpen(true);
 	}, [dashboardQuery.data]);
 
+	const now = useNow();
 	const classNameById = useMemo(
 		() => new Map((classesQuery.data ?? []).map((item) => [item.id, item.name])),
 		[classesQuery.data],
@@ -179,12 +181,12 @@ export function TeacherDashboard() {
 				onSaved={setTeacherPrefs}
 			/>
 			<div className="sr-only">
-				{greetingForHour(new Date().getHours())}, {greetingName}
+				{greetingForHour(now.getHours())}, {greetingName}
 			</div>
 
 			<FadeIn delay={0.02}>
 				<TeacherCommandHero
-					greeting={greetingForHour(new Date().getHours())}
+					greeting={greetingForHour(now.getHours())}
 					displayName={greetingName}
 					organizationName={activeTenant?.name ?? "Organization"}
 					sessionDate={sessionDate}

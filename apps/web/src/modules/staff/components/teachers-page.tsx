@@ -81,14 +81,14 @@ export function TeachersPage() {
 				id: "avatar",
 				header: "",
 				className: "w-[52px]",
-				cell: (teacher) => <TeacherAvatar teacher={teacher} size="sm" />,
+				renderCell: (teacher) => <TeacherAvatar teacher={teacher} size="sm" />,
 			},
 			{
 				id: "teacher",
 				header: "Teacher",
 				sortable: true,
 				sortValue: (row) => teacherDisplayName(row),
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<div className="min-w-[140px]">
 						<p className="font-medium text-foreground">{teacherDisplayName(teacher)}</p>
 						<p className="truncate text-[12px] text-muted-foreground">{teacher.email}</p>
@@ -101,7 +101,7 @@ export function TeachersPage() {
 				sortable: true,
 				sortValue: (row) => row.profile.employeeCode ?? "",
 				className: "font-mono text-sm",
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<span className="text-muted-foreground">{teacher.profile.employeeCode ?? "—"}</span>
 				),
 			},
@@ -110,7 +110,7 @@ export function TeachersPage() {
 				header: "Phone",
 				sortable: true,
 				sortValue: (row) => row.profile.phone ?? "",
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<span className="text-muted-foreground text-sm">{teacher.profile.phone ?? "—"}</span>
 				),
 			},
@@ -119,7 +119,7 @@ export function TeachersPage() {
 				header: "Qualification",
 				sortable: true,
 				sortValue: (row) => row.profile.qualification ?? "",
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<span className="max-w-[160px] truncate text-muted-foreground text-sm">
 						{teacher.profile.qualification ?? "—"}
 					</span>
@@ -130,7 +130,7 @@ export function TeachersPage() {
 				header: "Specialization",
 				sortable: true,
 				sortValue: (row) => row.profile.specialization ?? "",
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<span className="max-w-[160px] truncate text-muted-foreground text-sm">
 						{teacher.profile.specialization ?? "—"}
 					</span>
@@ -141,7 +141,7 @@ export function TeachersPage() {
 				header: "Campus",
 				sortable: true,
 				sortValue: (row) => (row.campusId ? (campusNameById.get(row.campusId) ?? "") : ""),
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<span className="text-muted-foreground text-sm">
 						{teacher.campusId ? (campusNameById.get(teacher.campusId) ?? "—") : "All campuses"}
 					</span>
@@ -153,7 +153,7 @@ export function TeachersPage() {
 				sortable: true,
 				sortValue: (row) => row.homeroomSectionCount,
 				className: "tabular-nums",
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<span className="text-muted-foreground text-sm">{teacher.homeroomSectionCount}</span>
 				),
 			},
@@ -163,7 +163,7 @@ export function TeachersPage() {
 				sortable: true,
 				sortValue: (row) => row.subjectAssignmentCount,
 				className: "tabular-nums",
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<span className="text-muted-foreground text-sm">{teacher.subjectAssignmentCount}</span>
 				),
 			},
@@ -172,7 +172,7 @@ export function TeachersPage() {
 				header: "Status",
 				sortable: true,
 				sortValue: (row) => row.profile.status,
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<Badge variant={teacherStatusBadgeVariant(teacher.profile.status)} className="capitalize">
 						{formatTeacherStatus(teacher.profile.status)}
 					</Badge>
@@ -183,7 +183,7 @@ export function TeachersPage() {
 				header: <span className="sr-only">Actions</span>,
 				headerClassName: "text-right",
 				className: "text-right",
-				cell: (teacher) => (
+				renderCell: (teacher) => (
 					<DropdownMenu>
 						<DropdownMenuTrigger
 							render={

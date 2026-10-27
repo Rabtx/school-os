@@ -143,7 +143,10 @@ export function MyClassesPage() {
 		return map;
 	}, [dashboardQuery.data?.sections]);
 
-	const accessibleSections = profileQuery.data?.accessibleSections ?? [];
+	const accessibleSections = useMemo(
+		() => profileQuery.data?.accessibleSections ?? [],
+		[profileQuery.data],
+	);
 	const homeroomSections = accessibleSections.filter((s) => s.accessType === "homeroom");
 	const subjectSections = accessibleSections.filter((s) => s.accessType === "subject");
 	const totalStudents = dashboardQuery.data?.stats.totalStudents;
