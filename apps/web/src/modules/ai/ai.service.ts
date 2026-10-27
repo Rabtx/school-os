@@ -17,14 +17,17 @@ export type AiStatus = {
 };
 
 export const aiService = {
-	status: (accessToken: string) => apiClient.get<AiStatus>("/ai/status", { accessToken }),
+	status: (accessToken: string, tenantId: string) =>
+		apiClient.get<AiStatus>(`/tenants/${tenantId}/ai/status`, { accessToken }),
 	assist: (
 		accessToken: string,
+		tenantId: string,
 		input: { messages: AssistMessage[]; context?: string },
 	): Promise<AssistResponse> =>
-		apiClient.post<AssistResponse>("/ai/assist", input, { accessToken }),
+		apiClient.post<AssistResponse>(`/tenants/${tenantId}/ai/assist`, input, { accessToken }),
 	draftAcademics: (
 		accessToken: string,
+		tenantId: string,
 		input: {
 			kind: "homework" | "assessment";
 			topic: string;
@@ -44,5 +47,5 @@ export const aiService = {
 			instructions: string | null;
 			provider: string;
 			model: string;
-		}>("/ai/academics/draft", input, { accessToken }),
+		}>(`/tenants/${tenantId}/ai/academics/draft`, input, { accessToken }),
 };

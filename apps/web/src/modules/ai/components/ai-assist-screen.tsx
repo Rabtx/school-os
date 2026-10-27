@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/components/theme";
 import { useAuth } from "@/context/auth-context";
 import { userFirstName, userInitials } from "@/lib/user-display";
+import { useTenantContext } from "@/modules/tenants";
 import { ChatComposer } from "@/modules/chat/components/chat/chat-composer";
 import { ChatHugeIcon } from "@/modules/chat/components/chat/chat-icon";
 import { AceMarkIcon } from "@/modules/chat/components/icons";
@@ -41,6 +42,7 @@ const QUICK_PROMPTS = [
 
 export function AiAssistScreen() {
 	const { token, user } = useAuth();
+	const tenantId = useTenantContext().activeTenant?.id ?? null;
 	const { resolvedTheme } = useTheme();
 	const [theme, setTheme] = useState<"light" | "dark">("dark");
 	const [draft, setDraft] = useState("");
@@ -58,21 +60,21 @@ export function AiAssistScreen() {
 	}, [resolvedTheme]);
 
 	useEffect(() => {
-		if (!token) return;
+		if (!token || !tenantId) return;
 		void aiService
-			.status(token)
+			.status(token, tenantId)
 			.then((status) => {
 				setModelLabel(status.ok ? (status.provider ?? "Assist") : "Offline");
 			})
 			.catch(() => setModelLabel("Offline"));
-	}, [token]);
+	}, [token, tenantId]);
 
 	const greeting = user
 		? `Where should we begin, ${userFirstName(user.profile?.displayName || user.username)}?`
 		: "Where should we begin?";
 
 	const send = async (content: string) => {
-		if (!token || busy) return;
+		if (!token || !tenantId || busy) return;
 		const trimmed = content.trim();
 		if (!trimmed) return;
 
@@ -94,7 +96,7 @@ export function AiAssistScreen() {
 		}));
 
 		try {
-			const result = await aiService.assist(token, {
+			const result = await aiService.assist(token, tenantId, {
 				messages: history,
 				context: "admin/ai · chat UX assist",
 			});

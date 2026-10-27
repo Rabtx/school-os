@@ -264,11 +264,11 @@ export function HomeworkPage() {
 	}
 
 	async function handleAiDraft() {
-		if (!token || !aiTopic.trim()) return;
+		if (!token || !tenantId || !aiTopic.trim()) return;
 		setAiBusy(true);
 		setError(null);
 		try {
-			const draft = await aiService.draftAcademics(token, {
+			const draft = await aiService.draftAcademics(token, tenantId, {
 				kind: "homework",
 				topic: aiTopic.trim(),
 				subjectName: selectedSectionSubject?.subjectName,
