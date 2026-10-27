@@ -131,13 +131,20 @@ describe('HomeworkService', () => {
 		});
 		staffRepository.listSubjectAssignments.mockResolvedValue([sectionSubjectRow]);
 		homeworkRepository.listForSectionSubjects.mockResolvedValue([
-			{ ...sectionSubjectRow, assignment: homeworkRecord },
+			{
+				...sectionSubjectRow,
+				assignment: homeworkRecord,
+				submittedCount: 12,
+				teacherName: 'sana_iqbal',
+			},
 		]);
 
 		const result = await service.list('teacher-user', 'tenant-1', {});
 
 		expect(result.assignments).toHaveLength(1);
 		expect(result.assignments[0]?.title).toBe('Chapter 3 exercises');
+		expect(result.assignments[0]?.submittedCount).toBe(12);
+		expect(result.assignments[0]?.teacherName).toBe('sana_iqbal');
 		expect(homeworkRepository.listForSectionSubjects).toHaveBeenCalledWith(
 			'tenant-1',
 			['section-subject-1'],

@@ -1,9 +1,8 @@
 "use client";
 
-import { BookOpen02Icon, PlusSignIcon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { Edit02Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
-import { Badge } from "@school-os/ui/components/badge";
 import { Button } from "@school-os/ui/components/button";
 import { Field, FieldGroup, FieldLabel } from "@school-os/ui/components/field";
 import { Input } from "@school-os/ui/components/input";
@@ -20,11 +19,20 @@ import { Spinner } from "@school-os/ui/components/spinner";
 import { Textarea } from "@school-os/ui/components/textarea";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AdminPageShell } from "@/components/admin/admin-page-shell";
-import { DataTable, type DataTableColumn } from "@/components/data-table/data-table";
+import { InitialsAvatar } from "@/components/initials-avatar";
+import { ListPage } from "@/components/list-page";
+import {
+	DataTable,
+	type DataTableColumn,
+	DataTableFooterBar,
+	DataTableToolbar,
+	defaultSortFn,
+	useClientDataTable,
+} from "@/components/data-table";
+import { cn } from "@/lib/utils";
 import { ApiError } from "@/lib/api/client";
-import { formatSectionLabel } from "@/modules/academic/utils/format-section-label";
 import { AssignTargetPanel } from "@/modules/academics/components/assign-target-panel";
 import { useSectionSubjectOptions } from "@/modules/academics/hooks/use-section-subject-options";
 import { aiService } from "@/modules/ai/ai.service";
@@ -41,6 +49,14 @@ import type {
 } from "@/modules/homework/types/homework.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
 import { useNow } from "@/lib/use-now";
+import {
+	dueLabel,
+	homeworkState,
+	matchesDueFilter,
+	StatusTag,
+	SubjectChip,
+	SubmittedBar,
+} from "./homework-cells";
 
 const statusOptions = [
 	{ label: "All statuses", value: "all" },
@@ -54,20 +70,6 @@ const toneOptions = [
 	{ label: "Challenge", value: "challenge" },
 	{ label: "Support", value: "support" },
 ];
-
-function formatDueDate(value: string | null) {
-	if (!value) return "No due date";
-	return new Date(value).toLocaleString(undefined, {
-		dateStyle: "medium",
-		timeStyle: "short",
-	});
-}
-
-function statusBadge(status: HomeworkStatus) {
-	const variant =
-		status === "published" ? "default" : status === "closed" ? "secondary" : "outline";
-	return <Badge variant={variant}>{status}</Badge>;
-}
 
 function homeworkListErrorMessage(error: unknown): string {
 	if (error instanceof ApiError) {
@@ -96,16 +98,12 @@ export function HomeworkPage() {
 	const canRead = can(PermissionCodes.HOMEWORK_READ);
 	const canWrite = can(PermissionCodes.HOMEWORK_WRITE);
 
-	const [sectionSubjectFilter, setSectionSubjectFilter] = useState("all");
-	const [statusFilter, setStatusFilter] = useState(() =>
-		initialStatus === "draft" || initialStatus === "published" ? initialStatus : "all",
-	);
-
-	useEffect(() => {
-		if (initialStatus === "draft" || initialStatus === "published") {
-			setStatusFilter(initialStatus);
-		}
-	}, [initialStatus]);
+	const tab: "assigned" | "drafts" =
+		searchParams.get("tab") === "drafts" || initialStatus === "draft" ? "drafts" : "assigned";
+	const [sectionSubjectFilter, setSectionSubjectFilter] = useState("");
+	const [dueFilter, setDueFilter] = useState("");
+	const [search, setSearch] = useState("");
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 	const [sheetOpen, setSheetOpen] = useState(false);
 	const [editing, setEditing] = useState<HomeworkAssignment | null>(null);
 	const [title, setTitle] = useState("");
@@ -128,105 +126,161 @@ export function HomeworkPage() {
 		(option) => option.value === sectionSubjectId,
 	);
 
-	const listQuery = useHomeworkListQuery(
-		tenantId,
-		{
-			sectionSubjectId: sectionSubjectFilter === "all" ? undefined : sectionSubjectFilter,
-			status: statusFilter === "all" ? undefined : statusFilter,
-		},
-		canRead,
-	);
+	const listQuery = useHomeworkListQuery(tenantId, {}, canRead);
 	const createMutation = useCreateHomeworkMutation(tenantId ?? "");
 	const updateMutation = useUpdateHomeworkMutation(tenantId ?? "");
 
-	const campusNameById = useMemo(
-		() => new Map(campuses.map((campus) => [campus.id, campus.name])),
-		[campuses],
-	);
-
 	const nowMs = useNow().getTime();
-	const rows = useMemo(() => listQuery.data ?? [], [listQuery.data]);
-	const stats = useMemo(() => {
-		const now = nowMs;
-		const weekMs = 7 * 24 * 60 * 60 * 1000;
-		return {
-			total: rows.length,
-			published: rows.filter((row) => row.status === "published").length,
-			draft: rows.filter((row) => row.status === "draft").length,
-			dueSoon: rows.filter(
-				(row) =>
-					row.dueAt && new Date(row.dueAt).getTime() - now <= weekMs && row.status === "published",
-			).length,
-		};
-	}, [nowMs, rows]);
+	// Figma order: due today and upcoming first (soonest first), then past work (most recent first).
+	const rows = useMemo(() => {
+		const today = new Date(nowMs).setHours(0, 0, 0, 0);
+		const dueMs = (row: HomeworkAssignment) =>
+			row.dueAt ? new Date(row.dueAt).getTime() : Number.POSITIVE_INFINITY;
+		return (listQuery.data ?? [])
+			.filter((row) => (tab === "drafts" ? row.status === "draft" : row.status !== "draft"))
+			.toSorted((a, b) => {
+				const aUpcoming = dueMs(a) >= today;
+				const bUpcoming = dueMs(b) >= today;
+				if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
+				return aUpcoming ? dueMs(a) - dueMs(b) : dueMs(b) - dueMs(a);
+			});
+	}, [listQuery.data, nowMs, tab]);
 
 	const columns: DataTableColumn<HomeworkAssignment>[] = [
 		{
 			id: "title",
-			header: "Title",
+			header: "Homework",
+			sortable: true,
+			sortValue: (row) => row.title,
 			renderCell: (row) => (
 				<Link
 					href={`/admin/homework/${row.id}`}
-					className="font-medium text-dashboard-accent hover:underline"
+					className="font-medium text-dashboard-text-primary hover:underline"
 				>
 					{row.title}
 				</Link>
 			),
+		},
+		{
+			id: "subject",
+			header: "Subject",
 			sortable: true,
-			sortValue: (row) => row.title,
+			sortValue: (row) => row.subjectName,
+			renderCell: (row) => <SubjectChip name={row.subjectName} />,
 		},
 		{
 			id: "class",
 			header: "Class",
-			renderCell: (row) => (
-				<span>
-					{formatSectionLabel(
-						{ name: row.sectionName, campusId: campusId ?? "", classId: "" },
-						undefined,
-						campusNameById.get(campusId ?? ""),
-					)}{" "}
-					· {row.subjectName}
-				</span>
-			),
 			sortable: true,
-			sortValue: (row) => `${row.sectionName} ${row.subjectName}`,
-		},
-		{
-			id: "students",
-			header: "Students",
+			sortValue: (row) => row.sectionName,
 			renderCell: (row) => (
-				<span className="text-dashboard-text-secondary text-[13px]">
-					{row.assignMode === "selected_students"
-						? `${row.recipientCount} selected`
-						: "Whole class"}
+				<span className="inline-flex h-6 items-center rounded-md border border-dashboard-border-strong px-2 text-[12px] text-dashboard-text-secondary">
+					{row.sectionName}
 				</span>
 			),
 		},
 		{
-			id: "dueAt",
+			id: "due",
 			header: "Due",
-			renderCell: (row) => formatDueDate(row.dueAt),
 			sortable: true,
 			sortValue: (row) => row.dueAt ?? "",
+			renderCell: (row) => {
+				const due = dueLabel(row.dueAt, nowMs);
+				const missingWork = row.submittedCount < row.recipientCount;
+				return (
+					<span
+						className={cn(
+							due.overdue && row.status === "published" && missingWork && "text-[var(--rx-danger)]",
+						)}
+					>
+						{due.label}
+					</span>
+				);
+			},
+		},
+		{
+			id: "submitted",
+			header: "Submitted",
+			sortable: true,
+			sortValue: (row) => (row.recipientCount ? row.submittedCount / row.recipientCount : 0),
+			renderCell: (row) =>
+				row.status === "draft" ? (
+					<span className="text-dashboard-text-dim">Not published</span>
+				) : (
+					<SubmittedBar submitted={row.submittedCount} total={row.recipientCount} />
+				),
 		},
 		{
 			id: "status",
 			header: "Status",
-			renderCell: (row) => statusBadge(row.status),
 			sortable: true,
-			sortValue: (row) => row.status,
+			sortValue: (row) => homeworkState(row, nowMs).label,
+			renderCell: (row) => <StatusTag state={homeworkState(row, nowMs)} />,
+		},
+		{
+			id: "teacher",
+			header: "Teacher",
+			sortable: true,
+			sortValue: (row) => row.teacherName ?? "",
+			renderCell: (row) =>
+				row.teacherName ? (
+					<span className="flex items-center gap-2">
+						<InitialsAvatar name={row.teacherName.replaceAll("_", " ")} />
+						{row.teacherName}
+					</span>
+				) : (
+					<span className="text-dashboard-text-dim">—</span>
+				),
 		},
 		{
 			id: "actions",
-			header: "",
+			header: <span className="sr-only">Actions</span>,
+			headerClassName: "text-right",
+			className: "text-right",
 			renderCell: (row) =>
 				canWrite ? (
-					<Button size="sm" variant="ghost" onClick={() => openEditSheet(row)}>
-						Edit
+					<Button
+						size="icon-sm"
+						variant="ghost"
+						aria-label={`Edit ${row.title}`}
+						onClick={() => openEditSheet(row)}
+					>
+						<HugeiconsIcon icon={Edit02Icon} strokeWidth={1.8} />
 					</Button>
 				) : null,
 		},
 	];
+
+	const table = useClientDataTable({
+		data: rows,
+		pageSize: 50,
+		searchQuery: search,
+		searchFn: (row, queryText) =>
+			`${row.title} ${row.subjectName} ${row.sectionName} ${row.teacherName ?? ""}`
+				.toLowerCase()
+				.includes(queryText),
+		filterFn: (row, filters) => {
+			if (filters.class && row.sectionSubjectId !== filters.class) return false;
+			if (filters.due && !matchesDueFilter(row.dueAt, filters.due, nowMs)) return false;
+			return true;
+		},
+		sortFn: (sorted, sort) => defaultSortFn(sorted, sort, columns),
+	});
+
+	const footerStats = useMemo(() => {
+		const published = table.filteredRows.filter(
+			(row) => row.status !== "draft" && row.recipientCount > 0,
+		);
+		const submitted = published.reduce((sum, row) => sum + row.submittedCount, 0);
+		const expected = published.reduce((sum, row) => sum + row.recipientCount, 0);
+		const missing = published
+			.filter((row) => row.dueAt && new Date(row.dueAt).getTime() < nowMs)
+			.reduce((sum, row) => sum + Math.max(0, row.recipientCount - row.submittedCount), 0);
+		return {
+			avgSubmitted: expected ? Math.round((submitted / expected) * 100) : null,
+			missing,
+		};
+	}, [nowMs, table.filteredRows]);
 
 	function resetForm() {
 		setTitle("");
@@ -363,74 +417,119 @@ export function HomeworkPage() {
 	}
 
 	return (
-		<AdminPageShell
-			title="Homework"
-			description="Assign work to whole classes or hand-pick students — with AI-assisted drafting."
-			icon={BookOpen02Icon}
-			maxWidth="7xl"
-			loading={listQuery.isLoading}
-			actions={
-				canWrite ? (
-					<Button size="sm" onClick={openCreateSheet}>
-						<HugeiconsIcon icon={PlusSignIcon} data-icon="inline-start" strokeWidth={2} />
-						New assignment
-					</Button>
-				) : null
-			}
-		>
-			<div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-				{[
-					{ label: "Total assignments", value: stats.total },
-					{ label: "Published", value: stats.published },
-					{ label: "Drafts", value: stats.draft },
-					{ label: "Due this week", value: stats.dueSoon },
-				].map((card) => (
-					<div
-						key={card.label}
-						className="rounded-xl border border-dashboard-border bg-gradient-to-br from-dashboard-surface to-dashboard-accent-soft/20 p-4"
-					>
-						<p className="text-[12px] text-dashboard-text-muted">{card.label}</p>
-						<p className="mt-1 font-semibold text-2xl text-foreground">{card.value}</p>
-					</div>
-				))}
-			</div>
-
-			<div className="mb-4 flex flex-wrap gap-3">
-				<Field className="min-w-[220px]">
-					<FieldLabel>Class & subject</FieldLabel>
-					<SelectField
-						aria-label="Class and subject filter"
-						items={[{ label: "All classes", value: "all" }, ...sectionSubjectOptions]}
-						value={sectionSubjectFilter}
-						onValueChange={setSectionSubjectFilter}
-					/>
-				</Field>
-				<Field className="min-w-[160px]">
-					<FieldLabel>Status</FieldLabel>
-					<SelectField
-						aria-label="Status filter"
-						items={statusOptions}
-						value={statusFilter}
-						onValueChange={setStatusFilter}
-					/>
-				</Field>
-			</div>
-
-			{listQuery.error ? (
-				<Alert variant="destructive" className="mb-4">
-					<AlertDescription>{homeworkListErrorMessage(listQuery.error)}</AlertDescription>
-				</Alert>
-			) : null}
-
-			<DataTable
-				columns={columns}
-				rows={rows}
-				getRowId={(row) => row.id}
-				emptyTitle="No homework yet"
-				emptyDescription={
-					canWrite ? "Create your first assignment for a class." : "No assignments to show."
+		<>
+			<ListPage
+				title="Homework"
+				tabs={[
+					{ label: "Assigned", href: "/admin/homework", active: tab === "assigned" },
+					{ label: "Drafts", href: "/admin/homework?tab=drafts", active: tab === "drafts" },
+				]}
+				banner={
+					listQuery.error ? (
+						<Alert variant="destructive">
+							<AlertDescription>{homeworkListErrorMessage(listQuery.error)}</AlertDescription>
+						</Alert>
+					) : null
 				}
-			/>
+				toolbar={
+					<DataTableToolbar
+						className="border-0 px-4 sm:px-6"
+						search={search}
+						onSearchChange={(value) => {
+							setSearch(value);
+							table.resetPage();
+						}}
+						searchPlaceholder="Search homework"
+						filters={[
+							{
+								id: "class",
+								label: "Class",
+								value: sectionSubjectFilter,
+								placeholder: "All",
+								onChange: (value) => {
+									setSectionSubjectFilter(value);
+									table.setFilter("class", value);
+								},
+								items: sectionSubjectOptions,
+							},
+							{
+								id: "due",
+								label: "Due",
+								value: dueFilter,
+								placeholder: "Any",
+								onChange: (value) => {
+									setDueFilter(value);
+									table.setFilter("due", value);
+								},
+								items: [
+									{ label: "Today", value: "today" },
+									{ label: "This week", value: "week" },
+									{ label: "Overdue", value: "overdue" },
+								],
+							},
+						]}
+						canAdd={canWrite}
+						onAdd={openCreateSheet}
+						addLabel="New homework"
+					>
+						{canWrite ? (
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								className="h-7 rounded-full"
+								onClick={openCreateSheet}
+							>
+								<HugeiconsIcon icon={SparklesIcon} data-icon="inline-start" strokeWidth={1.8} />
+								Draft with AI
+							</Button>
+						) : null}
+					</DataTableToolbar>
+				}
+				footer={
+					<DataTableFooterBar
+						shown={table.rows.length}
+						total={table.totalRows}
+						noun="assignments"
+						stats={[
+							...(footerStats.avgSubmitted === null
+								? []
+								: [{ label: "Avg submitted", value: `${footerStats.avgSubmitted}%` }]),
+							{
+								label: "Missing",
+								value: footerStats.missing,
+								tone: footerStats.missing > 0 ? ("danger" as const) : undefined,
+							},
+							...(selectedIds.size > 0 ? [{ label: "Selected", value: selectedIds.size }] : []),
+						]}
+						pageIndex={table.pageIndex}
+						pageCount={table.pageCount}
+						pageSize={table.pageSize}
+						onPageChange={table.setPageIndex}
+						onPageSizeChange={(size) => {
+							table.setPageSize(size);
+							table.setPageIndex(0);
+						}}
+					/>
+				}
+			>
+				<DataTable
+					fullBleed
+					columns={columns}
+					rows={table.rows}
+					getRowId={(row) => row.id}
+					loading={listQuery.isLoading}
+					sort={table.sort}
+					onSort={table.toggleSort}
+					selection={{ selectedIds, onChange: setSelectedIds, label: (row) => row.title }}
+					emptyTitle={tab === "drafts" ? "No drafts" : "No homework yet"}
+					emptyDescription={
+						canWrite
+							? "Create an assignment for a class, or draft one with AI."
+							: "No assignments to show."
+					}
+				/>
+			</ListPage>
 
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 				<SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
@@ -562,6 +661,6 @@ export function HomeworkPage() {
 					</SheetFooter>
 				</SheetContent>
 			</Sheet>
-		</AdminPageShell>
+		</>
 	);
 }
