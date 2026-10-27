@@ -95,6 +95,7 @@ function slugify(value: string) {
 		.toLowerCase()
 		.trim()
 		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '')
+		// Runs are already collapsed to one dash, so a single-character trim is enough (and linear).
+		.replace(/^-|-$/g, '')
 		.slice(0, 72);
 }

@@ -232,7 +232,8 @@ export function AdmitStudentWizard({
 								Add a portrait for ID cards and the roster. JPEG, PNG, or WebP up to 2 MB.
 							</p>
 							<label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-8 transition-colors hover:bg-muted/40">
-								{photoPreview ? (
+								{photoPreview?.startsWith("blob:") ? (
+									// Only an object URL from URL.createObjectURL is rendered, never file text.
 									// oxlint-disable-next-line nextjs/no-img-element -- blob preview before upload
 									<img
 										src={photoPreview}
