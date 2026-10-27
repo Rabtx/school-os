@@ -386,9 +386,15 @@ export class AttendanceService {
 			sectionGroups.set(row.sectionId, group);
 		}
 		const byClass = [...sectionGroups.values()]
-			.map(({ rows, ...section }) => {
+			.map(({ sectionId, sectionName, className, rows }) => {
 				const counts = countMarksByStatusRows(rows);
-				return { ...section, summary: counts, attendanceRate: attendanceRateOf(counts) };
+				return {
+					sectionId,
+					sectionName,
+					className,
+					summary: counts,
+					attendanceRate: attendanceRateOf(counts),
+				};
 			})
 			.toSorted((a, b) =>
 				`${a.className ?? ''} ${a.sectionName}`.localeCompare(
