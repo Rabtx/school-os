@@ -1,29 +1,9 @@
+import { subjectColor } from "@/lib/subject-color";
 import { cn } from "@/lib/utils";
 import type { HomeworkAssignment } from "../types/homework.types";
 
-/**
- * Subject chip colours: the validated categorical slots (dark surface), assigned by a stable hash
- * of the subject name so a subject keeps its colour across pages.
- */
-const SUBJECT_COLORS = [
-	"#3987e5",
-	"#d95926",
-	"#199e70",
-	"#c98500",
-	"#d55181",
-	"#9085e9",
-	"#e66767",
-	"#008300",
-];
-
-function hashName(name: string): number {
-	let hash = 0;
-	for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) % 997;
-	return hash;
-}
-
 export function SubjectChip({ name }: { name: string }) {
-	const color = SUBJECT_COLORS[hashName(name) % SUBJECT_COLORS.length];
+	const color = subjectColor(name);
 	return (
 		<span
 			className="inline-flex h-6 items-center rounded-md border px-2 text-[12px]"

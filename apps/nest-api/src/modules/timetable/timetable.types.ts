@@ -45,3 +45,26 @@ export type PublicTeacherWeekSchedule = {
 	weekStart: string;
 	days: PublicTeacherDaySchedule[];
 };
+
+export type PublicSectionLesson = {
+	periodId: string;
+	subjectId: string | null;
+	subjectName: string | null;
+	subjectCode: string | null;
+	teacherName: string | null;
+	roomName: string | null;
+};
+
+export type PublicSectionDay = {
+	date: string;
+	dayOfWeek: number;
+	lessons: PublicSectionLesson[];
+};
+
+/** A class's week: the school's periods and each weekday's lessons. */
+export type PublicSectionWeek = {
+	weekStart: string;
+	section: { id: string; name: string; className: string };
+	periods: PublicTimetablePeriod[];
+	days: PublicSectionDay[];
+};

@@ -42,3 +42,19 @@ export type TeacherWeekSchedule = {
 	weekStart: string;
 	days: TeacherDaySchedule[];
 };
+
+export type SectionLesson = {
+	periodId: string;
+	subjectId: string | null;
+	subjectName: string | null;
+	subjectCode: string | null;
+	teacherName: string | null;
+	roomName: string | null;
+};
+
+export type SectionWeek = {
+	weekStart: string;
+	section: { id: string; name: string; className: string };
+	periods: TimetablePeriod[];
+	days: Array<{ date: string; dayOfWeek: number; lessons: SectionLesson[] }>;
+};
