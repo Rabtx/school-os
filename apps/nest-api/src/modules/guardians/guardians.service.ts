@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
+import { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { PermissionCodes } from '@/modules/authorization/permission-codes';
 import { MembershipsService } from '@/modules/memberships/memberships.service';
 import type { TenantContext } from '@/modules/tenants/tenant-context.types';
@@ -20,11 +21,20 @@ export class GuardiansService {
 	constructor(
 		private readonly guardians: GuardiansRepository,
 		private readonly membershipAccess: MembershipsService,
+		private readonly accessScope: AccessScopeService,
 	) {}
 
 	async listGuardians(userId: string, tenantId: string) {
-		await this.membershipAccess.requirePermission(userId, tenantId, PermissionCodes.GUARDIANS_READ);
-		const rows = await this.guardians.listGuardians(tenantId);
+		const membership = await this.membershipAccess.requirePermission(
+			userId,
+			tenantId,
+			PermissionCodes.GUARDIANS_READ,
+		);
+		const scope = await this.accessScope.listAccessibleStudentIds(tenantId, membership);
+		const rows =
+			scope === 'all'
+				? await this.guardians.listGuardians(tenantId)
+				: await this.guardians.listGuardiansForStudents(tenantId, scope);
 		return { guardians: rows.map(toPublicGuardian) };
 	}
 
@@ -77,7 +87,12 @@ export class GuardiansService {
 	}
 
 	async listStudentGuardians(userId: string, tenantId: string, studentId: string) {
-		await this.membershipAccess.requirePermission(userId, tenantId, PermissionCodes.GUARDIANS_READ);
+		const membership = await this.membershipAccess.requirePermission(
+			userId,
+			tenantId,
+			PermissionCodes.GUARDIANS_READ,
+		);
+		await this.accessScope.requireStudentAccess(tenantId, membership, studentId);
 		const rows = await this.guardians.listStudentGuardians(tenantId, studentId);
 		return { guardians: rows.map(toPublicStudentGuardianLink) };
 	}

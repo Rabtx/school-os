@@ -91,11 +91,13 @@ export class TenantsService {
 }
 
 function slugify(value: string) {
-	return value
-		.toLowerCase()
-		.trim()
-		.replace(/[^a-z0-9]+/g, '-')
-		// Runs are already collapsed to one dash, so a single-character trim is enough (and linear).
-		.replace(/^-|-$/g, '')
-		.slice(0, 72);
+	return (
+		value
+			.toLowerCase()
+			.trim()
+			.replace(/[^a-z0-9]+/g, '-')
+			// Runs are already collapsed to one dash, so a single-character trim is enough (and linear).
+			.replace(/^-|-$/g, '')
+			.slice(0, 72)
+	);
 }

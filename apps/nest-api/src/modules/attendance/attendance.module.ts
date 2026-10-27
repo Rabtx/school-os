@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { AccessScopeModule } from '@/modules/access-scope/access-scope.module';
 import { AcademicModule } from '@/modules/academic/academic.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { PermissionsModule } from '@/modules/authorization/permissions.module';
@@ -13,6 +14,7 @@ import { AttendanceService } from './attendance.service';
 
 @Module({
 	imports: [
+		AccessScopeModule,
 		AuthModule,
 		PermissionsModule,
 		MembershipsModule,

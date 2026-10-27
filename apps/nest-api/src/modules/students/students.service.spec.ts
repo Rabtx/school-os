@@ -1,6 +1,7 @@
 import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { AcademicRepository } from '@/modules/academic/academic.repository';
 import { createMockPermissionsService } from '@/modules/authorization/testing/mock-permissions.service';
 import { CampusesRepository } from '@/modules/campuses/campuses.repository';
@@ -115,6 +116,11 @@ describe('StudentsService', () => {
 			),
 			staffRepository as unknown as StaffRepository,
 			{} as StudentPhotoStorageService,
+			{
+				requireStudentAccess: vi.fn().mockImplementation(async () => {
+					throw new NotFoundException({ code: 'STUDENT_NOT_FOUND', message: 'Student not found' });
+				}),
+			} as unknown as AccessScopeService,
 		);
 	});
 

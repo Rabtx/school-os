@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 
 import type { Database } from '@/database/database.service';
 import { DatabaseService } from '@/database/database.service';
@@ -14,6 +14,31 @@ export class GuardiansRepository {
 			.select()
 			.from(guardians)
 			.where(and(eq(guardians.tenantId, tenantId), isNull(guardians.deletedAt)))
+			.orderBy(asc(guardians.lastName), asc(guardians.firstName));
+	}
+
+	/** Guardians linked to any of the given students, each once. */
+	async listGuardiansForStudents(tenantId: string, studentIds: string[]) {
+		if (studentIds.length === 0) return [];
+		const linkedGuardianIds = this.database.db
+			.select({ id: studentGuardians.guardianId })
+			.from(studentGuardians)
+			.where(
+				and(
+					eq(studentGuardians.tenantId, tenantId),
+					inArray(studentGuardians.studentId, studentIds),
+				),
+			);
+		return this.database.db
+			.select()
+			.from(guardians)
+			.where(
+				and(
+					eq(guardians.tenantId, tenantId),
+					inArray(guardians.id, linkedGuardianIds),
+					isNull(guardians.deletedAt),
+				),
+			)
 			.orderBy(asc(guardians.lastName), asc(guardians.firstName));
 	}
 

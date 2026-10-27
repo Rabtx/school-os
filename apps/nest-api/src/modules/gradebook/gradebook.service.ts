@@ -1,4 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { and, eq } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
@@ -57,6 +58,7 @@ export class GradebookService {
 		private readonly staff: StaffRepository,
 		private readonly students: StudentsRepository,
 		private readonly membershipAccess: MembershipsService,
+		private readonly accessScope: AccessScopeService,
 	) {}
 
 	async getGradebookGrid(
@@ -175,7 +177,7 @@ export class GradebookService {
 		studentId: string,
 		query: StudentReportQuery,
 	) {
-		await this.requireRead(userId, tenantId);
+		const membership = await this.requireRead(userId, tenantId);
 
 		const student = await this.students.findStudentById(tenantId, studentId);
 		if (!student) {
@@ -184,6 +186,7 @@ export class GradebookService {
 				message: 'Student not found',
 			});
 		}
+		await this.accessScope.requireStudentAccess(tenantId, membership, studentId);
 
 		const entryRows = await this.gradebook.listEntriesForStudent(tenantId, studentId, query.term);
 

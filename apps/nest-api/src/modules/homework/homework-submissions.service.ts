@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 import type { MembershipRecord } from '@/database/schema';
+import { AccessScopeService } from '@/modules/access-scope/access-scope.service';
 import { PermissionCodes } from '@/modules/authorization/permission-codes';
 import { hasManagementRole } from '@/modules/memberships/membership-roles';
 import { MembershipsService } from '@/modules/memberships/memberships.service';
@@ -26,6 +27,7 @@ export class HomeworkSubmissionsService {
 		private readonly students: StudentsRepository,
 		private readonly staff: StaffRepository,
 		private readonly membershipAccess: MembershipsService,
+		private readonly accessScope: AccessScopeService,
 	) {}
 
 	async getSubmissions(userId: string, tenantId: string, homeworkId: string) {
@@ -128,7 +130,11 @@ export class HomeworkSubmissionsService {
 	}
 
 	async getStudentHomeworkHistory(userId: string, tenantId: string, studentId: string) {
-		await this.membershipAccess.requirePermission(userId, tenantId, PermissionCodes.STUDENTS_READ);
+		const membership = await this.membershipAccess.requirePermission(
+			userId,
+			tenantId,
+			PermissionCodes.STUDENTS_READ,
+		);
 
 		const student = await this.students.findStudentById(tenantId, studentId);
 		if (!student) {
@@ -137,6 +143,7 @@ export class HomeworkSubmissionsService {
 				message: 'Student not found',
 			});
 		}
+		await this.accessScope.requireStudentAccess(tenantId, membership, studentId);
 
 		const rows = await this.submissions.listForStudent(tenantId, studentId);
 		const history = rows.map(({ submission, assignment, section, subject }) =>

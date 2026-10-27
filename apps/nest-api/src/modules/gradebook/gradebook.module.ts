@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { AccessScopeModule } from '@/modules/access-scope/access-scope.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { PermissionsModule } from '@/modules/authorization/permissions.module';
 import { MembershipsModule } from '@/modules/memberships/memberships.module';
@@ -12,6 +13,7 @@ import { GradebookService } from './gradebook.service';
 
 @Module({
 	imports: [
+		AccessScopeModule,
 		AuthModule,
 		PermissionsModule,
 		MembershipsModule,
