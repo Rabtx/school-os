@@ -85,6 +85,7 @@ describe('TenantConfigService', () => {
 		};
 		membershipsRepository = {
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 		};
 
 		service = new TenantConfigService(

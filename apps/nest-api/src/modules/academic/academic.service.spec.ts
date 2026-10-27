@@ -64,6 +64,7 @@ describe('AcademicService', () => {
 		};
 		membershipsRepository = {
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 			findActiveById: vi.fn(),
 		};
 

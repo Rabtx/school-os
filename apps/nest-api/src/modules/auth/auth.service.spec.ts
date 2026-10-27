@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type Mocked, vi } from 'vitest';
 import { AppConfigService } from '@/config/app-config.service';
 import type { AuthChallengeRecord, UserRecord } from '@/database/schema';
 import { EmailService } from '@/modules/email/email.service';
@@ -47,6 +47,7 @@ describe('AuthService', () => {
 		usersService = {
 			createUser: vi.fn().mockResolvedValue(user),
 		} as unknown as Mocked<UsersService>;
+		vi.stubEnv('AUTH_DEV_EXPOSE_CODES', 'true');
 		service = new AuthService(
 			new AppConfigService(),
 			crypto,
@@ -70,6 +71,10 @@ describe('AuthService', () => {
 			{} as PasskeysService,
 			{} as SocialAuthService,
 		);
+	});
+
+	afterEach(() => {
+		vi.unstubAllEnvs();
 	});
 
 	it('registers a user and persists only a hashed verification code', async () => {

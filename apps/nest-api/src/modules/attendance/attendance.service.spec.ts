@@ -51,6 +51,7 @@ describe('AttendanceService', () => {
 	};
 	let studentsRepository: {
 		findStudentById: ReturnType<typeof vi.fn>;
+		findStudentsByIds: ReturnType<typeof vi.fn>;
 		listEnrollments: ReturnType<typeof vi.fn>;
 	};
 	let staffRepository: {
@@ -76,6 +77,7 @@ describe('AttendanceService', () => {
 		};
 		studentsRepository = {
 			findStudentById: vi.fn(),
+			findStudentsByIds: vi.fn(),
 			listEnrollments: vi.fn(),
 		};
 		staffRepository = {
@@ -160,10 +162,9 @@ describe('AttendanceService', () => {
 				status: 'active',
 			},
 		]);
-		studentsRepository.findStudentById.mockResolvedValue({
-			id: 'student-1',
-			tenantId: 'tenant-1',
-		});
+		studentsRepository.findStudentsByIds.mockResolvedValue([
+			{ id: 'student-1', tenantId: 'tenant-1' },
+		]);
 		attendanceRepository.markStudents.mockResolvedValue([
 			{
 				id: 'mark-1',
@@ -261,7 +262,7 @@ describe('AttendanceService', () => {
 		attendanceRepository.findSessionById.mockResolvedValue(sessionRecord);
 		academicRepository.findSectionById.mockResolvedValue(sectionRecord);
 		studentsRepository.listEnrollments.mockResolvedValue([]);
-		studentsRepository.findStudentById.mockResolvedValue(null);
+		studentsRepository.findStudentsByIds.mockResolvedValue([]);
 
 		await expect(
 			service.markAttendance('user-1', 'tenant-1', 'session-1', {

@@ -84,7 +84,7 @@ describe('PermissionsGuard', () => {
 						userId: 'user-1',
 						role: 'owner',
 						campusId: null,
-						permissions: [],
+						permissions: [PermissionCodes.TENANT_CAMPUS_CREATE],
 					},
 				}),
 			),

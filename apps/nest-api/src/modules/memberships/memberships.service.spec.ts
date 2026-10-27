@@ -10,11 +10,13 @@ describe('MembershipsService', () => {
 	let service: MembershipsService;
 	let repository: {
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
+		listRolesForMembership: ReturnType<typeof vi.fn>;
 	};
 
 	beforeEach(() => {
 		repository = {
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 		};
 		service = new MembershipsService(
 			repository as unknown as MembershipsRepository,

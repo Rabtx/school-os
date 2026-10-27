@@ -19,6 +19,7 @@ describe('TenantsService', () => {
 	let membershipsRepository: {
 		listActiveTenantIdsForUser: ReturnType<typeof vi.fn>;
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
+		listRolesForMembership: ReturnType<typeof vi.fn>;
 	};
 
 	beforeEach(() => {
@@ -32,6 +33,7 @@ describe('TenantsService', () => {
 		membershipsRepository = {
 			listActiveTenantIdsForUser: vi.fn(),
 			findActiveByTenantAndUser: vi.fn(),
+			listRolesForMembership: vi.fn().mockResolvedValue([]),
 		};
 
 		service = new TenantsService(
