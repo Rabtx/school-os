@@ -48,7 +48,10 @@ export class OutboxProcessorService implements OnModuleInit, OnModuleDestroy {
 		this.processing = true;
 
 		try {
-			const events = await this.outboxRepository.claimPendingBatch(this.config.outboxBatchSize);
+			const events = await this.outboxRepository.claimPendingBatch(
+				this.config.outboxBatchSize,
+				this.config.outboxLeaseMs,
+			);
 
 			for (const event of events) {
 				try {
@@ -62,7 +65,11 @@ export class OutboxProcessorService implements OnModuleInit, OnModuleDestroy {
 						error instanceof Error ? error.stack : error,
 					);
 					// oxlint-disable-next-line no-await-in-loop -- events are dispatched in claim order, one at a time
-					await this.outboxRepository.markFailed(event.id);
+					await this.outboxRepository.markFailed(
+						event,
+						error instanceof Error ? error.message : String(error),
+						this.config.outboxMaxAttempts,
+					);
 				}
 			}
 		} finally {

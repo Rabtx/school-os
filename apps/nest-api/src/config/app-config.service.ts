@@ -145,4 +145,10 @@ export class AppConfigService {
 	get outboxBatchSize(): number {
 		return this.config.outboxBatchSize;
 	}
+	get outboxLeaseMs(): number {
+		return this.config.outboxLeaseMs;
+	}
+	get outboxMaxAttempts(): number {
+		return this.config.outboxMaxAttempts;
+	}
 }

@@ -72,6 +72,8 @@ export const envSchema = z
 		OUTBOX_WORKER_ENABLED: z.enum(['true', 'false']).optional(),
 		OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().min(1000).max(300_000).default(5000),
 		OUTBOX_BATCH_SIZE: z.coerce.number().int().min(1).max(500).default(25),
+		OUTBOX_LEASE_MS: z.coerce.number().int().min(5000).max(3_600_000).default(60_000),
+		OUTBOX_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(50).default(8),
 	})
 	.superRefine((env, context) => {
 		if (env.NODE_ENV !== 'production') {

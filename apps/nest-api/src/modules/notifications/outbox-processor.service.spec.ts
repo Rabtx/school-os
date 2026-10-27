@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppConfigService } from '@/config/app-config.service';
 import { type OutboxEventRecord } from '@/database/schema';
-import { OutboxRepository } from './outbox.repository';
+import { OutboxRepository, outboxBackoffMs } from './outbox.repository';
 import { OutboxDispatchService } from './outbox-dispatch.service';
 import { OutboxProcessorService } from './outbox-processor.service';
 
@@ -40,6 +40,8 @@ describe('OutboxProcessorService', () => {
 						outboxWorkerEnabled: true,
 						outboxPollIntervalMs: 60_000,
 						outboxBatchSize: 10,
+						outboxLeaseMs: 60_000,
+						outboxMaxAttempts: 8,
 					},
 				},
 				{ provide: OutboxRepository, useValue: outboxRepository },
@@ -53,18 +55,25 @@ describe('OutboxProcessorService', () => {
 	it('marks events processed after successful dispatch', async () => {
 		await processor.processPendingBatch();
 
-		expect(outboxRepository.claimPendingBatch).toHaveBeenCalledWith(10);
+		expect(outboxRepository.claimPendingBatch).toHaveBeenCalledWith(10, 60_000);
 		expect(outboxDispatch.dispatch).toHaveBeenCalledWith(sampleEvent);
 		expect(outboxRepository.markProcessed).toHaveBeenCalledWith('event-1');
 		expect(outboxRepository.markFailed).not.toHaveBeenCalled();
 	});
 
-	it('marks events failed when dispatch throws', async () => {
+	it('hands a failed dispatch to the retry policy with its error', async () => {
 		outboxDispatch.dispatch.mockRejectedValue(new Error('dispatch failed'));
 
 		await processor.processPendingBatch();
 
-		expect(outboxRepository.markFailed).toHaveBeenCalledWith('event-1');
+		expect(outboxRepository.markFailed).toHaveBeenCalledWith(sampleEvent, 'dispatch failed', 8);
 		expect(outboxRepository.markProcessed).not.toHaveBeenCalled();
+	});
+
+	it('backs off exponentially and caps at an hour', () => {
+		expect(outboxBackoffMs(1)).toBe(30_000);
+		expect(outboxBackoffMs(2)).toBe(60_000);
+		expect(outboxBackoffMs(4)).toBe(240_000);
+		expect(outboxBackoffMs(20)).toBe(3_600_000);
 	});
 });
