@@ -82,6 +82,8 @@ export function useClientDataTable<T>({
 
 	return {
 		rows: paginatedRows,
+		/** Every row that passes search and filters, across all pages (for export and totals). */
+		filteredRows,
 		totalRows: filteredRows.length,
 		pageIndex: safePageIndex,
 		setPageIndex,

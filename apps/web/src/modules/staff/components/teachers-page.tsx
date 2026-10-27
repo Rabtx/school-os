@@ -1,14 +1,8 @@
 "use client";
 
-import {
-	CreditCardIcon,
-	MoreHorizontalIcon,
-	TableIcon,
-	TeacherIcon,
-} from "@hugeicons/core-free-icons";
+import { Download04Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
-import { Badge } from "@school-os/ui/components/badge";
 import { Button } from "@school-os/ui/components/button";
 import {
 	Drawer,
@@ -26,15 +20,16 @@ import {
 	DropdownMenuTrigger,
 } from "@school-os/ui/components/dropdown-menu";
 import { Spinner } from "@school-os/ui/components/spinner";
-import { ToggleGroup, ToggleGroupItem } from "@school-os/ui/components/toggle-group";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
-import { AdminPageShell } from "@/components/admin";
+import { ListPage } from "@/components/list-page";
+import { downloadCsv } from "@/lib/export-csv";
+import { cn } from "@/lib/utils";
 import {
 	DataTable,
 	type DataTableColumn,
-	DataTablePagination,
-	DataTableShell,
+	DataTableFooterBar,
 	DataTableToolbar,
 	defaultSortFn,
 	useClientDataTable,
@@ -42,16 +37,18 @@ import {
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
 import { useTeacherQuery, useTeachersQuery } from "../hooks/use-staff-queries";
 import type { TeacherSummary } from "../types/staff.types";
-import {
-	formatTeacherStatus,
-	teacherDisplayName,
-	teacherStatusBadgeVariant,
-} from "../utils/teacher-ui.utils";
+import { formatTeacherStatus, teacherDisplayName } from "../utils/teacher-ui.utils";
 import { TeacherAvatar } from "./teacher-avatar";
 import { TeacherIdCard } from "./teacher-id-card";
 import { TeacherRosterCards } from "./teacher-roster-cards";
 
 type RosterView = "table" | "cards";
+
+const teacherStatusTone: Record<TeacherSummary["profile"]["status"], string> = {
+	active: "text-[var(--rx-success)]",
+	on_leave: "text-[var(--rx-warning)]",
+	inactive: "text-dashboard-text-dim",
+};
 
 export function TeachersPage() {
 	const { activeTenant, campuses } = useTenantContext();
@@ -60,7 +57,9 @@ export function TeachersPage() {
 	const canRead = can(PermissionCodes.STAFF_READ);
 	const query = useTeachersQuery(tenantId, canRead);
 
-	const [rosterView, setRosterView] = useState<RosterView>("table");
+	const searchParams = useSearchParams();
+	const rosterView: RosterView = searchParams.get("view") === "cards" ? "cards" : "table";
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 	const [search, setSearch] = useState("");
 	const [manageOpen, setManageOpen] = useState(false);
 	const [manageMembershipId, setManageMembershipId] = useState("");
@@ -78,21 +77,28 @@ export function TeachersPage() {
 	const columns = useMemo(
 		(): DataTableColumn<TeacherSummary>[] => [
 			{
-				id: "avatar",
-				header: "",
-				className: "w-[52px]",
-				renderCell: (teacher) => <TeacherAvatar teacher={teacher} size="sm" />,
-			},
-			{
 				id: "teacher",
 				header: "Teacher",
 				sortable: true,
 				sortValue: (row) => teacherDisplayName(row),
 				renderCell: (teacher) => (
-					<div className="min-w-[140px]">
-						<p className="font-medium text-foreground">{teacherDisplayName(teacher)}</p>
-						<p className="truncate text-[12px] text-muted-foreground">{teacher.email}</p>
-					</div>
+					<span className="flex min-w-[160px] items-center gap-2.5 whitespace-nowrap">
+						<TeacherAvatar teacher={teacher} size="sm" className="size-6 text-[10px]" />
+						<span className="font-medium text-dashboard-text-primary">
+							{teacherDisplayName(teacher)}
+						</span>
+					</span>
+				),
+			},
+			{
+				id: "email",
+				header: "Email",
+				sortable: true,
+				sortValue: (row) => row.email ?? "",
+				renderCell: (teacher) => (
+					<span className="block max-w-[220px] truncate text-dashboard-text-secondary">
+						{teacher.email ?? "—"}
+					</span>
 				),
 			},
 			{
@@ -112,28 +118,6 @@ export function TeachersPage() {
 				sortValue: (row) => row.profile.phone ?? "",
 				renderCell: (teacher) => (
 					<span className="text-muted-foreground text-sm">{teacher.profile.phone ?? "—"}</span>
-				),
-			},
-			{
-				id: "qualification",
-				header: "Qualification",
-				sortable: true,
-				sortValue: (row) => row.profile.qualification ?? "",
-				renderCell: (teacher) => (
-					<span className="max-w-[160px] truncate text-muted-foreground text-sm">
-						{teacher.profile.qualification ?? "—"}
-					</span>
-				),
-			},
-			{
-				id: "specialization",
-				header: "Specialization",
-				sortable: true,
-				sortValue: (row) => row.profile.specialization ?? "",
-				renderCell: (teacher) => (
-					<span className="max-w-[160px] truncate text-muted-foreground text-sm">
-						{teacher.profile.specialization ?? "—"}
-					</span>
 				),
 			},
 			{
@@ -173,9 +157,9 @@ export function TeachersPage() {
 				sortable: true,
 				sortValue: (row) => row.profile.status,
 				renderCell: (teacher) => (
-					<Badge variant={teacherStatusBadgeVariant(teacher.profile.status)} className="capitalize">
+					<span className={cn("capitalize", teacherStatusTone[teacher.profile.status])}>
 						{formatTeacherStatus(teacher.profile.status)}
-					</Badge>
+					</span>
 				),
 			},
 			{
@@ -233,7 +217,13 @@ export function TeachersPage() {
 			return haystack.includes(queryText);
 		},
 		sortFn: (rows, sort) => defaultSortFn(rows, sort, columns),
+		pageSize: 50,
 	});
+
+	const selected = table.filteredRows.filter((row) => selectedIds.has(row.membershipId));
+	const exportRows = selected.length > 0 ? selected : table.filteredRows;
+	const onLeave = table.filteredRows.filter((row) => row.profile.status === "on_leave").length;
+	const activeCount = table.filteredRows.filter((row) => row.profile.status === "active").length;
 
 	const manageTeacherQuery = useTeacherQuery(
 		tenantId,
@@ -271,50 +261,74 @@ export function TeachersPage() {
 	}
 
 	return (
-		<AdminPageShell
-			title="Teachers"
-			description="Browse staff in table or ID-card view. Assign homerooms and subjects from the full profile."
-			icon={TeacherIcon}
-			maxWidth="7xl"
-		>
-			<DataTableShell
+		<>
+			<ListPage
+				title="Teachers"
+				tabs={[
+					{ label: "Teachers", href: "/admin/teachers", active: rosterView === "table" },
+					{
+						label: "Staff cards",
+						href: "/admin/teachers?view=cards",
+						active: rosterView === "cards",
+					},
+					...(can(PermissionCodes.TENANT_MEMBERSHIP_READ)
+						? [{ label: "Members", href: "/admin/members" }]
+						: []),
+				]}
 				toolbar={
 					<DataTableToolbar
+						className="border-0 px-4 sm:px-6"
 						search={search}
 						onSearchChange={(value) => {
 							setSearch(value);
 							table.resetPage();
 						}}
-						searchPlaceholder="Search teachers…"
+						searchPlaceholder="Search teachers"
 					>
-						<ToggleGroup
-							value={[rosterView]}
-							onValueChange={(next) => {
-								const selected = next[0] as RosterView | undefined;
-								if (selected) setRosterView(selected);
-							}}
-							variant="outline"
+						<Button
+							type="button"
 							size="sm"
-							spacing={0}
-							aria-label="Roster view"
+							variant="outline"
+							className="h-7 rounded-full"
+							disabled={exportRows.length === 0}
+							onClick={() =>
+								downloadCsv(
+									"teachers.csv",
+									[
+										{ header: "Name", value: (row) => teacherDisplayName(row) },
+										{ header: "Email", value: (row) => row.email },
+										{ header: "Employee code", value: (row) => row.profile.employeeCode },
+										{ header: "Phone", value: (row) => row.profile.phone },
+										{ header: "Qualification", value: (row) => row.profile.qualification },
+										{ header: "Specialization", value: (row) => row.profile.specialization },
+										{
+											header: "Campus",
+											value: (row) => (row.campusId ? campusNameById.get(row.campusId) : ""),
+										},
+										{ header: "Status", value: (row) => formatTeacherStatus(row.profile.status) },
+									],
+									exportRows,
+								)
+							}
 						>
-							<ToggleGroupItem value="table" className="gap-1.5 px-2.5">
-								<HugeiconsIcon icon={TableIcon} strokeWidth={2} className="size-3.5" />
-								<span className="hidden sm:inline">Table</span>
-							</ToggleGroupItem>
-							<ToggleGroupItem value="cards" className="gap-1.5 px-2.5">
-								<HugeiconsIcon icon={CreditCardIcon} strokeWidth={2} className="size-3.5" />
-								<span className="hidden sm:inline">Staff cards</span>
-							</ToggleGroupItem>
-						</ToggleGroup>
+							<HugeiconsIcon icon={Download04Icon} data-icon="inline-start" strokeWidth={1.8} />
+							{selected.length > 0 ? `Export ${selected.length}` : "Export"}
+						</Button>
 					</DataTableToolbar>
 				}
 				footer={
-					<DataTablePagination
+					<DataTableFooterBar
+						shown={table.rows.length}
+						total={table.totalRows}
+						noun="teachers"
+						stats={[
+							{ label: "Active", value: activeCount },
+							{ label: "On leave", value: onLeave, tone: onLeave > 0 ? "warning" : undefined },
+							...(selectedIds.size > 0 ? [{ label: "Selected", value: selectedIds.size }] : []),
+						]}
 						pageIndex={table.pageIndex}
 						pageCount={table.pageCount}
 						pageSize={table.pageSize}
-						totalRows={table.totalRows}
 						onPageChange={table.setPageIndex}
 						onPageSizeChange={(size) => {
 							table.setPageSize(size);
@@ -325,26 +339,33 @@ export function TeachersPage() {
 			>
 				{rosterView === "table" ? (
 					<DataTable
-						borderless
+						fullBleed
 						columns={columns}
 						rows={table.rows}
 						getRowId={(row) => row.membershipId}
 						loading={query.isLoading}
 						sort={table.sort}
 						onSort={table.toggleSort}
+						selection={{
+							selectedIds,
+							onChange: setSelectedIds,
+							label: (row) => teacherDisplayName(row),
+						}}
 						emptyTitle="No teachers found"
 						emptyDescription="Try clearing your search or invite teachers from Members."
 					/>
 				) : (
-					<TeacherRosterCards
-						teachers={table.rows}
-						schoolName={activeTenant?.name ?? "School"}
-						tenantId={tenantId}
-						campusNameById={campusNameById}
-						loading={query.isLoading}
-					/>
+					<div className="p-4 sm:p-6">
+						<TeacherRosterCards
+							teachers={table.rows}
+							schoolName={activeTenant?.name ?? "School"}
+							tenantId={tenantId}
+							campusNameById={campusNameById}
+							loading={query.isLoading}
+						/>
+					</div>
 				)}
-			</DataTableShell>
+			</ListPage>
 
 			<Drawer open={manageOpen} onOpenChange={setManageOpen} direction="right">
 				<DrawerContent className="h-full max-h-none data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-lg">
@@ -442,6 +463,6 @@ export function TeachersPage() {
 					</DrawerFooter>
 				</DrawerContent>
 			</Drawer>
-		</AdminPageShell>
+		</>
 	);
 }

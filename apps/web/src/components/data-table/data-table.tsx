@@ -3,6 +3,7 @@
 import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@school-os/ui/components/button";
+import { Checkbox } from "@school-os/ui/components/checkbox";
 import { Skeleton } from "@school-os/ui/components/skeleton";
 import {
 	Table,
@@ -40,6 +41,14 @@ type Props<T> = {
 	renderCreateRow?: () => React.ReactNode;
 	className?: string;
 	borderless?: boolean;
+	/** Figma list layout: no card, sticky header, 24px outer cell padding. */
+	fullBleed?: boolean;
+	/** Row checkboxes; the header box selects or clears the rows on screen. */
+	selection?: {
+		selectedIds: ReadonlySet<string>;
+		onChange: (selectedIds: Set<string>) => void;
+		label: (row: T) => string;
+	};
 };
 
 function SortIndicator({
@@ -83,24 +92,71 @@ export function DataTable<T>({
 	renderCreateRow,
 	className,
 	borderless = false,
+	fullBleed = false,
+	selection,
 }: Props<T>) {
-	const colSpan = columns.length;
+	const colSpan = columns.length + (selection ? 1 : 0);
+	const rowIds = rows.map(getRowId);
+	const selectedOnPage = selection
+		? rowIds.filter((id) => selection.selectedIds.has(id)).length
+		: 0;
+	const allOnPage = rowIds.length > 0 && selectedOnPage === rowIds.length;
+	const edge = fullBleed ? "first:ps-4 last:pe-4 sm:first:ps-6 sm:last:pe-6" : "";
+
+	function togglePage(checked: boolean) {
+		if (!selection) return;
+		const next = new Set(selection.selectedIds);
+		for (const id of rowIds) {
+			if (checked) next.add(id);
+			else next.delete(id);
+		}
+		selection.onChange(next);
+	}
+
+	function toggleRow(id: string, checked: boolean) {
+		if (!selection) return;
+		const next = new Set(selection.selectedIds);
+		if (checked) next.add(id);
+		else next.delete(id);
+		selection.onChange(next);
+	}
 
 	return (
 		<div
 			className={cn(
-				!borderless && "rounded-[12px] border border-dashboard-border bg-dashboard-surface",
+				!borderless &&
+					!fullBleed &&
+					"rounded-[12px] border border-dashboard-border bg-dashboard-surface",
 				className,
 			)}
 		>
 			<Table className="text-[13px] tracking-[-0.15px]">
-				<TableHeader>
-					<TableRow className="border-dashboard-border hover:bg-transparent">
+				<TableHeader
+					className={cn(fullBleed && "sticky top-0 z-[1] bg-dashboard-bg [&_tr]:border-b-0")}
+				>
+					<TableRow
+						className={cn(
+							"border-dashboard-border hover:bg-transparent",
+							fullBleed && "shadow-[inset_0_-1px_0_var(--dashboard-border)]",
+						)}
+					>
+						{selection ? (
+							<TableHead className={cn("h-8 w-10", edge)}>
+								<Checkbox
+									aria-label="Select all rows on this page"
+									checked={allOnPage}
+									indeterminate={selectedOnPage > 0 && !allOnPage}
+									onCheckedChange={(checked) => togglePage(Boolean(checked))}
+								/>
+							</TableHead>
+						) : null}
 						{columns.map((column) => (
 							<TableHead
 								key={column.id}
 								className={cn(
 									"h-8 font-normal text-[12px] text-dashboard-text-dim",
+									!selection && edge,
+									selection && "last:pe-4 sm:last:pe-6",
 									column.headerClassName,
 								)}
 							>
@@ -128,6 +184,7 @@ export function DataTable<T>({
 					{loading
 						? ["s1", "s2", "s3", "s4", "s5"].map((key) => (
 								<TableRow key={key} className="border-dashboard-border">
+									{selection ? <TableCell className={edge} /> : null}
 									{columns.map((column) => (
 										<TableCell key={column.id}>
 											<Skeleton className="h-4 w-full max-w-[180px]" />
@@ -149,12 +206,28 @@ export function DataTable<T>({
 								return (
 									<TableRow
 										key={rowId}
-										className="border-dashboard-border hover:bg-dashboard-hover/60"
+										data-state={selection?.selectedIds.has(rowId) ? "selected" : undefined}
+										className="border-dashboard-border hover:bg-dashboard-hover/60 data-[state=selected]:bg-dashboard-hover"
 									>
+										{selection ? (
+											<TableCell className={cn("w-10", edge)}>
+												<Checkbox
+													aria-label={`Select ${selection.label(row)}`}
+													checked={selection.selectedIds.has(rowId)}
+													onCheckedChange={(checked) => toggleRow(rowId, Boolean(checked))}
+												/>
+											</TableCell>
+										) : null}
 										{columns.map((column) => (
 											<TableCell
 												key={column.id}
-												className={cn("py-2.5 text-dashboard-text-primary", column.className)}
+												className={cn(
+													"py-2.5 text-dashboard-text-primary",
+													fullBleed && "whitespace-nowrap",
+													!selection && edge,
+													selection && "last:pe-4 sm:last:pe-6",
+													column.className,
+												)}
 											>
 												{column.renderCell(row)}
 											</TableCell>
