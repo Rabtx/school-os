@@ -7,12 +7,9 @@ import { Button } from "@school-os/ui/components/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@school-os/ui/components/tooltip";
 import Link from "next/link";
 import type { ComponentProps } from "react";
-import { AnimationToggleControl } from "@/components/motion/animation-toggle";
-import { ThemeToggleControl } from "@/components/motion/theme-toggle";
 import { useAuth } from "@/context/auth-context";
 import { userInitials } from "@/lib/user-display";
 import { cn } from "@/lib/utils";
-import { DashboardLocaleSwitcher } from "@/modules/dashboard";
 
 type IconType = ComponentProps<typeof HugeiconsIcon>["icon"];
 
@@ -69,9 +66,6 @@ export function TopbarActions({
 
 	return (
 		<div className={cn("flex items-center gap-0.5 sm:gap-1", className)}>
-			<DashboardLocaleSwitcher />
-			<AnimationToggleControl />
-			<ThemeToggleControl />
 			<IconButton icon={Notification03Icon} label="Notifications" dot={unreadNotifications} />
 
 			<Button

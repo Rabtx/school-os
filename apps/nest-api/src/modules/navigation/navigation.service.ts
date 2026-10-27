@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
 import type { NavigationItemRecord } from '@/database/schema';
+import { hasManagementRole } from '@/modules/memberships/membership-roles';
 import type { TenantContext } from '@/modules/tenants/tenant-context.types';
 import { NavigationRepository } from './navigation.repository';
 import type { NavigationNode, NavigationResponse, NavigationSection } from './navigation.types';
+
+/** Sidebar section order (Figma): primary items, then running the school, then the user menu. */
+const SECTION_ORDER = ['Primary', 'School', 'Account'];
+
+function sectionRank(heading: string): number {
+	const index = SECTION_ORDER.indexOf(heading);
+	return index === -1 ? SECTION_ORDER.length : index;
+}
 
 @Injectable()
 export class NavigationService {
@@ -12,7 +21,29 @@ export class NavigationService {
 	async getAdminNavigation(tenant: TenantContext): Promise<NavigationResponse> {
 		const rows = await this.navigation.listBySurface('admin');
 		const permitted = this.filterByPermissions(rows, tenant.permissions, tenant.roles);
-		return { sections: this.buildSections(permitted) };
+		const sections = this.buildSections(permitted);
+		if (!hasManagementRole([...tenant.roles])) {
+			return { sections, classes: [] };
+		}
+
+		const [counts, classRows] = await Promise.all([
+			this.navigation.countSidebarBadges(tenant.tenantId, new Date()),
+			this.navigation.listActiveYearClasses(tenant.tenantId),
+		]);
+		for (const node of sections.flatMap((section) => section.items)) {
+			if (node.key in counts) node.count = counts[node.key as keyof typeof counts];
+		}
+		return {
+			sections,
+			classes: classRows.map((row) => ({
+				sectionId: row.sectionId,
+				campusId: row.campusId,
+				label: row.sectionName.startsWith(row.className)
+					? row.sectionName
+					: `${row.className} ${row.sectionName}`,
+				studentCount: row.studentCount,
+			})),
+		};
 	}
 
 	private filterByPermissions(
@@ -72,7 +103,7 @@ export class NavigationService {
 
 		const sectionOrder = [
 			...new Set(rows.filter((item) => !item.parentId).map((item) => item.sectionHeading)),
-		];
+		].toSorted((a, b) => sectionRank(a) - sectionRank(b));
 
 		return sectionOrder.map((heading) => ({
 			heading,

@@ -46,6 +46,9 @@ describe('AttendanceService', () => {
 		createSession: ReturnType<typeof vi.fn>;
 		listMarksForSession: ReturnType<typeof vi.fn>;
 		markStudents: ReturnType<typeof vi.fn>;
+		countMarksByDateAndStatus: ReturnType<typeof vi.fn>;
+		countStudentsByEventSource: ReturnType<typeof vi.fn>;
+		listCheckInsForDate: ReturnType<typeof vi.fn>;
 	};
 	let academicRepository: {
 		findSectionById: ReturnType<typeof vi.fn>;
@@ -72,6 +75,9 @@ describe('AttendanceService', () => {
 			createSession: vi.fn(),
 			listMarksForSession: vi.fn(),
 			markStudents: vi.fn(),
+			countMarksByDateAndStatus: vi.fn().mockResolvedValue([]),
+			countStudentsByEventSource: vi.fn().mockResolvedValue([]),
+			listCheckInsForDate: vi.fn().mockResolvedValue([]),
 		};
 		academicRepository = {
 			findSectionById: vi.fn(),
@@ -271,5 +277,53 @@ describe('AttendanceService', () => {
 				marks: [{ studentId: 'student-missing', status: 'present' }],
 			}),
 		).rejects.toBeInstanceOf(NotFoundException);
+	});
+
+	describe('getOverview', () => {
+		const principal = {
+			id: 'principal-membership-1',
+			tenantId: 'tenant-1',
+			userId: 'user-1',
+			role: 'principal',
+			status: 'active',
+		};
+
+		it('returns last week and this week, Monday to Sunday, with rates and today', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue(principal);
+			attendanceRepository.countMarksByDateAndStatus.mockResolvedValue([
+				{ sessionDate: '2026-10-08', status: 'present', count: 9 },
+				{ sessionDate: '2026-10-08', status: 'absent', count: 1 },
+				{ sessionDate: '2026-10-01', status: 'late', count: 2 },
+			]);
+			attendanceRepository.countStudentsByEventSource.mockResolvedValue([
+				{ source: 'manual', count: 10 },
+			]);
+
+			const result = await service.getOverview('user-1', 'tenant-1', '2026-10-08');
+
+			expect(attendanceRepository.countMarksByDateAndStatus).toHaveBeenCalledWith(
+				'tenant-1',
+				'2026-09-28',
+				'2026-10-11',
+			);
+			expect(result.days).toHaveLength(14);
+			expect(result.days[0]?.date).toBe('2026-09-28');
+			expect(result.days.at(-1)?.date).toBe('2026-10-11');
+			expect(result.today.attendanceRate).toBe(90);
+			expect(result.days.find((day) => day.date === '2026-10-01')?.attendanceRate).toBe(100);
+			expect(result.days.find((day) => day.date === '2026-10-02')?.attendanceRate).toBeNull();
+			expect(result.checkInSources).toEqual([{ source: 'manual', count: 10 }]);
+		});
+
+		it('is limited to leadership roles', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue({
+				...principal,
+				role: 'teacher',
+			});
+
+			await expect(service.getOverview('user-1', 'tenant-1', '2026-10-08')).rejects.toBeInstanceOf(
+				ForbiddenException,
+			);
+		});
 	});
 });

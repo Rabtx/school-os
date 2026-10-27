@@ -95,6 +95,20 @@ export class AttendanceController {
 		return this.attendance.confirmAllPresent(user.sub, tenantId, sessionId, body);
 	}
 
+	@Get('overview')
+	@RequirePermissions(PermissionCodes.ATTENDANCE_READ)
+	@ApiOperation({
+		summary: 'Leadership attendance overview: 14 days, check-in sources, latest marks',
+	})
+	getOverview(
+		@CurrentUser() user: AccessTokenPayload,
+		@Param('tenantId', new ParseUUIDPipe({ version: '4' })) tenantId: string,
+		@Query(new ZodValidationPipe(sessionDateQuerySchema)) query: SessionDateQuery,
+	) {
+		const date = query.sessionDate ?? new Date().toISOString().slice(0, 10);
+		return this.attendance.getOverview(user.sub, tenantId, date);
+	}
+
 	@Get('school-pulse')
 	@RequirePermissions(PermissionCodes.ATTENDANCE_READ)
 	@ApiOperation({ summary: 'School-wide attendance pulse for a calendar date' })

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, between, desc, eq, inArray, sql } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
 import {
@@ -9,7 +9,12 @@ import {
 	attendanceMarks,
 	attendanceSessions,
 	auditLogs,
+	classes,
+	guardians,
 	outboxEvents,
+	sections,
+	studentGuardians,
+	students,
 } from '@/database/schema';
 
 type MarkInput = {
@@ -258,5 +263,81 @@ export class AttendanceRepository {
 			.groupBy(attendanceMarks.status);
 
 		return rows;
+	}
+
+	/** Mark counts per session date and status, for the dashboard attendance chart. */
+	async countMarksByDateAndStatus(tenantId: string, fromDate: string, toDate: string) {
+		return this.database.db
+			.select({
+				sessionDate: attendanceSessions.sessionDate,
+				status: attendanceMarks.status,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(attendanceMarks)
+			.innerJoin(attendanceSessions, eq(attendanceSessions.id, attendanceMarks.sessionId))
+			.where(
+				and(
+					eq(attendanceMarks.tenantId, tenantId),
+					between(attendanceSessions.sessionDate, fromDate, toDate),
+				),
+			)
+			.groupBy(attendanceSessions.sessionDate, attendanceMarks.status);
+	}
+
+	/** Students with a recorded event on the date, grouped by event source (roll call, gate scan). */
+	async countStudentsByEventSource(tenantId: string, sessionDate: string) {
+		return this.database.db
+			.select({
+				source: attendanceEvents.source,
+				count: sql<number>`count(distinct ${attendanceEvents.studentId})::int`,
+			})
+			.from(attendanceEvents)
+			.innerJoin(attendanceSessions, eq(attendanceSessions.id, attendanceEvents.sessionId))
+			.where(
+				and(
+					eq(attendanceEvents.tenantId, tenantId),
+					eq(attendanceSessions.sessionDate, sessionDate),
+				),
+			)
+			.groupBy(attendanceEvents.source);
+	}
+
+	/** Latest marks on a date with student, class and primary guardian, newest first. */
+	async listCheckInsForDate(tenantId: string, sessionDate: string, limit: number) {
+		const primaryGuardian = sql<string | null>`(
+			select ${guardians.firstName} || ' ' || ${guardians.lastName}
+			from ${studentGuardians}
+			join ${guardians} on ${guardians.id} = ${studentGuardians.guardianId}
+			where ${studentGuardians.studentId} = ${attendanceMarks.studentId}
+				and ${studentGuardians.tenantId} = ${tenantId}
+			order by ${studentGuardians.isPrimary} desc
+			limit 1
+		)`;
+		return this.database.db
+			.select({
+				markId: attendanceMarks.id,
+				studentId: students.id,
+				studentCode: students.studentCode,
+				firstName: students.firstName,
+				lastName: students.lastName,
+				status: attendanceMarks.status,
+				markedAt: attendanceMarks.markedAt,
+				sectionName: sections.name,
+				className: classes.name,
+				guardianName: primaryGuardian,
+			})
+			.from(attendanceMarks)
+			.innerJoin(attendanceSessions, eq(attendanceSessions.id, attendanceMarks.sessionId))
+			.innerJoin(students, eq(students.id, attendanceMarks.studentId))
+			.leftJoin(sections, eq(sections.id, attendanceSessions.sectionId))
+			.leftJoin(classes, eq(classes.id, sections.classId))
+			.where(
+				and(
+					eq(attendanceMarks.tenantId, tenantId),
+					eq(attendanceSessions.sessionDate, sessionDate),
+				),
+			)
+			.orderBy(sql`${attendanceMarks.markedAt} desc nulls last`)
+			.limit(limit);
 	}
 }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isSchoolLeadershipRole, PermissionCodes, usePermissions } from "@/modules/tenants";
 import { AdminDashboard } from "./admin-dashboard";
-import { PrincipalDashboard } from "./principal-dashboard";
+import { PrincipalHome } from "./principal-home/principal-home";
 import { StudentDashboard } from "./student-dashboard";
 import { TeacherDashboard } from "./teacher-dashboard";
 
@@ -60,12 +60,8 @@ export function AdminHomePage() {
 		return <TeacherDashboard />;
 	}
 
-	if (isSchoolLeadershipRole(role)) {
-		return <PrincipalDashboard />;
-	}
-
-	if (role === "owner" || role === "admin") {
-		return <AdminDashboard enabled={isOpsDashboard} />;
+	if (isSchoolLeadershipRole(role) || role === "owner" || role === "admin") {
+		return <PrincipalHome />;
 	}
 
 	return <AdminDashboard enabled={isOpsDashboard} />;
