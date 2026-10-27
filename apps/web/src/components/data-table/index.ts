@@ -7,3 +7,4 @@ export {
 	type DataTableSortState,
 	useClientDataTable,
 } from "./use-client-data-table";
+export { DataTableFooterBar, type FooterStat } from "./data-table-footer-bar";

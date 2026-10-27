@@ -48,3 +48,11 @@ One PR per two or three screens. The student profile is a 440px side panel over 
 
 ## Resolution
 
+Progress:
+
+- PR #104: student profile panel, guardians table, roll call.
+- PR #105: shell and principal home rebuilt to the dashboard frame (structure, not just tokens).
+- Next PR: shared Figma list layout (`ListPage`, full-bleed `DataTable` with selection, `DataTableFooterBar`, CSV export) on Students, Guardians and Teachers.
+- Members follows "Settings · Members & roles" (`232:138695`) and moves to the settings screens.
+- Remaining: homework, gradebook, timetable, reports, settings.
+

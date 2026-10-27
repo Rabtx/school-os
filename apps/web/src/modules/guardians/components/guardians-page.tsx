@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit02Icon, UserMultiple02Icon } from "@hugeicons/core-free-icons";
+import { Download04Icon, Edit02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
 import { Button } from "@school-os/ui/components/button";
@@ -8,13 +8,14 @@ import { Field, FieldGroup, FieldLabel } from "@school-os/ui/components/field";
 import { Input } from "@school-os/ui/components/input";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { useCallback, useMemo, useState } from "react";
-import { AdminPageShell, FormDrawer } from "@/components/admin";
+import { FormDrawer } from "@/components/admin";
+import { ListPage } from "@/components/list-page";
+import { downloadCsv } from "@/lib/export-csv";
 import { InitialsAvatar } from "@/components/initials-avatar";
 import {
 	DataTable,
 	type DataTableColumn,
-	DataTablePagination,
-	DataTableShell,
+	DataTableFooterBar,
 	DataTableToolbar,
 	defaultSortFn,
 	useClientDataTable,
@@ -125,6 +126,9 @@ const channelLabels: Record<Guardian["preferredChannel"], string> = {
 export function GuardiansPage() {
 	const { activeTenant } = useTenantContext();
 	const { can, isLoading: permissionsLoading } = usePermissions();
+	const canReadStudents = can(PermissionCodes.STUDENTS_READ);
+	const [channelFilter, setChannelFilter] = useState("");
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 	const tenantId = activeTenant?.id ?? null;
 	const canRead = can(PermissionCodes.GUARDIANS_READ);
 	const canWrite = can(PermissionCodes.GUARDIANS_WRITE);
@@ -246,13 +250,22 @@ export function GuardiansPage() {
 				.toLowerCase();
 			return haystack.includes(queryText);
 		},
+		pageSize: 50,
 		filterFn: (row, filters) => {
-			if (filters.portal === "linked") return Boolean(row.membershipId);
-			if (filters.portal === "contact") return !row.membershipId;
+			if (filters.portal === "linked" && !row.membershipId) return false;
+			if (filters.portal === "contact" && row.membershipId) return false;
+			if (filters.channel && row.preferredChannel !== filters.channel) return false;
 			return true;
 		},
 		sortFn: (rows, sort) => defaultSortFn(rows, sort, columns),
 	});
+
+	const selected = table.filteredRows.filter((row) => selectedIds.has(row.id));
+	const exportRows = selected.length > 0 ? selected : table.filteredRows;
+	const linkedCount = table.filteredRows.filter((row) => row.membershipId).length;
+	const whatsappCount = table.filteredRows.filter(
+		(row) => row.preferredChannel === "whatsapp",
+	).length;
 
 	async function handleSave() {
 		if (!tenantId || !canWrite) return;
@@ -307,22 +320,34 @@ export function GuardiansPage() {
 	}
 
 	return (
-		<AdminPageShell
-			title="Guardians"
-			description="Parent and guardian contacts linked to students."
-			icon={UserMultiple02Icon}
-			loading={permissionsLoading}
-		>
-			<DataTableShell
+		<>
+			<ListPage
+				title="Guardians"
+				tabs={[
+					...(canReadStudents ? [{ label: "Students", href: "/admin/students" }] : []),
+					{ label: "Guardians", href: "/admin/guardians", active: true },
+				]}
 				toolbar={
 					<DataTableToolbar
+						className="border-0 px-4 sm:px-6"
 						search={search}
 						onSearchChange={(value) => {
 							setSearch(value);
 							table.resetPage();
 						}}
-						searchPlaceholder="Search guardians…"
+						searchPlaceholder="Search guardians"
 						filters={[
+							{
+								id: "channel",
+								label: "Channel",
+								value: channelFilter,
+								placeholder: "Any",
+								onChange: (value) => {
+									setChannelFilter(value);
+									table.setFilter("channel", value);
+								},
+								items: Object.entries(channelLabels).map(([value, label]) => ({ label, value })),
+							},
 							{
 								id: "portal",
 								label: "Portal",
@@ -340,14 +365,48 @@ export function GuardiansPage() {
 						canAdd={canWrite}
 						onAdd={openCreate}
 						addLabel="Add guardian"
-					/>
+					>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							className="h-7 rounded-full"
+							disabled={exportRows.length === 0}
+							onClick={() =>
+								downloadCsv(
+									"guardians.csv",
+									[
+										{ header: "Name", value: (row) => row.fullName },
+										{ header: "Phone", value: (row) => row.phone },
+										{ header: "Email", value: (row) => row.email },
+										{ header: "Channel", value: (row) => channelLabels[row.preferredChannel] },
+										{
+											header: "Portal",
+											value: (row) => (row.membershipId ? "Linked account" : "Contact only"),
+										},
+									],
+									exportRows,
+								)
+							}
+						>
+							<HugeiconsIcon icon={Download04Icon} data-icon="inline-start" strokeWidth={1.8} />
+							{selected.length > 0 ? `Export ${selected.length}` : "Export"}
+						</Button>
+					</DataTableToolbar>
 				}
 				footer={
-					<DataTablePagination
+					<DataTableFooterBar
+						shown={table.rows.length}
+						total={table.totalRows}
+						noun="guardians"
+						stats={[
+							{ label: "Linked accounts", value: linkedCount },
+							{ label: "Prefer WhatsApp", value: whatsappCount },
+							...(selectedIds.size > 0 ? [{ label: "Selected", value: selectedIds.size }] : []),
+						]}
 						pageIndex={table.pageIndex}
 						pageCount={table.pageCount}
 						pageSize={table.pageSize}
-						totalRows={table.totalRows}
 						onPageChange={table.setPageIndex}
 						onPageSizeChange={(size) => {
 							table.setPageSize(size);
@@ -357,17 +416,18 @@ export function GuardiansPage() {
 				}
 			>
 				<DataTable
-					borderless
+					fullBleed
 					columns={columns}
 					rows={table.rows}
 					getRowId={(row) => row.id}
-					loading={query.isLoading}
+					loading={query.isLoading || permissionsLoading}
 					sort={table.sort}
 					onSort={table.toggleSort}
+					selection={{ selectedIds, onChange: setSelectedIds, label: (row) => row.fullName }}
 					emptyTitle="No guardians found"
 					emptyDescription="Add a guardian or adjust your filters."
 				/>
-			</DataTableShell>
+			</ListPage>
 
 			<FormDrawer
 				open={drawerOpen}
@@ -386,6 +446,6 @@ export function GuardiansPage() {
 			>
 				<GuardianFormFields value={form} onChange={setForm} />
 			</FormDrawer>
-		</AdminPageShell>
+		</>
 	);
 }

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	CreditCardIcon,
-	MoreHorizontalIcon,
-	StudentIcon,
-	TableIcon,
-} from "@hugeicons/core-free-icons";
+import { Download04Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
 import { Button } from "@school-os/ui/components/button";
@@ -19,16 +14,16 @@ import { Field, FieldGroup, FieldLabel } from "@school-os/ui/components/field";
 import { Input } from "@school-os/ui/components/input";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { Spinner } from "@school-os/ui/components/spinner";
-import { ToggleGroup, ToggleGroupItem } from "@school-os/ui/components/toggle-group";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AdminPageShell, FormDrawer } from "@/components/admin";
+import { FormDrawer } from "@/components/admin";
+import { ListPage } from "@/components/list-page";
+import { downloadCsv } from "@/lib/export-csv";
 import { cn } from "@/lib/utils";
 import {
 	DataTable,
 	type DataTableColumn,
-	DataTablePagination,
-	DataTableShell,
+	DataTableFooterBar,
 	DataTableToolbar,
 	defaultSortFn,
 	useClientDataTable,
@@ -72,14 +67,16 @@ export function StudentsPage() {
 	const classesQuery = useClassesQuery(tenantId, canReadAcademic);
 	const createEnrollment = useCreateEnrollmentMutation(tenantId ?? "");
 
-	const [rosterView, setRosterView] = useState<RosterView>("table");
+	const searchParams = useSearchParams();
+	const rosterView: RosterView = searchParams.get("view") === "cards" ? "cards" : "table";
+	const [sectionFilter, setSectionFilter] = useState("");
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 	const [rosterSearch, setRosterSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState("");
 	const [message, setMessage] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	const [admitOpen, setAdmitOpen] = useState(false);
-	const searchParams = useSearchParams();
 
 	useEffect(() => {
 		if (searchParams.get("admit") === "1" && canWrite) {
@@ -152,6 +149,45 @@ export function StudentsPage() {
 		return map;
 	}, [sectionLabelById, tenantEnrollmentsQuery.data]);
 
+	/** Short "Grade 5 · 5-B" labels for the table (the campus is already selected). */
+	const classLabelByStudentId = useMemo(() => {
+		const sectionById = new Map((sectionsQuery.data ?? []).map((section) => [section.id, section]));
+		const map = new Map<string, string>();
+		for (const enrollment of tenantEnrollmentsQuery.data ?? []) {
+			if (enrollment.status !== "active") continue;
+			const section = sectionById.get(enrollment.sectionId);
+			if (!section) continue;
+			const className = classNameById.get(section.classId);
+			const label =
+				!className || section.name.startsWith(className)
+					? section.name
+					: `${className} · ${section.name}`;
+			map.set(enrollment.studentId, label);
+		}
+		return map;
+	}, [classNameById, sectionsQuery.data, tenantEnrollmentsQuery.data]);
+
+	const sectionIdByStudentId = useMemo(() => {
+		const map = new Map<string, string>();
+		for (const enrollment of tenantEnrollmentsQuery.data ?? []) {
+			if (enrollment.status === "active") map.set(enrollment.studentId, enrollment.sectionId);
+		}
+		return map;
+	}, [tenantEnrollmentsQuery.data]);
+
+	const sectionFilterItems = useMemo(
+		() =>
+			(sectionsQuery.data ?? [])
+				.filter((section) => section.academicYearId === activeYearId)
+				.map((section) => ({
+					label: classNameById.get(section.classId)
+						? `${classNameById.get(section.classId)} · ${section.name}`
+						: section.name,
+					value: section.id,
+				})),
+		[activeYearId, classNameById, sectionsQuery.data],
+	);
+
 	const openEnroll = useCallback((studentId: string) => {
 		setEnrollStudentId(studentId);
 		setEnrollSectionId("");
@@ -173,33 +209,43 @@ export function StudentsPage() {
 	const studentColumns = useMemo(
 		(): DataTableColumn<Student>[] => [
 			{
-				id: "avatar",
-				header: "",
-				className: "w-[52px]",
-				renderCell: (student) => <StudentAvatar student={student} size="sm" />,
-			},
-			{
 				id: "name",
 				header: "Student",
 				sortable: true,
 				sortValue: (row) => row.fullName,
 				renderCell: (student) => (
-					<div className="min-w-[140px]">
-						<p className="font-medium text-dashboard-text-primary">{student.fullName}</p>
-						<p className="font-mono text-[12px] text-dashboard-text-dim">{student.studentCode}</p>
-					</div>
+					<span className="flex min-w-[160px] items-center gap-2.5 whitespace-nowrap">
+						<StudentAvatar student={student} size="sm" className="size-6 text-[10px]" />
+						<span className="font-medium text-dashboard-text-primary">{student.fullName}</span>
+					</span>
+				),
+			},
+			{
+				id: "code",
+				header: "ID",
+				sortable: true,
+				sortValue: (row) => row.studentCode,
+				renderCell: (student) => (
+					<span className="whitespace-nowrap font-mono text-[12px] text-dashboard-text-dim">
+						{student.studentCode}
+					</span>
 				),
 			},
 			{
 				id: "section",
-				header: "Section",
+				header: "Class",
 				sortable: true,
-				sortValue: (row) => sectionLabelByStudentId.get(row.id) ?? "",
-				renderCell: (student) => (
-					<span className="text-dashboard-text-secondary">
-						{sectionLabelByStudentId.get(student.id) ?? "—"}
-					</span>
-				),
+				sortValue: (row) => classLabelByStudentId.get(row.id) ?? "",
+				renderCell: (student) => {
+					const label = classLabelByStudentId.get(student.id);
+					return label ? (
+						<span className="inline-flex h-6 items-center whitespace-nowrap rounded-md border border-dashboard-border-strong px-2 text-[12px] text-dashboard-text-secondary">
+							{label}
+						</span>
+					) : (
+						<span className="text-dashboard-text-dim">—</span>
+					);
+				},
 			},
 			{
 				id: "phone",
@@ -207,7 +253,9 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => row.phone ?? "",
 				renderCell: (student) => (
-					<span className="text-dashboard-text-secondary">{student.phone ?? "—"}</span>
+					<span className="whitespace-nowrap text-dashboard-text-secondary">
+						{student.phone ?? "—"}
+					</span>
 				),
 			},
 			{
@@ -217,7 +265,9 @@ export function StudentsPage() {
 				sortValue: (row) => row.dateOfBirth ?? "",
 				className: "tabular-nums",
 				renderCell: (student) => (
-					<span className="text-dashboard-text-secondary">{student.dateOfBirth ?? "—"}</span>
+					<span className="whitespace-nowrap text-dashboard-text-secondary">
+						{student.dateOfBirth ?? "—"}
+					</span>
 				),
 			},
 			{
@@ -237,12 +287,12 @@ export function StudentsPage() {
 				sortable: true,
 				sortValue: (row) => row.emergencyContactName ?? "",
 				renderCell: (student) => (
-					<div className="min-w-[120px] text-dashboard-text-secondary">
-						<p>{student.emergencyContactName ?? "—"}</p>
-						{student.emergencyContactPhone ? (
-							<p className="text-[12px] text-dashboard-text-dim">{student.emergencyContactPhone}</p>
-						) : null}
-					</div>
+					<span
+						className="block max-w-[220px] truncate whitespace-nowrap text-dashboard-text-secondary"
+						title={student.emergencyContactPhone ?? undefined}
+					>
+						{student.emergencyContactName ?? "—"}
+					</span>
 				),
 			},
 			{
@@ -289,11 +339,12 @@ export function StudentsPage() {
 				),
 			},
 		],
-		[canWrite, openEnroll, openManage, sectionLabelByStudentId],
+		[canWrite, classLabelByStudentId, openEnroll, openManage],
 	);
 
 	const rosterTable = useClientDataTable({
 		data: studentsQuery.data ?? [],
+		pageSize: 50,
 		searchQuery: rosterSearch,
 		searchFn: (row, queryText) => {
 			const haystack = [
@@ -310,6 +361,7 @@ export function StudentsPage() {
 		},
 		filterFn: (row, filters) => {
 			if (filters.status && row.status !== filters.status) return false;
+			if (filters.section && sectionIdByStudentId.get(row.id) !== filters.section) return false;
 			return true;
 		},
 		sortFn: (rows, sort) => defaultSortFn(rows, sort, studentColumns),
@@ -441,34 +493,49 @@ export function StudentsPage() {
 		}
 	}
 
-	return (
-		<AdminPageShell
-			title="Students"
-			description="Admit students, browse the roster in table or ID-card view, and enroll them into sections."
-			icon={StudentIcon}
-			maxWidth="7xl"
-		>
-			{message ? (
-				<Alert className="mb-4">
-					<AlertDescription>{message}</AlertDescription>
-				</Alert>
-			) : null}
-			{error ? (
-				<Alert variant="destructive" className="mb-4">
-					<AlertDescription>{error}</AlertDescription>
-				</Alert>
-			) : null}
+	const selectedStudents = rosterTable.filteredRows.filter((row) => selectedIds.has(row.id));
+	const exportRows = selectedStudents.length > 0 ? selectedStudents : rosterTable.filteredRows;
+	const notInSection = rosterTable.filteredRows.filter(
+		(row) => !sectionLabelByStudentId.has(row.id),
+	).length;
 
-			<DataTableShell
+	return (
+		<>
+			<ListPage
+				title="Students"
+				tabs={[
+					{ label: "Students", href: "/admin/students", active: rosterView === "table" },
+					...(canReadGuardians ? [{ label: "Guardians", href: "/admin/guardians" }] : []),
+					{ label: "ID cards", href: "/admin/students?view=cards", active: rosterView === "cards" },
+				]}
+				banner={
+					message || error ? (
+						<Alert variant={error ? "destructive" : "default"}>
+							<AlertDescription>{error ?? message}</AlertDescription>
+						</Alert>
+					) : null
+				}
 				toolbar={
 					<DataTableToolbar
+						className="border-0 px-4 sm:px-6"
 						search={rosterSearch}
 						onSearchChange={(value) => {
 							setRosterSearch(value);
 							rosterTable.resetPage();
 						}}
-						searchPlaceholder="Search students…"
+						searchPlaceholder="Search students"
 						filters={[
+							{
+								id: "section",
+								label: "Class",
+								value: sectionFilter,
+								placeholder: "All",
+								onChange: (value) => {
+									setSectionFilter(value);
+									rosterTable.setFilter("section", value);
+								},
+								items: sectionFilterItems,
+							},
 							{
 								id: "status",
 								label: "Status",
@@ -487,36 +554,52 @@ export function StudentsPage() {
 						]}
 						canAdd={canWrite}
 						onAdd={() => setAdmitOpen(true)}
-						addLabel="Admit student"
+						addLabel="New student"
 					>
-						<ToggleGroup
-							value={[rosterView]}
-							onValueChange={(next) => {
-								const selected = next[0] as RosterView | undefined;
-								if (selected) setRosterView(selected);
-							}}
-							variant="outline"
+						<Button
+							type="button"
 							size="sm"
-							spacing={0}
-							aria-label="Roster view"
+							variant="outline"
+							className="h-7 rounded-full"
+							disabled={exportRows.length === 0}
+							onClick={() =>
+								downloadCsv(
+									"students.csv",
+									[
+										{ header: "Student code", value: (row) => row.studentCode },
+										{ header: "Name", value: (row) => row.fullName },
+										{ header: "Class", value: (row) => sectionLabelByStudentId.get(row.id) },
+										{ header: "Status", value: (row) => row.status },
+										{ header: "Phone", value: (row) => row.phone },
+										{ header: "Emergency contact", value: (row) => row.emergencyContactName },
+										{ header: "Emergency phone", value: (row) => row.emergencyContactPhone },
+									],
+									exportRows,
+								)
+							}
 						>
-							<ToggleGroupItem value="table" className="gap-1.5 px-2.5">
-								<HugeiconsIcon icon={TableIcon} strokeWidth={2} className="size-3.5" />
-								<span className="hidden sm:inline">Table</span>
-							</ToggleGroupItem>
-							<ToggleGroupItem value="cards" className="gap-1.5 px-2.5">
-								<HugeiconsIcon icon={CreditCardIcon} strokeWidth={2} className="size-3.5" />
-								<span className="hidden sm:inline">ID cards</span>
-							</ToggleGroupItem>
-						</ToggleGroup>
+							<HugeiconsIcon icon={Download04Icon} data-icon="inline-start" strokeWidth={1.8} />
+							{selectedStudents.length > 0 ? `Export ${selectedStudents.length}` : "Export"}
+						</Button>
 					</DataTableToolbar>
 				}
 				footer={
-					<DataTablePagination
+					<DataTableFooterBar
+						shown={rosterTable.rows.length}
+						total={rosterTable.totalRows}
+						noun="students"
+						stats={[
+							{ label: "In a class", value: rosterTable.totalRows - notInSection },
+							{
+								label: "Not in a class",
+								value: notInSection,
+								tone: notInSection > 0 ? "warning" : undefined,
+							},
+							...(selectedIds.size > 0 ? [{ label: "Selected", value: selectedIds.size }] : []),
+						]}
 						pageIndex={rosterTable.pageIndex}
 						pageCount={rosterTable.pageCount}
 						pageSize={rosterTable.pageSize}
-						totalRows={rosterTable.totalRows}
 						onPageChange={rosterTable.setPageIndex}
 						onPageSizeChange={(size) => {
 							rosterTable.setPageSize(size);
@@ -527,13 +610,18 @@ export function StudentsPage() {
 			>
 				{rosterView === "table" ? (
 					<DataTable
-						borderless
+						fullBleed
 						columns={studentColumns}
 						rows={rosterTable.rows}
 						getRowId={(row) => row.id}
 						loading={studentsQuery.isLoading}
 						sort={rosterTable.sort}
 						onSort={rosterTable.toggleSort}
+						selection={{
+							selectedIds,
+							onChange: setSelectedIds,
+							label: (row) => row.fullName,
+						}}
 						emptyTitle="No students yet"
 						emptyDescription={
 							campusId
@@ -542,16 +630,18 @@ export function StudentsPage() {
 						}
 					/>
 				) : (
-					<StudentRosterCards
-						students={rosterTable.rows}
-						schoolName={activeTenant?.name ?? "School"}
-						tenantId={tenantId}
-						sectionLabelByStudentId={sectionLabelByStudentId}
-						academicYearLabel={activeYearLabel}
-						loading={studentsQuery.isLoading}
-					/>
+					<div className="p-4 sm:p-6">
+						<StudentRosterCards
+							students={rosterTable.rows}
+							schoolName={activeTenant?.name ?? "School"}
+							tenantId={tenantId}
+							sectionLabelByStudentId={sectionLabelByStudentId}
+							academicYearLabel={activeYearLabel}
+							loading={studentsQuery.isLoading}
+						/>
+					</div>
 				)}
-			</DataTableShell>
+			</ListPage>
 
 			{tenantId ? (
 				<AdmitStudentWizard
@@ -738,6 +828,6 @@ export function StudentsPage() {
 					}
 				/>
 			) : null}
-		</AdminPageShell>
+		</>
 	);
 }
