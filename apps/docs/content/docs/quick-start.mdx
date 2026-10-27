@@ -59,7 +59,7 @@ at a database that has not been migrated yet.
 3. Apply migrations:
 
 ```bash
-bun --cwd apps/nest-api run db:migrate
+bun --cwd=apps/nest-api run db:migrate
 ```
 
 4. Restart the Nest API dev task after migrating.
@@ -67,8 +67,8 @@ bun --cwd apps/nest-api run db:migrate
 Optional demo data:
 
 ```bash
-bun --cwd apps/nest-api run db:seed
-bun --cwd apps/nest-api run db:seed-demo-logins
+bun --cwd=apps/nest-api run db:seed
+bun --cwd=apps/nest-api run db:seed-demo-logins
 ```
 
 `db:seed-demo-logins` creates (or refreshes) **owner / principal / vice-principal / admin / parent / student**

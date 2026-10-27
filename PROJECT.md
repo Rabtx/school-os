@@ -33,7 +33,8 @@ school-os/
 ├── docker/                   # Docker Compose fragments
 ├── .github/workflows/        # CI/CD/security workflows
 ├── .devcontainer/            # Reproducible development environment
-├── biome.json                # Formatter/linter config (TS/JS)
+├── .oxlintrc.json            # Linter config (TS/JS)
+├── .oxfmtrc.json             # Formatter config (TS/JS)
 ├── lefthook.yml              # Git hooks
 ├── turbo.json                # Turborepo pipeline
 ├── package.json              # Root scripts + workspaces
@@ -41,7 +42,7 @@ school-os/
 └── AGENTS.md                 # Universal AI agent guidance
 ```
 
-Documentation is served by `apps/docs` (`bun --cwd apps/docs run dev` → http://localhost:3002/docs).
+Documentation is served by `apps/docs` (`bun --cwd=apps/docs run dev` → http://localhost:3002/docs).
 There is no root `docs/` directory.
 ## Apps and stacks
 
@@ -91,11 +92,11 @@ bun --cwd <app-path> run <script>
 
 Examples:
 
-- `bun --cwd apps/web run dev`
-- `bun --cwd apps/mobile run start`
-- `bun --cwd apps/nest-api run dev`
-- `bun --cwd apps/docs run dev`
-- `bun --cwd apps/rust run dev`
+- `bun --cwd=apps/web run dev`
+- `bun --cwd=apps/mobile run start`
+- `bun --cwd=apps/nest-api run dev`
+- `bun --cwd=apps/docs run dev`
+- `bun --cwd=apps/rust run dev`
 
 ## Tooling and quality system
 
@@ -107,7 +108,7 @@ Examples:
 
 ### Linting and formatting
 
-- **Biome** is the TS/JS formatter+linter (`biome.json`)
+- **oxlint** and **oxfmt** are the TS/JS linter and formatter (`.oxlintrc.json`, `.oxfmtrc.json`)
 - Formatting style: tabs, line width 100
 - Root `format` and `lint` scripts also run language-specific tools
 
@@ -187,7 +188,7 @@ Recent admin and teacher surfaces wired to the Nest API:
 | Teacher home | `/admin` (teacher role) | **Command center** — digest, instant actions, prefs, student insights in roster drawer |
 
 Migrations `0017_homework_assessments` and `0018_homework_assessments_v2` add homework/assessment tables,
-recipients, planner fields, and role permissions. Apply with `bun --cwd apps/nest-api run db:migrate`.
+recipients, planner fields, and role permissions. Apply with `bun --cwd=apps/nest-api run db:migrate`.
 
 ## Related docs
 

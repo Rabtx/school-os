@@ -28,8 +28,8 @@ intentionally not part of this foundation.
 
 ```bash
 cp apps/nest-api/.env.example apps/nest-api/.env
-bun --cwd apps/nest-api run db:migrate
-bun --cwd apps/nest-api run dev
+bun --cwd=apps/nest-api run db:migrate
+bun --cwd=apps/nest-api run dev
 ```
 
 For Neon, replace `DATABASE_URL` with the Neon PostgreSQL connection string. TLS is enabled
@@ -38,9 +38,9 @@ automatically for Neon and URLs containing `sslmode=require`.
 ## Database commands
 
 ```bash
-bun --cwd apps/nest-api run db:generate
-bun --cwd apps/nest-api run db:migrate
-bun --cwd apps/nest-api run db:studio
+bun --cwd=apps/nest-api run db:generate
+bun --cwd=apps/nest-api run db:migrate
+bun --cwd=apps/nest-api run db:studio
 ```
 
 Schema changes must be made in `src/database/schema` and committed with the generated migration.

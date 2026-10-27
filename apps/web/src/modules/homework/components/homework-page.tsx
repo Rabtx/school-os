@@ -73,7 +73,7 @@ function homeworkListErrorMessage(error: unknown): string {
 	if (error instanceof ApiError) {
 		if (error.statusCode === 500) {
 			const hint =
-				"If you recently pulled homework or assessments code, apply API migrations: bun --cwd apps/nest-api run db:migrate — then restart the Nest API.";
+				"If you recently pulled homework or assessments code, apply API migrations: bun --cwd=apps/nest-api run db:migrate — then restart the Nest API.";
 			return error.detail?.includes("does not exist")
 				? `${error.detail}. ${hint}`
 				: `${error.message}. ${hint}`;

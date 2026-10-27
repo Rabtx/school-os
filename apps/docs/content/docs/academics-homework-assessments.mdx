@@ -16,7 +16,7 @@ Homework and assessments share the same **assignment target** model (`whole_clas
 After pulling these changes, apply migrations against the **same** database your Nest API uses:
 
 ```bash
-bun --cwd apps/nest-api run db:migrate
+bun --cwd=apps/nest-api run db:migrate
 ```
 
 Then restart `nest-api#dev` (or your Docker API container). A common local failure is
@@ -53,7 +53,7 @@ Northwood demo teachers (`seed.teacher.*@northwood.demo`, password `Teacher@123`
 after seed + migrations. Re-seed only when you need fresh demo rows:
 
 ```bash
-bun --cwd apps/nest-api run db:seed
+bun --cwd=apps/nest-api run db:seed
 ```
 
 See [Quick Start](/docs/quick-start) for Postgres and `DATABASE_URL` alignment between migrate and
