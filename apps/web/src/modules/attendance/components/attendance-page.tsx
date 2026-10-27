@@ -1,13 +1,11 @@
 "use client";
 
-import { Calendar03Icon, ClipboardIcon, SparklesIcon } from "@hugeicons/core-free-icons";
+import { Calendar03Icon, ClipboardIcon, QrCodeIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert, AlertDescription } from "@school-os/ui/components/alert";
-import { Badge } from "@school-os/ui/components/badge";
 import { Button } from "@school-os/ui/components/button";
 import { DatePicker } from "@school-os/ui/components/date-picker";
-import { EmptyState } from "@school-os/ui/components/empty-state";
-import { Field, FieldGroup, FieldLabel } from "@school-os/ui/components/field";
+import { SearchInput } from "@school-os/ui/components/search-input";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { Skeleton } from "@school-os/ui/components/skeleton";
 import { Spinner } from "@school-os/ui/components/spinner";
@@ -43,9 +41,7 @@ import {
 	computeDraftSummary,
 	filterRosterByStatus,
 } from "../utils/attendance-ui.utils";
-import { AttendanceRosterGrid } from "./attendance-roster-grid";
-import { AttendanceSmartToolbar } from "./attendance-smart-toolbar";
-import { AttendanceSummaryStrip } from "./attendance-summary-strip";
+import { AttendanceRollCallTable } from "./attendance-roll-call-table";
 
 /** Layout-matched skeleton for the session form card. */
 function SessionFormSkeleton() {
@@ -101,114 +97,18 @@ function SummaryStripSkeleton() {
 	);
 }
 
-/** Layout-matched skeleton for the toolbar + roster card. */
-function RosterSkeleton() {
+const PILL_CONTROL =
+	"h-full min-w-[120px] rounded-none border-0 bg-transparent font-medium text-[13px] text-dashboard-text-primary shadow-none dark:bg-transparent";
+
+/** Figma filter pill: tertiary label, then the control. */
+function FilterPill({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
-		<div aria-hidden>
-			<div className="flex flex-wrap items-center gap-2">
-				<Skeleton className="h-9 min-w-[220px] flex-1 rounded-lg" />
-				<Skeleton className="h-8 w-44 rounded-lg" />
-				<Skeleton className="h-8 w-28 rounded-lg" />
-				<Skeleton className="h-8 w-36 rounded-lg" />
-				<Skeleton className="h-8 w-32 rounded-lg" />
-			</div>
-			<Skeleton className="mt-4 h-3 w-72 rounded" />
-			<div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-				{["sk-a", "sk-b", "sk-c", "sk-d", "sk-e", "sk-f"].map((skKey) => (
-					<div
-						key={skKey}
-						className="flex items-center gap-3 rounded-[14px] border border-dashboard-border bg-dashboard-surface px-3 py-3"
-					>
-						<Skeleton className="size-10 shrink-0 rounded-xl" />
-						<div className="min-w-0 flex-1 space-y-1.5">
-							<Skeleton className="h-3 w-3/4 rounded" />
-							<Skeleton className="h-2.5 w-1/2 rounded" />
-						</div>
-						<Skeleton className="h-5 w-12 shrink-0 rounded-full" />
-					</div>
-				))}
-			</div>
+		<div className="flex h-7 items-center overflow-hidden rounded-full border border-dashboard-border-strong bg-dashboard-surface">
+			<span className="flex h-full shrink-0 items-center border-dashboard-border border-e px-3 text-dashboard-text-dim">
+				{label}
+			</span>
+			{children}
 		</div>
-	);
-}
-
-type SaveBarProps = {
-	markedCount: number;
-	totalCount: number;
-	unsavedCount: number;
-	savePending: boolean;
-	confirmPending: boolean;
-	onSave: () => void;
-	onConfirmAllPresent: () => void;
-};
-
-/** Sticky bottom action bar with entrance animation and a marked-progress meter. */
-function AttendanceSaveBar({
-	markedCount,
-	totalCount,
-	unsavedCount,
-	savePending,
-	confirmPending,
-	onSave,
-	onConfirmAllPresent,
-}: SaveBarProps) {
-	const reduce = useReducedMotion();
-	const progress = totalCount > 0 ? Math.round((markedCount / totalCount) * 100) : 0;
-
-	return (
-		<motion.div
-			initial={reduce ? false : { opacity: 0, y: 16 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3, ease: EASE_OUT }}
-			className="sticky bottom-4 z-10 rounded-[14px] border border-dashboard-border bg-dashboard-surface/95 px-4 py-3 shadow-lg backdrop-blur-sm"
-		>
-			<div className="flex flex-wrap items-center justify-between gap-3">
-				<div className="min-w-0">
-					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-dashboard-text-secondary">
-						<span className="flex items-center gap-1.5">
-							<span
-								aria-hidden
-								className={cn(
-									"size-2 rounded-full transition-colors duration-200",
-									unsavedCount > 0 ? "bg-amber-500" : "bg-dashboard-text-faint",
-								)}
-							/>
-							<span
-								className={cn(
-									"font-semibold tabular-nums transition-colors duration-200",
-									unsavedCount > 0
-										? "text-amber-600 dark:text-amber-400"
-										: "text-dashboard-text-primary",
-								)}
-							>
-								{unsavedCount}
-							</span>
-							unsaved
-						</span>
-						<span className="font-medium tabular-nums text-dashboard-text-primary">
-							{markedCount}/{totalCount} marked
-						</span>
-						<span className="hidden text-dashboard-text-muted sm:inline">
-							{totalCount} enrolled
-						</span>
-					</div>
-					<div className="mt-1.5 h-1 w-44 overflow-hidden rounded-full bg-dashboard-surface-strong sm:w-56">
-						<div
-							className="h-full rounded-full bg-emerald-500 transition-[width] duration-300"
-							style={{ width: `${progress}%` }}
-						/>
-					</div>
-				</div>
-				<div className="flex items-center gap-2">
-					<Button type="button" variant="outline" onClick={onSave} disabled={savePending}>
-						{savePending ? <Spinner className="size-4" /> : "Save changes"}
-					</Button>
-					<Button type="button" onClick={onConfirmAllPresent} disabled={confirmPending}>
-						{confirmPending ? <Spinner className="size-4" /> : "Confirm all present"}
-					</Button>
-				</div>
-			</div>
-		</motion.div>
 	);
 }
 
@@ -374,6 +274,10 @@ export function AttendancePage() {
 	}, [enrollmentsQuery.data, isTeacherScoped, sectionStudentsQuery.data, studentsQuery.data]);
 
 	const rosterIds = useMemo(() => rosterStudents.map((student) => student.id), [rosterStudents]);
+	const rollNumbers = useMemo(
+		() => new Map(rosterIds.map((id, index) => [id, index + 1])),
+		[rosterIds],
+	);
 
 	const liveSummary = useMemo(
 		() => computeDraftSummary(rosterIds, markDraft),
@@ -586,29 +490,61 @@ export function AttendancePage() {
 		}
 	}
 
+	const statusFilterItems: { label: string; value: AttendanceStatusFilter }[] = [
+		{ label: `All · ${liveSummary.total}`, value: "all" },
+		{ label: `Present · ${liveSummary.present}`, value: "present" },
+		{ label: `Late · ${liveSummary.late}`, value: "late" },
+		{ label: `Absent · ${liveSummary.absent}`, value: "absent" },
+		{ label: `Excused · ${liveSummary.excused}`, value: "excused" },
+		{ label: `Unmarked · ${liveSummary.unknown}`, value: "unmarked" },
+	];
+
 	return (
-		<div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6">
-			<header className="border-dashboard-border border-b pb-5">
-				<div className="flex flex-wrap items-start justify-between gap-4">
-					<div className="flex items-center gap-3">
-						<div className="flex size-11 items-center justify-center rounded-xl bg-dashboard-accent-soft text-dashboard-accent">
-							<HugeiconsIcon icon={ClipboardIcon} className="size-5" strokeWidth={2} />
-						</div>
-						<div>
-							<h1 className="font-semibold text-[24px] text-dashboard-text-primary tracking-tight">
-								Smart attendance
-							</h1>
-							<p className="max-w-xl text-[13px] text-dashboard-text-secondary leading-5">
-								Tap students to cycle status, scan admission codes, or mark all present in under two
-								minutes.
-							</p>
-						</div>
-					</div>
-					<Badge variant="outline" className="gap-1.5 px-2.5 py-1">
-						<HugeiconsIcon icon={SparklesIcon} size={14} strokeWidth={2} />
-						Smart defaults on
-					</Badge>
+		<div className="mx-auto w-full max-w-7xl space-y-4 px-4 py-5 sm:px-6">
+			<header className="flex flex-wrap items-end justify-between gap-3 tracking-[-0.15px]">
+				<div className="min-w-0">
+					<h1 className="font-medium text-[24px] text-dashboard-text-primary leading-8">
+						Roll call
+					</h1>
+					<p className="max-w-2xl text-[14px] text-dashboard-text-dim leading-5">
+						{selectedSection
+							? formatSectionLabel(
+									selectedSection,
+									classNameById.get(selectedSection.classId),
+									campusNameById.get(selectedSection.campusId),
+								)
+							: "Pick a class to mark attendance"}{" "}
+						· grace window {graceMinutes} min after the bell
+					</p>
 				</div>
+				{sessionLoaded && canMarkThisSection && rosterStudents.length > 0 ? (
+					<div className="flex flex-wrap items-center gap-2">
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							className="h-7 rounded-full"
+							onClick={() => setScanMode(!scanMode)}
+						>
+							<HugeiconsIcon icon={QrCodeIcon} data-icon="inline-start" strokeWidth={1.8} />
+							{scanMode ? "Close scanner" : "Open scanner"}
+						</Button>
+						<Button
+							type="button"
+							size="sm"
+							className="h-7 rounded-full"
+							onClick={() => void handleSaveMarks()}
+							disabled={markAttendance.isPending}
+						>
+							{markAttendance.isPending ? (
+								<Spinner className="size-4" />
+							) : (
+								<HugeiconsIcon icon={Tick02Icon} data-icon="inline-start" strokeWidth={1.8} />
+							)}
+							Save roll call
+						</Button>
+					</div>
+				) : null}
 			</header>
 
 			{error ? (
@@ -622,203 +558,209 @@ export function AttendancePage() {
 				</Alert>
 			) : null}
 
-			<div className="rounded-[14px] border border-dashboard-border bg-dashboard-surface p-4 sm:p-5">
-				<div className="mb-4 flex flex-wrap items-center gap-2">
-					<HugeiconsIcon icon={Calendar03Icon} size={16} className="text-dashboard-text-muted" />
-					<p className="font-medium text-[14px] text-dashboard-text-primary">
-						Today&apos;s session
-					</p>
-					{selectedSection ? (
-						<Badge variant="outline">
-							{formatSectionLabel(
-								selectedSection,
-								classNameById.get(selectedSection.classId),
-								campusNameById.get(selectedSection.campusId),
-							)}
-						</Badge>
-					) : null}
-				</div>
+			<div className="overflow-hidden rounded-[12px] border border-dashboard-border bg-dashboard-surface">
 				<form
 					onSubmit={(event) => {
 						event.preventDefault();
 						void loadSessionForSelection();
 					}}
-					className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]"
+					className="flex flex-wrap items-center gap-2 border-dashboard-border border-b px-3 py-2.5 text-[13px]"
 				>
-					<FieldGroup className="contents">
-						<Field>
-							<FieldLabel htmlFor="attendance-section">Section</FieldLabel>
+					<FilterPill label="Class">
+						<SelectField
+							id="attendance-section"
+							aria-label="Class"
+							value={sectionId}
+							onValueChange={setSectionId}
+							nullable
+							placeholder={isTeacherScoped ? "Your homeroom" : "Select"}
+							items={sectionSelectItems}
+							className={PILL_CONTROL}
+						/>
+					</FilterPill>
+					<FilterPill label="Date">
+						<DatePicker
+							id="attendance-date"
+							value={sessionDate}
+							onValueChange={setSessionDate}
+							className={PILL_CONTROL}
+						/>
+					</FilterPill>
+					{sessionLoaded ? (
+						<FilterPill label="Status">
 							<SelectField
-								id="attendance-section"
-								value={sectionId}
-								onValueChange={setSectionId}
-								nullable
-								placeholder={isTeacherScoped ? "Select your homeroom section" : "Select section"}
-								items={sectionSelectItems}
+								aria-label="Status filter"
+								value={statusFilter}
+								onValueChange={(value) => setStatusFilter(value as AttendanceStatusFilter)}
+								items={statusFilterItems}
+								className={PILL_CONTROL}
 							/>
-						</Field>
-						<Field>
-							<FieldLabel htmlFor="attendance-date">Date</FieldLabel>
-							<DatePicker id="attendance-date" value={sessionDate} onValueChange={setSessionDate} />
-						</Field>
-					</FieldGroup>
-					<div className="flex items-end">
-						<Button type="submit" disabled={loadSession.isPending || !sectionId}>
-							{loadSession.isPending ? <Spinner className="size-4" /> : "Reload session"}
-						</Button>
-					</div>
+						</FilterPill>
+					) : null}
+					<Button
+						type="submit"
+						size="sm"
+						variant="ghost"
+						className="h-7 rounded-full text-dashboard-text-dim"
+						disabled={loadSession.isPending || !sectionId}
+					>
+						{loadSession.isPending ? <Spinner className="size-4" /> : "Reload"}
+					</Button>
+					{sessionLoaded && rosterStudents.length > 0 ? (
+						<div className="ms-auto flex flex-wrap items-center gap-2">
+							<SearchInput
+								className="h-7 w-full rounded-full sm:w-[200px]"
+								value={search}
+								onValueChange={setSearch}
+								placeholder="Search students"
+								aria-label="Search roster"
+							/>
+							{canMarkThisSection ? (
+								<>
+									<Button
+										type="button"
+										size="sm"
+										variant="ghost"
+										className="h-7 rounded-full"
+										onClick={handleMarkAllPresent}
+									>
+										All present
+									</Button>
+									<Button
+										type="button"
+										size="sm"
+										variant="ghost"
+										className="h-7 rounded-full"
+										onClick={handleMarkUnmarkedAbsent}
+									>
+										Unmarked → absent
+									</Button>
+								</>
+							) : null}
+						</div>
+					) : null}
 				</form>
 
-				<Alert className="mt-4 border-dashboard-border-subtle bg-dashboard-surface-elevated">
-					<AlertDescription className="text-[12px] leading-5">
-						<strong className="font-medium">Grace window:</strong> {graceMinutes} minutes after bell
-						— unmarked students can trigger auto follow-up to guardians (WhatsApp/SMS when
-						notifications are enabled). Use <em>Unmarked → absent</em> at end of grace to prep
-						follow-up queue.
-					</AlertDescription>
-				</Alert>
-			</div>
-
-			{sessionLoaded ? (
-				<div className="space-y-4">
-					<motion.div
-						initial={reduce ? false : { opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.35, ease: EASE_OUT }}
-						className="rounded-[14px] border border-dashboard-border bg-dashboard-surface p-4 sm:p-5"
-					>
-						<AttendanceSummaryStrip
-							summary={liveSummary}
-							activeFilter={statusFilter}
-							onFilterChange={setStatusFilter}
-						/>
-					</motion.div>
-
-					<motion.div
-						initial={reduce ? false : { opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.35, ease: EASE_OUT, delay: 0.06 }}
-						className="rounded-[14px] border border-dashboard-border bg-dashboard-surface p-4 sm:p-5"
-					>
-						<AttendanceSmartToolbar
-							search={search}
-							onSearchChange={setSearch}
-							scanMode={scanMode}
-							onScanModeChange={setScanMode}
-							onMarkAllPresent={handleMarkAllPresent}
-							onMarkUnmarkedAbsent={handleMarkUnmarkedAbsent}
-							onConfirmAllPresentSave={() => void handleConfirmAllPresentSave()}
-							confirmAllPending={confirmAllPresent.isPending}
-							canMark={canMarkThisSection}
-						/>
-
-						<AnimatePresence initial={false}>
-							{scanMode && canMarkThisSection ? (
-								<motion.div
-									key="scanner-panel"
-									initial={false}
-									animate={reduce ? undefined : { opacity: 1, height: "auto" }}
-									exit={
-										reduce
-											? undefined
-											: { opacity: 0, height: 0, transition: { duration: 0.2, ease: EASE_OUT } }
-									}
-									className="overflow-hidden"
-								>
-									<div className="mt-4">
-										<AttendanceScannerPanel
-											onDecode={handleScanDecode}
-											lastResult={lastScanResult}
-											markedCount={liveSummary.present + liveSummary.late}
-											totalCount={rosterIds.length}
-										/>
-									</div>
-								</motion.div>
-							) : null}
-						</AnimatePresence>
-
-						<div className="relative mt-4">
-							{isSwitchingSession ? (
-								<div
-									className="absolute inset-0 z-10 flex items-center justify-center rounded-[10px] bg-dashboard-surface/60 backdrop-blur-[1px]"
-									aria-hidden
-								>
-									<Spinner className="size-5 text-dashboard-text-muted" />
-								</div>
-							) : null}
-							<div
-								className={cn(
-									"min-h-[220px] transition-opacity duration-200",
-									isSwitchingSession && "opacity-50",
-								)}
-								aria-busy={isSwitchingSession}
-							>
-								{rosterStudents.length === 0 ? (
-									isSwitchingSession ? (
-										<RosterSkeleton />
-									) : (
-										<p className="py-8 text-center text-[13px] text-dashboard-text-muted">
-											No active enrollments in this section.
-										</p>
-									)
-								) : (
-									<>
-										<p className="mb-3 text-[12px] text-dashboard-text-muted">
-											Tap a student to cycle: Present → Late → Absent → Excused → Left early →
-											Unmarked
-										</p>
-										<AttendanceRosterGrid
-											roster={filteredRoster}
-											markDraft={markDraft}
-											highlightStudentId={highlightStudentId}
-											canMark={canMarkThisSection}
-											onStatusChange={(studentId, status) =>
-												setMarkDraft((current) => ({ ...current, [studentId]: status }))
-											}
-										/>
-									</>
-								)}
+				<AnimatePresence initial={false}>
+					{sessionLoaded && scanMode && canMarkThisSection ? (
+						<motion.div
+							key="scanner-panel"
+							initial={false}
+							animate={reduce ? undefined : { opacity: 1, height: "auto" }}
+							exit={
+								reduce
+									? undefined
+									: { opacity: 0, height: 0, transition: { duration: 0.2, ease: EASE_OUT } }
+							}
+							className="overflow-hidden border-dashboard-border border-b"
+						>
+							<div className="p-4">
+								<AttendanceScannerPanel
+									onDecode={handleScanDecode}
+									lastResult={lastScanResult}
+									markedCount={liveSummary.present + liveSummary.late}
+									totalCount={rosterIds.length}
+								/>
 							</div>
-						</div>
-					</motion.div>
-
-					{canMarkThisSection && rosterStudents.length > 0 ? (
-						<AttendanceSaveBar
-							markedCount={liveSummary.present + liveSummary.late}
-							totalCount={rosterIds.length}
-							unsavedCount={unsavedCount}
-							savePending={markAttendance.isPending}
-							confirmPending={confirmAllPresent.isPending}
-							onSave={() => void handleSaveMarks()}
-							onConfirmAllPresent={() => void handleConfirmAllPresentSave()}
-						/>
+						</motion.div>
 					) : null}
-				</div>
-			) : (
-				<motion.div
-					initial={reduce ? false : { opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.35, ease: EASE_OUT }}
-				>
-					{selectableSections.length === 0 ? (
-						<EmptyState
-							icon={<HugeiconsIcon icon={Calendar03Icon} size={26} strokeWidth={1.8} />}
-							iconClassName="bg-dashboard-accent-soft text-dashboard-accent"
-							title="No sections available"
-							description="No sections are available in this organization yet. Once an administrator creates classes and sections, you can mark attendance here."
-							className="rounded-[14px] border-dashboard-border-strong bg-dashboard-surface"
+				</AnimatePresence>
+
+				{sessionLoaded ? (
+					<div
+						className={cn(
+							"relative min-h-[220px] transition-opacity duration-200",
+							isSwitchingSession && "opacity-50",
+						)}
+						aria-busy={isSwitchingSession}
+					>
+						{isSwitchingSession ? (
+							<div className="absolute inset-0 z-10 flex items-center justify-center" aria-hidden>
+								<Spinner className="size-5 text-dashboard-text-dim" />
+							</div>
+						) : null}
+						{rosterStudents.length === 0 ? (
+							isSwitchingSession ? null : (
+								<p className="py-10 text-center text-[13px] text-dashboard-text-dim">
+									No active enrollments in this section.
+								</p>
+							)
+						) : (
+							<AttendanceRollCallTable
+								roster={filteredRoster}
+								rollNumbers={rollNumbers}
+								markDraft={markDraft}
+								highlightStudentId={highlightStudentId}
+								canMark={canMarkThisSection}
+								onStatusChange={(studentId, status) =>
+									setMarkDraft((current) => ({ ...current, [studentId]: status }))
+								}
+							/>
+						)}
+					</div>
+				) : (
+					<div className="flex flex-col items-center gap-1 px-4 py-14 text-center">
+						<HugeiconsIcon
+							icon={selectableSections.length === 0 ? Calendar03Icon : ClipboardIcon}
+							size={20}
+							strokeWidth={1.8}
+							className="mb-2 text-dashboard-text-dim"
 						/>
-					) : (
-						<EmptyState
-							icon={<HugeiconsIcon icon={ClipboardIcon} size={26} strokeWidth={1.8} />}
-							iconClassName="bg-dashboard-accent-soft text-dashboard-accent"
-							title="Pick a section to start"
-							description="Choose a section and date above — the roster loads automatically with smart defaults, so you can mark everyone in under two minutes."
-							className="rounded-[14px] border-dashboard-border-strong bg-dashboard-surface"
-						/>
-					)}
-				</motion.div>
-			)}
+						<p className="font-medium text-[14px] text-dashboard-text-primary">
+							{selectableSections.length === 0 ? "No sections available" : "Pick a class to start"}
+						</p>
+						<p className="max-w-md text-[13px] text-dashboard-text-dim">
+							{selectableSections.length === 0
+								? "Once an administrator creates classes and sections, you can mark attendance here."
+								: "Choose a class and date above; the roster loads with smart defaults so you can mark everyone in under two minutes."}
+						</p>
+					</div>
+				)}
+
+				{sessionLoaded && rosterStudents.length > 0 ? (
+					<div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-dashboard-border border-t px-4 py-2.5 text-[13px] text-dashboard-text-dim tracking-[-0.15px]">
+						<span>
+							<span className="text-dashboard-text-primary">{filteredRoster.length}</span> of{" "}
+							{rosterStudents.length} students shown
+						</span>
+						<span>
+							Present <span className="text-dashboard-text-primary">{liveSummary.present}</span>
+						</span>
+						<span>
+							Late <span className="text-[var(--rx-warning)]">{liveSummary.late}</span>
+						</span>
+						<span>
+							Absent <span className="text-[var(--rx-danger)]">{liveSummary.absent}</span>
+						</span>
+						<span>
+							Unmarked <span className="text-dashboard-text-primary">{liveSummary.unknown}</span>
+						</span>
+						{canMarkThisSection ? (
+							<div className="ms-auto flex items-center gap-3">
+								{unsavedCount > 0 ? (
+									<span className="text-[var(--rx-warning)]">{unsavedCount} unsaved</span>
+								) : (
+									<span>All changes saved</span>
+								)}
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									className="h-7 rounded-full"
+									onClick={() => void handleConfirmAllPresentSave()}
+									disabled={confirmAllPresent.isPending}
+								>
+									{confirmAllPresent.isPending ? (
+										<Spinner className="size-4" />
+									) : (
+										"Confirm all present"
+									)}
+								</Button>
+							</div>
+						) : null}
+					</div>
+				) : null}
+			</div>
 		</div>
 	);
 }
