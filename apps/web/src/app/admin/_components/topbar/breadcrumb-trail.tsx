@@ -17,7 +17,10 @@ export function BreadcrumbTrail({ items, className }: Props) {
 	return (
 		<nav
 			aria-label="Breadcrumb"
-			className={cn("flex min-w-0 items-center gap-1.5 overflow-hidden text-[13px]", className)}
+			className={cn(
+				"flex min-w-0 items-center gap-1.5 overflow-hidden text-[13px] tracking-[-0.15px]",
+				className,
+			)}
 		>
 			{items.map((item, idx) => {
 				const isLast = idx === items.length - 1;
@@ -32,14 +35,14 @@ export function BreadcrumbTrail({ items, className }: Props) {
 								icon={ArrowRight01Icon}
 								size={14}
 								strokeWidth={2}
-								className={cn("text-dashboard-text-faint", hideOnMobile && "hidden sm:block")}
+								className={cn("text-dashboard-text-dim", hideOnMobile && "hidden sm:block")}
 							/>
 						)}
 						{item.href && !isLast ? (
 							<Link
 								href={item.href}
 								className={cn(
-									"shrink-0 text-dashboard-text-muted transition-colors hover:text-dashboard-text-secondary",
+									"shrink-0 text-dashboard-text-secondary transition-colors hover:text-dashboard-text-primary",
 									hideOnMobile && "hidden sm:inline",
 								)}
 							>
@@ -49,9 +52,7 @@ export function BreadcrumbTrail({ items, className }: Props) {
 							<span
 								className={cn(
 									"min-w-0 truncate",
-									isLast
-										? "font-medium text-dashboard-text-secondary"
-										: "text-dashboard-text-muted",
+									isLast ? "text-dashboard-text-primary" : "text-dashboard-text-secondary",
 									hideOnMobile && "hidden sm:inline",
 								)}
 							>

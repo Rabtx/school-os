@@ -1,6 +1,6 @@
 "use client";
 
-import { Notification03Icon, PrinterIcon } from "@hugeicons/core-free-icons";
+import { Notification03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@school-os/ui/components/avatar";
 import { Button } from "@school-os/ui/components/button";
@@ -34,15 +34,15 @@ function IconButton({ icon, label, dot, onClick, className }: IconBtnProps) {
 						size="icon"
 						aria-label={label}
 						onClick={onClick}
-						className={cn("relative text-muted-foreground", className)}
+						className={cn("relative size-7 text-dashboard-text-dim", className)}
 					/>
 				}
 			>
-				<HugeiconsIcon icon={icon} strokeWidth={2} />
+				<HugeiconsIcon icon={icon} size={16} strokeWidth={1.8} />
 				{dot ? (
 					<span
 						aria-hidden
-						className="absolute top-1.5 end-1.5 block size-2 rounded-full bg-primary ring-2 ring-background"
+						className="absolute top-1 end-1 block size-1.5 rounded-full bg-dashboard-accent ring-2 ring-dashboard-bg"
 					/>
 				) : null}
 			</TooltipTrigger>
@@ -73,18 +73,19 @@ export function TopbarActions({
 			<AnimationToggleControl />
 			<ThemeToggleControl />
 			<IconButton icon={Notification03Icon} label="Notifications" dot={unreadNotifications} />
-			<IconButton icon={PrinterIcon} label="Print" className="hidden sm:flex" />
 
 			<Button
 				variant="ghost"
 				size="icon"
-				className="ms-1 rounded-full"
+				className="ms-1 size-7 rounded-full"
 				render={<Link href="/admin/account/profile" aria-label="Profile" />}
 				nativeButton={false}
 			>
-				<Avatar className="size-9 ring-1 ring-border">
+				<Avatar className="size-6">
 					{avatarSrc ? <AvatarImage src={avatarSrc} alt="Account" /> : null}
-					<AvatarFallback className="bg-muted text-xs">{initials}</AvatarFallback>
+					<AvatarFallback className="bg-[color-mix(in_oklab,var(--rx-success)_22%,transparent)] font-medium text-[11px] text-dashboard-text-primary">
+						{initials}
+					</AvatarFallback>
 				</Avatar>
 			</Button>
 		</div>

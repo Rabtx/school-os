@@ -3,6 +3,7 @@
 import {
 	Logout01Icon,
 	SecurityIcon,
+	Settings02Icon,
 	SidebarLeftIcon,
 	Tick02Icon,
 	UnfoldMoreIcon,
@@ -35,6 +36,32 @@ function campusMark(name: string, code: string): string {
 	const fromCode = code.replace(/[^A-Za-z0-9]/g, "").slice(0, 2);
 	if (fromCode) return fromCode.toUpperCase();
 	return name.trim().charAt(0).toUpperCase() || "S";
+}
+
+// Figma "App Icon": 24px tile, white highlight over the school's colour.
+function WorkspaceMark({ label }: { label: string }) {
+	return (
+		<div
+			className="flex size-6 shrink-0 items-center justify-center rounded-md font-medium text-[13px] text-white leading-none"
+			style={{
+				backgroundImage:
+					"linear-gradient(180deg, rgb(255 255 255 / 0.3) 0%, rgb(255 255 255 / 0) 100%), linear-gradient(90deg, var(--rx-success) 0%, var(--rx-success) 100%)",
+			}}
+		>
+			{label}
+		</div>
+	);
+}
+
+function WorkspaceName({ title, hint }: { title: string; hint: string }) {
+	return (
+		<div className="min-w-0 flex-1 tracking-[-0.15px]">
+			<div className="truncate font-medium text-[13px] text-dashboard-text-primary leading-5">
+				{title}
+			</div>
+			<div className="truncate text-[12px] text-dashboard-text-dim leading-4">{hint}</div>
+		</div>
+	);
 }
 
 type AdminSidebarProps = {
@@ -72,10 +99,11 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 		: tenantLabel;
 	const canOpenWorkspaceMenu =
 		workspacePolicy.allowCampusSwitch || workspacePolicy.allowOrganizationSwitch;
-	const width = mobile ? "w-full" : isCollapsed ? "w-[76px]" : "w-[260px]";
+	const width = mobile ? "w-full" : isCollapsed ? "w-[52px]" : "w-[240px]";
 	const displayName = user?.username ?? "Account";
 	const displayEmail = user?.email ?? "";
 	const initials = userInitials(displayName);
+	const mark = school?.mark ?? tenantLabel.charAt(0).toUpperCase();
 
 	async function handleLogout() {
 		await logout();
@@ -85,45 +113,13 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 	return (
 		<aside
 			className={cn(
-				"group/sidebar relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-dashboard-border-subtle border-e bg-dashboard-sidebar-bg transition-[width] duration-200 ease-out",
+				"relative flex h-full min-h-0 shrink-0 flex-col gap-3 overflow-hidden border-dashboard-border border-e bg-dashboard-sidebar-bg p-2 transition-[width] duration-200 ease-out",
 				width,
 				className,
 			)}
 		>
-			{/* Floating collapse toggle on the right edge */}
-			{!mobile && (
-				<Tooltip>
-					<TooltipTrigger
-						render={(props) => (
-							<button
-								type="button"
-								{...props}
-								onClick={() => setCollapsed((v) => !v)}
-								aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-								className={cn(
-									"absolute top-6 end-0 z-20 flex size-6 translate-x-1/2 rtl:-translate-x-1/2 items-center justify-center rounded-full border border-dashboard-border-strong bg-dashboard-surface-elevated text-dashboard-text-muted opacity-0 transition-all duration-150 group-hover/sidebar:opacity-100 hover:border-dashboard-border-focus hover:bg-dashboard-surface-strong hover:text-dashboard-text-primary focus-visible:opacity-100 active:scale-90",
-								)}
-							>
-								<HugeiconsIcon
-									icon={SidebarLeftIcon}
-									size={13}
-									strokeWidth={2}
-									className={cn(
-										"transition-transform duration-200 rtl:scale-x-[-1]",
-										collapsed && "rotate-180",
-									)}
-								/>
-							</button>
-						)}
-					/>
-					<TooltipContent side="right">
-						{collapsed ? "Expand sidebar" : "Collapse sidebar"}
-					</TooltipContent>
-				</Tooltip>
-			)}
-
 			{/* Workspace switcher */}
-			<div className={cn("px-3 pt-4 pb-3", mobile && "pe-14")}>
+			<div className={cn("flex items-center gap-2", isCollapsed && "flex-col", mobile && "pe-10")}>
 				{canOpenWorkspaceMenu ? (
 					<DropdownMenu>
 						<DropdownMenuTrigger
@@ -132,30 +128,19 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 									type="button"
 									{...props}
 									className={cn(
-										"group/trigger flex w-full items-center gap-3 rounded-lg bg-dashboard-surface px-2 py-2 text-start transition-all hover:bg-dashboard-surface-hover active:scale-[0.985]",
-										isCollapsed && "justify-center px-1",
+										"group/trigger flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-start transition-colors hover:bg-dashboard-hover",
+										isCollapsed && "flex-none justify-center",
 									)}
 								>
-									<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-dashboard-accent-soft text-dashboard-accent">
-										<span className="font-bold text-[15px] leading-none">
-											{school?.mark ?? tenantLabel.charAt(0).toUpperCase()}
-										</span>
-									</div>
+									<WorkspaceMark label={mark} />
 									{!isCollapsed && (
 										<>
-											<div className="min-w-0 flex-1">
-												<div className="text-[11px] text-dashboard-text-dim leading-tight">
-													{workspaceHint}
-												</div>
-												<div className="truncate font-semibold text-[13px] text-dashboard-text-secondary leading-tight">
-													{workspaceTitle}
-												</div>
-											</div>
+											<WorkspaceName title={workspaceTitle} hint={workspaceHint} />
 											<HugeiconsIcon
 												icon={UnfoldMoreIcon}
 												size={16}
 												strokeWidth={1.8}
-												className="text-dashboard-text-dim transition-colors group-hover/trigger:text-dashboard-text-secondary"
+												className="shrink-0 text-dashboard-text-dim transition-colors group-hover/trigger:text-dashboard-text-secondary"
 											/>
 										</>
 									)}
@@ -165,7 +150,7 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 						<DropdownMenuContent
 							align="start"
 							sideOffset={8}
-							className="w-[244px] border-dashboard-border bg-dashboard-surface text-dashboard-text-secondary"
+							className="w-[232px] border-dashboard-border bg-dashboard-surface text-dashboard-text-secondary"
 						>
 							{workspacePolicy.allowOrganizationSwitch && tenants.length > 1 ? (
 								<>
@@ -228,9 +213,7 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 													onClick={() => setActiveCampusId(s.id)}
 													className="gap-3 focus:bg-dashboard-hover-strong"
 												>
-													<div className="flex size-8 items-center justify-center rounded-md bg-dashboard-accent-soft font-bold text-[13px] text-dashboard-accent">
-														{s.mark}
-													</div>
+													<WorkspaceMark label={s.mark} />
 													<div className="min-w-0 flex-1">
 														<div className="truncate font-medium text-[13px]">{s.name}</div>
 														<div className="text-[11px] text-dashboard-text-dim">{s.kind}</div>
@@ -253,33 +236,45 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 				) : (
 					<div
 						className={cn(
-							"flex w-full items-center gap-3 rounded-lg bg-dashboard-surface px-2 py-2",
-							isCollapsed && "justify-center px-1",
+							"flex min-w-0 flex-1 items-center gap-2 p-1",
+							isCollapsed && "flex-none justify-center",
 						)}
 					>
-						<div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-dashboard-accent-soft text-dashboard-accent">
-							<span className="font-bold text-[15px] leading-none">
-								{school?.mark ?? tenantLabel.charAt(0).toUpperCase()}
-							</span>
-						</div>
-						{!isCollapsed && (
-							<div className="min-w-0 flex-1">
-								<div className="text-[11px] text-dashboard-text-dim leading-tight">
-									{workspaceHint}
-								</div>
-								<div className="truncate font-semibold text-[13px] text-dashboard-text-secondary leading-tight">
-									{workspaceTitle}
-								</div>
-							</div>
-						)}
+						<WorkspaceMark label={mark} />
+						{!isCollapsed && <WorkspaceName title={workspaceTitle} hint={workspaceHint} />}
 					</div>
+				)}
+				{!mobile && (
+					<Tooltip>
+						<TooltipTrigger
+							render={(props) => (
+								<button
+									type="button"
+									{...props}
+									onClick={() => setCollapsed((v) => !v)}
+									aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+									className="flex size-6 shrink-0 items-center justify-center rounded-md text-dashboard-text-dim transition-colors hover:bg-dashboard-hover hover:text-dashboard-text-primary"
+								>
+									<HugeiconsIcon
+										icon={SidebarLeftIcon}
+										size={16}
+										strokeWidth={1.8}
+										className="rtl:scale-x-[-1]"
+									/>
+								</button>
+							)}
+						/>
+						<TooltipContent side="right">
+							{collapsed ? "Expand sidebar" : "Collapse sidebar"}
+						</TooltipContent>
+					</Tooltip>
 				)}
 			</div>
 
 			{/* Nav */}
 			<nav
 				className={cn(
-					"min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-4",
+					"min-h-0 flex-1 overflow-y-auto overscroll-contain",
 					"[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-dashboard-border [&::-webkit-scrollbar-track]:bg-transparent",
 				)}
 			>
@@ -287,7 +282,7 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 			</nav>
 
 			{/* User card */}
-			<div className="border-dashboard-border-subtle border-t p-3">
+			<div>
 				<DropdownMenu>
 					<DropdownMenuTrigger
 						render={(props) => (
@@ -295,31 +290,21 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 								type="button"
 								{...props}
 								className={cn(
-									"flex w-full items-center gap-3 rounded-lg bg-dashboard-surface-elevated px-2 py-2 text-start transition-all hover:bg-dashboard-surface-strong active:scale-[0.985]",
-									isCollapsed && "justify-center px-1",
+									"flex w-full items-center gap-2 rounded-lg p-1 text-start transition-colors hover:bg-dashboard-hover",
+									isCollapsed && "justify-center",
 								)}
 							>
-								<div className="relative shrink-0">
-									<div className="flex size-9 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-zinc-600 to-zinc-800 font-semibold text-[13px] text-dashboard-text-secondary ring-1 ring-dashboard-border-subtle">
-										{initials}
-									</div>
-									<span className="absolute end-[-2px] bottom-[-2px] block size-2.5 rounded-full bg-emerald-500 ring-2 ring-dashboard-surface" />
+								<div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--rx-success)_22%,transparent)] font-medium text-[11px] text-dashboard-text-primary">
+									{initials}
 								</div>
 								{!isCollapsed && (
 									<>
-										<div className="min-w-0 flex-1">
-											<div className="truncate font-semibold text-[13px] text-dashboard-text-secondary leading-tight">
-												{displayName}
-											</div>
-											<div className="truncate text-[11px] text-dashboard-text-dim leading-tight">
-												{displayEmail}
-											</div>
-										</div>
+										<WorkspaceName title={displayName} hint={displayEmail} />
 										<HugeiconsIcon
-											icon={UnfoldMoreIcon}
+											icon={Settings02Icon}
 											size={16}
 											strokeWidth={1.8}
-											className="text-dashboard-text-dim"
+											className="shrink-0 text-dashboard-text-dim"
 										/>
 									</>
 								)}
@@ -330,7 +315,7 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 						align="start"
 						side="top"
 						sideOffset={8}
-						className="w-[244px] border-dashboard-border bg-dashboard-surface text-dashboard-text-secondary"
+						className="w-[232px] border-dashboard-border bg-dashboard-surface text-dashboard-text-secondary"
 					>
 						<DropdownMenuGroup>
 							<DropdownMenuLabel className="font-normal">

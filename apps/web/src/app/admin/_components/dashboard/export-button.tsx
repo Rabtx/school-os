@@ -13,7 +13,7 @@ type Props = {
 
 export function ExportButton({ label = "Export CSV", onClick, className }: Props) {
 	return (
-		<Button size="sm" className={cn("h-9 gap-1.5", className)} onClick={onClick}>
+		<Button size="sm" className={cn("h-7 gap-1.5 rounded-full", className)} onClick={onClick}>
 			<HugeiconsIcon icon={Add01Icon} data-icon="inline-start" strokeWidth={2.4} />
 			<span className="sm:hidden">Export</span>
 			<span className="hidden sm:inline">{label}</span>

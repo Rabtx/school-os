@@ -66,28 +66,22 @@ export function DashboardHeader({
 	return (
 		<section
 			className={cn(
-				"flex flex-col gap-3 border-dashboard-border border-b pb-4 sm:gap-4 sm:pb-5 md:flex-row md:items-end md:justify-between",
+				"flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-2",
 				className,
 			)}
 		>
-			<div className="min-w-0">
-				<div className="mb-1.5 flex items-center gap-2 text-[11px] text-dashboard-text-muted uppercase tracking-[0.08em]">
-					<span className="size-1.5 rounded-full bg-emerald-500" />
-					<span className="sm:hidden">{t("header.liveMobile", { org: orgLabel })}</span>
-					<span className="hidden sm:inline">{t("header.liveDesktop", { org: orgLabel })}</span>
-				</div>
-				<h1 className="font-semibold text-[22px] text-dashboard-text-primary leading-tight tracking-tight sm:text-[24px]">
+			<div className="flex min-w-0 flex-col gap-0.5 tracking-[-0.15px]">
+				<h1 className="font-medium text-[24px] text-dashboard-text-primary leading-8">
 					{t("header.welcome", { name: greetingName })}
 				</h1>
-				<p className="mt-1.5 text-[13px] text-dashboard-text-secondary leading-5 sm:hidden">
+				<p className="text-[14px] text-dashboard-text-dim leading-5 sm:hidden">
 					{today} · {statusLine}
 				</p>
-				<p className="mt-1.5 hidden max-w-xl text-[13px] text-dashboard-text-secondary leading-5 sm:block">
+				<p
+					className="hidden max-w-2xl truncate text-[14px] text-dashboard-text-dim leading-5 sm:block"
+					title={`${orgLabel} · ${campusLine}${insights ? ` · ${t("header.updated", { time: insights.updatedAt })}` : ""}`}
+				>
 					{todayLong} · {campusLine}. {statusLine}
-				</p>
-				<p className="mt-1 hidden text-[12px] text-dashboard-text-dim sm:block">
-					{t("header.synced")}
-					{insights ? t("header.updated", { time: insights.updatedAt }) : ""}
 				</p>
 			</div>
 

@@ -9,10 +9,7 @@ type Props = {
 	className?: string;
 };
 
-export function GlobalSearch({
-	placeholder = "Search students, staff, pages...",
-	className,
-}: Props) {
+export function GlobalSearch({ placeholder = "Search students", className }: Props) {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
@@ -30,8 +27,7 @@ export function GlobalSearch({
 		<SearchInput
 			inputRef={inputRef}
 			placeholder={placeholder}
-			showShortcut
-			className={cn("w-full sm:max-w-md", className)}
+			className={cn("h-7 w-full rounded-md", className)}
 		/>
 	);
 }

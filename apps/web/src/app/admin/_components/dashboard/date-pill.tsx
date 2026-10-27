@@ -29,7 +29,7 @@ export function DatePill({ date, onChange, className }: Props) {
 				onChange?.(new Date(year, month - 1, day));
 			}}
 			align="end"
-			className={cn("w-auto sm:min-w-[10rem]", className)}
+			className={cn("h-7 w-auto rounded-full border-dashboard-border-strong", className)}
 		/>
 	);
 }
