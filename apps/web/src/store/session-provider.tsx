@@ -91,7 +91,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		if (!token || !user) {
-			setTenants([]);
+			setTenants([], false);
 			setTenantsLoading(false);
 			return;
 		}
@@ -102,11 +102,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 			.list(token)
 			.then((response) => {
 				if (cancelled) return;
-				setTenants(response.tenants);
+				setTenants(response.tenants, true);
 				syncActiveTenantFromList(response.tenants);
 			})
 			.catch(() => {
-				if (!cancelled) setTenants([]);
+				// A failed load is not "no schools": keep it unloaded so the gate does not redirect.
+				if (!cancelled) setTenants([], false);
 			})
 			.finally(() => {
 				if (!cancelled) setTenantsLoading(false);
@@ -119,7 +120,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		if (!token || !activeTenantId) {
-			setCampuses([]);
+			setCampuses([], null);
 			setCampusesLoading(false);
 			return;
 		}
@@ -130,11 +131,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 			.list(token, activeTenantId)
 			.then((response) => {
 				if (cancelled) return;
-				setCampuses(response.campuses);
+				setCampuses(response.campuses, activeTenantId);
 				syncActiveCampusFromList(response.campuses);
 			})
 			.catch(() => {
-				if (!cancelled) setCampuses([]);
+				// A failed load is not "no campuses": leave the tenant unset so nothing redirects on it.
+				if (!cancelled) setCampuses([], null);
 			})
 			.finally(() => {
 				if (!cancelled) setCampusesLoading(false);
