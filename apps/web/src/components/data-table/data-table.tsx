@@ -54,7 +54,7 @@ function SortIndicator({
 			<HugeiconsIcon
 				icon={ArrowUp01Icon}
 				strokeWidth={2}
-				className="size-3.5 text-muted-foreground/50"
+				className="size-3.5 text-dashboard-text-faint"
 			/>
 		);
 	}
@@ -63,7 +63,7 @@ function SortIndicator({
 		<HugeiconsIcon
 			icon={direction === "desc" ? ArrowDown01Icon : ArrowUp01Icon}
 			strokeWidth={2}
-			className="size-3.5 text-foreground"
+			className="size-3.5 text-dashboard-text-primary"
 		/>
 	);
 }
@@ -87,15 +87,20 @@ export function DataTable<T>({
 	const colSpan = columns.length;
 
 	return (
-		<div className={cn(!borderless && "rounded-md border border-border bg-card", className)}>
-			<Table>
-				<TableHeader className="bg-muted/40">
-					<TableRow className="border-border hover:bg-transparent">
+		<div
+			className={cn(
+				!borderless && "rounded-[12px] border border-dashboard-border bg-dashboard-surface",
+				className,
+			)}
+		>
+			<Table className="text-[13px] tracking-[-0.15px]">
+				<TableHeader>
+					<TableRow className="border-dashboard-border hover:bg-transparent">
 						{columns.map((column) => (
 							<TableHead
 								key={column.id}
 								className={cn(
-									"h-11 text-muted-foreground text-xs uppercase tracking-wide",
+									"h-8 font-normal text-[12px] text-dashboard-text-dim",
 									column.headerClassName,
 								)}
 							>
@@ -104,7 +109,7 @@ export function DataTable<T>({
 										variant="ghost"
 										size="sm"
 										onClick={() => onSort(column.id)}
-										className="h-auto gap-1.5 p-0 text-xs hover:bg-transparent hover:text-foreground"
+										className="h-auto gap-1 p-0 font-normal text-[12px] text-dashboard-text-dim hover:bg-transparent hover:text-dashboard-text-primary"
 									>
 										{column.header}
 										<SortIndicator
@@ -119,10 +124,10 @@ export function DataTable<T>({
 						))}
 					</TableRow>
 				</TableHeader>
-				<TableBody className="bg-card">
+				<TableBody>
 					{loading
 						? ["s1", "s2", "s3", "s4", "s5"].map((key) => (
-								<TableRow key={key} className="border-border">
+								<TableRow key={key} className="border-dashboard-border">
 									{columns.map((column) => (
 										<TableCell key={column.id}>
 											<Skeleton className="h-4 w-full max-w-[180px]" />
@@ -142,11 +147,14 @@ export function DataTable<T>({
 								}
 
 								return (
-									<TableRow key={rowId} className="border-border">
+									<TableRow
+										key={rowId}
+										className="border-dashboard-border hover:bg-dashboard-hover/60"
+									>
 										{columns.map((column) => (
 											<TableCell
 												key={column.id}
-												className={cn("text-foreground", column.className)}
+												className={cn("py-2.5 text-dashboard-text-primary", column.className)}
 											>
 												{column.renderCell(row)}
 											</TableCell>
@@ -157,10 +165,10 @@ export function DataTable<T>({
 						: null}
 
 					{!loading && rows.length === 0 && !isCreating ? (
-						<TableRow className="border-border hover:bg-transparent">
+						<TableRow className="border-dashboard-border hover:bg-transparent">
 							<TableCell colSpan={colSpan} className="h-32 text-center">
-								<p className="font-medium text-foreground">{emptyTitle}</p>
-								<p className="mx-auto mt-1 max-w-sm text-muted-foreground text-sm">
+								<p className="font-medium text-[14px] text-dashboard-text-primary">{emptyTitle}</p>
+								<p className="mx-auto mt-1 max-w-sm text-[13px] text-dashboard-text-dim">
 									{emptyDescription}
 								</p>
 							</TableCell>
@@ -182,7 +190,12 @@ export function DataTableInlineRow({
 	className?: string;
 }) {
 	return (
-		<TableRow className={cn("border-border bg-muted/30 hover:bg-muted/30", className)}>
+		<TableRow
+			className={cn(
+				"border-dashboard-border bg-dashboard-hover/40 hover:bg-dashboard-hover/40",
+				className,
+			)}
+		>
 			<TableCell colSpan={colSpan}>{children}</TableCell>
 		</TableRow>
 	);

@@ -37,9 +37,9 @@ export function AdminNavigationMenu({ isCollapsed, mobile = false, onNavigate }:
 
 	if (navigationQuery.isLoading) {
 		return (
-			<div className="space-y-3 px-3 py-2">
-				{["a", "b", "c", "d"].map((key) => (
-					<Skeleton key={key} className="h-9 w-full rounded-lg" />
+			<div className="space-y-1 py-1">
+				{["a", "b", "c", "d", "e", "f"].map((key) => (
+					<Skeleton key={key} className="h-7 w-full rounded-lg" />
 				))}
 			</div>
 		);
@@ -47,7 +47,7 @@ export function AdminNavigationMenu({ isCollapsed, mobile = false, onNavigate }:
 
 	if (sections.length === 0) {
 		return (
-			<div className="px-4 py-6 text-[12px] text-dashboard-text-muted">
+			<div className="px-2 py-6 text-[12px] text-dashboard-text-dim">
 				No navigation available for your role.
 			</div>
 		);
@@ -92,9 +92,9 @@ function AdminNavigationSection({
 	tooltipSide: "left" | "right";
 }) {
 	return (
-		<div className={cn(idx > 0 && "mt-3 border-dashboard-border-subtle border-t pt-3")}>
+		<div className={cn(idx > 0 && "mt-4")}>
 			{!isCollapsed ? (
-				<div className="px-2 pt-1 pb-1.5 font-medium text-[11px] text-dashboard-text-dim uppercase tracking-[0.06em]">
+				<div className="flex h-7 items-center px-2 font-medium text-[11px] text-dashboard-text-dim uppercase tracking-[0.08em]">
 					{section.heading}
 				</div>
 			) : (
@@ -151,30 +151,22 @@ function AdminNavigationItem({
 	const active = item.key === activeKey;
 	const icon = resolveNavigationIcon(item.iconKey);
 	const className = cn(
-		"group/item relative flex w-full items-center gap-3 rounded-lg py-2 text-start text-[13px] transition-all duration-150",
-		depth > 0 ? "ms-2 px-2" : "px-2.5",
+		"group/item relative flex h-7 w-full items-center gap-2 rounded-lg px-2 text-start text-[13px] tracking-[-0.15px] transition-colors duration-150",
 		isCollapsed && depth === 0 && "justify-center px-0",
 		active
-			? "bg-dashboard-accent-soft font-medium text-dashboard-accent hover:bg-dashboard-accent-soft"
-			: "font-normal text-dashboard-text-muted hover:bg-dashboard-hover hover:text-dashboard-text-secondary active:scale-[0.985]",
+			? "bg-dashboard-hover font-medium text-dashboard-text-primary"
+			: "font-normal text-dashboard-text-secondary hover:bg-dashboard-hover hover:text-dashboard-text-primary",
 	);
-
-	const indicator = active ? (
-		<span
-			aria-hidden
-			className="absolute top-1/2 start-0.5 h-4 w-0.5 -translate-y-1/2 rounded-full bg-dashboard-accent"
-		/>
-	) : null;
 
 	const iconNode = (
 		<HugeiconsIcon
 			icon={icon}
-			size={depth > 0 ? 16 : 18}
-			strokeWidth={active ? 2 : 1.7}
+			size={16}
+			strokeWidth={1.8}
 			className={cn(
 				"shrink-0 transition-colors",
 				active
-					? "text-dashboard-accent"
+					? "text-dashboard-text-primary"
 					: "text-dashboard-text-dim group-hover/item:text-dashboard-text-secondary",
 			)}
 		/>
@@ -184,13 +176,11 @@ function AdminNavigationItem({
 
 	const linkBody = item.href ? (
 		<Link href={item.href} className={className} onClick={onNavigate}>
-			{indicator}
 			{iconNode}
 			{label}
 		</Link>
 	) : (
 		<button type="button" className={className} disabled>
-			{indicator}
 			{iconNode}
 			{label}
 		</button>
@@ -214,7 +204,7 @@ function AdminNavigationItem({
 						<div className="min-w-0 flex-1">{renderedLink}</div>
 						<button
 							type="button"
-							className="flex size-7 shrink-0 items-center justify-center rounded-md text-dashboard-text-dim hover:bg-dashboard-hover hover:text-dashboard-text-secondary"
+							className="flex size-6 shrink-0 items-center justify-center rounded-md text-dashboard-text-dim hover:bg-dashboard-hover hover:text-dashboard-text-secondary"
 							aria-expanded={open}
 							aria-label={`${open ? "Collapse" : "Expand"} ${item.label}`}
 							onClick={() => setOpen((value) => !value)}
@@ -227,7 +217,7 @@ function AdminNavigationItem({
 						</button>
 					</div>
 					{open ? (
-						<ul className="space-y-0.5 border-dashboard-border-subtle border-s ms-3 ps-1">
+						<ul className="ms-4 space-y-0.5 border-dashboard-border border-s ps-1.5">
 							{item.children.map((child) => (
 								<AdminNavigationItem
 									key={child.id}

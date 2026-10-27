@@ -13,9 +13,14 @@ type Props = {
 
 export function DataTableShell({ toolbar, children, footer, className }: Props) {
 	return (
-		<Card className={cn("gap-0 overflow-hidden border-border bg-card py-0 shadow-sm", className)}>
+		<Card
+			className={cn(
+				"gap-0 overflow-hidden rounded-[12px] border-dashboard-border bg-dashboard-surface py-0 shadow-none ring-0",
+				className,
+			)}
+		>
 			{toolbar}
-			<div className="bg-card">{children}</div>
+			<div>{children}</div>
 			{footer}
 		</Card>
 	);

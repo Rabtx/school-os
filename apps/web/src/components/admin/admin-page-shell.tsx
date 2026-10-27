@@ -42,9 +42,9 @@ export function AdminPageShell({
 	}
 
 	return (
-		<div className={cn("mx-auto w-full px-4 py-6 sm:px-6", maxWidthClass, className)}>
+		<div className={cn("mx-auto w-full px-4 py-5 sm:px-6", maxWidthClass, className)}>
 			{breadcrumb ? (
-				<nav className="mb-4 text-[12px] text-dashboard-text-muted">
+				<nav className="mb-3 text-[13px] text-dashboard-text-secondary">
 					<Link href={breadcrumb.href} className="hover:text-dashboard-text-secondary">
 						{breadcrumb.label}
 					</Link>
@@ -53,19 +53,19 @@ export function AdminPageShell({
 				</nav>
 			) : null}
 
-			<header className="mb-6 flex flex-wrap items-start justify-between gap-4 border-dashboard-border border-b pb-5">
-				<div className="flex min-w-0 items-start gap-3">
+			<header className="mb-4 flex flex-wrap items-end justify-between gap-3">
+				<div className="flex min-w-0 items-start gap-2.5 tracking-[-0.15px]">
 					{icon ? (
-						<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-dashboard-accent-soft text-dashboard-accent">
-							<HugeiconsIcon icon={icon} size={20} strokeWidth={1.8} />
+						<div className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-md bg-dashboard-hover text-dashboard-text-secondary">
+							<HugeiconsIcon icon={icon} size={14} strokeWidth={1.8} />
 						</div>
 					) : null}
 					<div className="min-w-0">
-						<h1 className="font-semibold text-[22px] text-dashboard-text-primary tracking-tight sm:text-[24px]">
+						<h1 className="font-medium text-[24px] text-dashboard-text-primary leading-8">
 							{title}
 						</h1>
 						{description ? (
-							<p className="mt-1 max-w-2xl text-[13px] text-dashboard-text-muted leading-5">
+							<p className="mt-0.5 max-w-2xl text-[14px] text-dashboard-text-dim leading-5">
 								{description}
 							</p>
 						) : null}

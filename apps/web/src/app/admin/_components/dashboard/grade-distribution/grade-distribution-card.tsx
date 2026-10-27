@@ -22,7 +22,7 @@ export function GradeDistributionCard({ grades, insights, className }: Props) {
 	return (
 		<section
 			className={cn(
-				"overflow-hidden rounded-[16px] border border-dashboard-border bg-dashboard-surface shadow-(--dashboard-shadow-card)",
+				"overflow-hidden rounded-[12px] border border-dashboard-border bg-dashboard-surface shadow-(--dashboard-shadow-card)",
 				className,
 			)}
 			aria-label="Students by grade"
@@ -42,7 +42,7 @@ export function GradeDistributionCard({ grades, insights, className }: Props) {
 						value={insights.enrolledThisTerm.toLocaleString("en-US")}
 						hint={`Peak at ${insights.peakGradeLabel} · softest at ${insights.softestGradeLabel}`}
 					/>
-					<div className="w-full rounded-[12px] border border-dashboard-border-subtle bg-dashboard-surface/70 px-3 py-2.5 text-[12px] text-dashboard-text-muted leading-4 sm:w-auto sm:max-w-[200px]">
+					<div className="w-full rounded-[8px] border border-dashboard-border-subtle bg-dashboard-surface/70 px-3 py-2.5 text-[12px] text-dashboard-text-muted leading-4 sm:w-auto sm:max-w-[200px]">
 						<div className="font-medium text-[11px] text-dashboard-text-dim uppercase tracking-[0.05em]">
 							Watch
 						</div>

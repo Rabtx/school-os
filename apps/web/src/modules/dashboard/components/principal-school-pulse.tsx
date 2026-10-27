@@ -158,20 +158,20 @@ export function PrincipalSchoolPulse({ tenantName, enabled = true }: Props) {
 	const attendanceStat = metrics.stats.find((s) => s.id === "attendance");
 
 	return (
-		<div className="space-y-5 px-4 py-5 sm:px-6 lg:px-8">
-			<section className="rounded-2xl border border-dashboard-border bg-dashboard-surface p-4 sm:p-5">
+		<div className="space-y-4 px-4 py-4 sm:px-6">
+			<section className="rounded-[12px] border border-dashboard-border bg-dashboard-surface p-4">
 				<div className="flex flex-wrap items-start justify-between gap-4">
 					<div>
-						<p className="font-medium text-[11px] text-dashboard-text-dim uppercase tracking-[0.08em]">
+						<p className="text-[12px] text-dashboard-text-dim uppercase leading-4">
 							{t("principal.schoolHealth")}
 						</p>
-						<h2 className="mt-1 font-semibold text-[20px] text-dashboard-text-primary sm:text-[22px]">
+						<h2 className="mt-1 font-medium text-[20px] text-dashboard-text-primary leading-7">
 							{tenantName ?? t("common.yourSchool")} — {todayLabel}
 						</h2>
 						<p className="mt-1 text-dashboard-text-muted text-sm">{healthLabel}</p>
 					</div>
 					<div className="text-end">
-						<div className="font-semibold text-[36px] text-dashboard-text-primary tabular-nums leading-none">
+						<div className="font-medium text-[32px] text-dashboard-text-primary tabular-nums leading-none">
 							{health.score}
 							<span className="text-[18px] text-dashboard-text-muted">/100</span>
 						</div>
@@ -216,7 +216,7 @@ export function PrincipalSchoolPulse({ tenantName, enabled = true }: Props) {
 			<OpsPulseStrip items={localized.opsPulse} />
 
 			<section className="grid gap-4 lg:grid-cols-[1fr_minmax(260px,320px)]">
-				<div className="rounded-2xl border border-dashboard-border bg-dashboard-surface p-4 sm:p-5">
+				<div className="rounded-[12px] border border-dashboard-border bg-dashboard-surface p-4">
 					<h3 className="font-medium text-dashboard-text-primary text-sm">
 						{t("principal.aiSummary")}
 					</h3>
@@ -227,7 +227,7 @@ export function PrincipalSchoolPulse({ tenantName, enabled = true }: Props) {
 					<p className="mt-3 text-[11px] text-dashboard-text-dim">{t("principal.aiRoadmap")}</p>
 				</div>
 
-				<div className="rounded-2xl border border-dashboard-border bg-dashboard-surface p-4 sm:p-5">
+				<div className="rounded-[12px] border border-dashboard-border bg-dashboard-surface p-4">
 					<h3 className="font-medium text-dashboard-text-primary text-sm">
 						{t("principal.quickActions")}
 					</h3>
@@ -256,15 +256,15 @@ function PulseRow({
 	hint: string;
 }) {
 	return (
-		<div className="rounded-xl border border-dashboard-border-subtle bg-dashboard-bg/40 px-3 py-3">
+		<div className="rounded-[8px] border border-dashboard-border bg-dashboard-bg/40 px-3 py-3">
 			<div className="flex items-center gap-2 text-dashboard-text-muted">
 				<HugeiconsIcon icon={icon} size={16} strokeWidth={1.8} />
-				<span className="font-medium text-[10.5px] uppercase tracking-[0.06em]">{label}</span>
+				<span className="text-[12px] uppercase leading-4">{label}</span>
 			</div>
-			<p className="mt-2 font-semibold text-[15px] text-dashboard-text-primary tabular-nums">
+			<p className="mt-2 font-medium text-[16px] text-dashboard-text-primary tabular-nums">
 				{value}
 			</p>
-			<p className="mt-1 line-clamp-2 text-[11px] text-dashboard-text-dim leading-4">{hint}</p>
+			<p className="mt-1 line-clamp-2 text-[12px] text-dashboard-text-dim leading-4">{hint}</p>
 		</div>
 	);
 }

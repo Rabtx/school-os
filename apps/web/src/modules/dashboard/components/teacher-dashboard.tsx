@@ -38,7 +38,7 @@ function greetingForHour(hour: number): string {
 
 function SectionCardSkeleton() {
 	return (
-		<div className="flex flex-col gap-3 rounded-[14px] border border-dashboard-border bg-dashboard-card-outer p-4">
+		<div className="flex flex-col gap-3 rounded-[12px] border border-dashboard-border bg-dashboard-card-outer p-4">
 			<div className="flex items-center justify-between">
 				<Skeleton className="h-5 w-24 rounded-full" />
 				<Skeleton className="h-4 w-16" />

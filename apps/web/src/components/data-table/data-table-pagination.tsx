@@ -77,22 +77,31 @@ export function DataTablePagination({
 	return (
 		<div
 			className={cn(
-				"flex flex-col gap-3 border-border border-t bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+				"flex flex-col gap-3 border-dashboard-border border-t px-4 py-2 text-[13px] tracking-[-0.15px] sm:flex-row sm:items-center sm:justify-between",
 				className,
 			)}
 		>
-			<p className="text-muted-foreground text-sm tabular-nums">
-				{totalRows === 0 ? "No rows" : `Showing ${from}–${to} of ${totalRows}`}
+			<p className="text-dashboard-text-dim tabular-nums">
+				{totalRows === 0 ? (
+					"No rows"
+				) : (
+					<>
+						<span className="text-dashboard-text-primary">
+							{from}–{to}
+						</span>{" "}
+						of {totalRows} shown
+					</>
+				)}
 			</p>
 
 			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
 				<div className="flex items-center gap-2">
-					<span className="text-muted-foreground text-sm">Rows per page</span>
+					<span className="text-dashboard-text-dim">Rows per page</span>
 					<SelectField
 						value={String(pageSize)}
 						onValueChange={(value) => onPageSizeChange(Number.parseInt(value, 10))}
 						items={pageSizeItems}
-						className="w-[120px]"
+						className="h-7 w-[112px]"
 					/>
 				</div>
 

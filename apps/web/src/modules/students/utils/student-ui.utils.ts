@@ -28,6 +28,20 @@ export function studentStatusBadgeVariant(
 	}
 }
 
+/** Figma status text colour for a student status (no fill). */
+export function studentStatusTone(status: StudentStatus): string {
+	switch (status) {
+		case "active":
+			return "text-[var(--rx-success)]";
+		case "graduated":
+			return "text-[var(--rx-accent)]";
+		case "withdrawn":
+			return "text-[var(--rx-danger)]";
+		default:
+			return "text-dashboard-text-dim";
+	}
+}
+
 export function studentQrPayload(student: Student, tenantId: string): string {
 	return `school-os://student/${tenantId}/${student.id}?code=${encodeURIComponent(student.studentCode)}`;
 }

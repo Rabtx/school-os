@@ -18,23 +18,20 @@ export function OpsPulseStrip({ items, className }: Props) {
 	return (
 		<section
 			aria-label={t("opsPulse.aria")}
-			className={cn(
-				"grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-dashboard-border bg-dashboard-border sm:grid-cols-4",
-				className,
-			)}
+			className={cn("grid grid-cols-2 gap-3 sm:grid-cols-4", className)}
 		>
 			{items.map((item) => (
 				<div
 					key={item.id}
-					className="bg-dashboard-surface px-3 py-2.5 transition-colors hover:bg-dashboard-surface-hover sm:px-3.5 sm:py-3"
+					className="flex min-w-0 flex-col gap-1.5 rounded-[12px] border border-dashboard-border bg-dashboard-surface px-3.5 py-3 tracking-[-0.15px]"
 				>
-					<div className="font-medium text-[10.5px] text-dashboard-text-muted uppercase tracking-[0.06em]">
+					<div className="truncate text-[12px] text-dashboard-text-dim uppercase leading-4">
 						{item.label}
 					</div>
-					<div className="mt-1.5 font-semibold text-[17px] text-dashboard-text-primary leading-none tracking-tight tabular-nums sm:text-[18px]">
+					<div className="font-medium text-[20px] text-dashboard-text-primary leading-7 tabular-nums">
 						{item.value}
 					</div>
-					<p className="mt-1.5 line-clamp-2 text-[11px] text-dashboard-text-dim leading-4 sm:text-[11.5px]">
+					<p className="line-clamp-2 text-[13px] text-dashboard-text-secondary leading-5">
 						{item.hint}
 					</p>
 				</div>

@@ -49,7 +49,7 @@ export function RecentAdmissionsCard({
 	return (
 		<section
 			className={cn(
-				"flex w-full flex-col overflow-hidden rounded-[16px] border border-dashboard-border bg-dashboard-surface shadow-(--dashboard-shadow-card)",
+				"flex w-full flex-col overflow-hidden rounded-[12px] border border-dashboard-border bg-dashboard-surface shadow-(--dashboard-shadow-card)",
 				className,
 			)}
 			aria-label="Recent admissions"

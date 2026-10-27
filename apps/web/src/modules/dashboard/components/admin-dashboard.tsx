@@ -48,7 +48,7 @@ export function AdminDashboard({ enabled = true, embedded = false, schoolPulse =
 	}
 
 	return (
-		<div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-4 px-3 py-3 sm:space-y-5 sm:px-6 sm:py-6 lg:space-y-6 lg:px-8">
+		<div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-4 px-4 py-5 sm:px-6">
 			{!embedded ? (
 				<FadeIn>
 					<DashboardHeader
@@ -64,7 +64,7 @@ export function AdminDashboard({ enabled = true, embedded = false, schoolPulse =
 			<FadeIn delay={0.08}>
 				<StatCardsRow stats={localized.stats} />
 			</FadeIn>
-			<div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-12">
+			<div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-12">
 				<FadeIn delay={0.12} className="min-w-0 xl:col-span-8">
 					<EnrollmentTrendCard months={metrics.enrollmentMonths} insights={metrics.insights} />
 				</FadeIn>

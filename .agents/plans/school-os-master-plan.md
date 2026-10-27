@@ -27,13 +27,42 @@ in that file (roles, AI layer, modules, learning loop) and the audits in `plans/
 | --- | --- | --- |
 | 1. Starter baseline | Agent conventions, toolchain, deps, rabtx tokens from Figma | Done (PR #101) |
 | 2. Backend hardening | Fail-closed tenancy, record scope, reliable outbox, audit retention, Docker migrations | In review; follow-ups in cards |
-| 3. Web reskin | App shell and existing screens rebuilt to the Figma frames on `@rabtx/ui` | Next |
+| 3. Web reskin | App shell and existing screens rebuilt to the Figma frames on `@rabtx/ui` | In progress (PR #103) |
 | 4. Trust loop | Approvals engine, rules engine, notices and messages, real WhatsApp delivery, consent, phone OTP | |
 | 5. Phones | Expo parent app, teacher app, offline gate scanner | |
 | 6. AI layer | Tool registry, drafts into approvals, RAG over school knowledge, school memory, voice, evals | |
 | 7. Learning loop | Tests, AI checker, publish marks, report cards, parent summaries | |
 | 8. Operations | Fees and payments, admissions, timetable builder, transport and gate, payroll, automations | |
 | 9. Production | Observability, backups, Urdu and RTL, accessibility, load and security testing | |
+
+## Work order (board cards)
+
+Each row is a card in `.agents/board/` (`str-<slug>`). Work top to bottom; a card starts only when
+its `depends_on` cards are done. Status lives in the card's folder (`open/`, `doing/`, `done/`).
+
+| # | Card | Phase | Priority | Depends on |
+| --- | --- | --- | --- | --- |
+| 1 | `web-reskin-shell-lists`: shell, dashboard, list pages | 3 | high | (PR #103) |
+| 2 | `web-reskin-detail-screens`: profile, guardians, roll call, homework, gradebook, timetable, reports, settings | 3 | high | 1 |
+| 3 | `auth-session-hardening`: tokens, CSRF, sign-in findings | 2 follow-up | high | |
+| 4 | `web-states-and-command-search`: shared states, ⌘K, menus | 3 | normal | 1 |
+| 5 | `web-reskin-teacher-screens` | 3 | normal | 2 |
+| 6 | `rabtx-ui-components`: promote building blocks into `@rabtx/ui` | 3 | normal | 1 |
+| 7 | `schema-integrity`, `api-validation`, `query-performance`, `web-server-auth` | 2 follow-up | normal | |
+| 8 | `rules-engine-attendance` | 4 | high | |
+| 9 | `approvals-engine` | 4 | high | 3 |
+| 10 | `messages-and-notices` | 4 | high | 9 |
+| 11 | `whatsapp-delivery` | 4 | high | 10 |
+| 12 | `phone-otp-sign-in` | 4 | high | 3 |
+| 13 | `consent-and-privacy` | 4 | normal | |
+| 14 | `students-list-enrichment`: tags, attendance trend, last alert | 4 | normal | |
+| 15 | `ai-tool-registry` | 6 | high | 9 |
+| 16 | `ai-rag-pgvector` | 6 | high | 15 |
+| 17 | `ai-memory-evals-controls` | 6 | normal | 15 |
+| 18 | `phase-5-phones` | 5 | normal | 6, 12 |
+| 19 | `phase-7-learning-loop` | 7 | normal | 15 |
+| 20 | `phase-8-operations` | 8 | normal | 9 |
+| 21 | `phase-9-production` | 9 | normal | |
 
 ## Phase 2: backend hardening
 

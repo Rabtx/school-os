@@ -31,7 +31,7 @@ export function EnrollmentTrendCard({ months, insights, className }: Props) {
 	return (
 		<section
 			className={cn(
-				"overflow-hidden rounded-[16px] border border-dashboard-border bg-dashboard-surface shadow-(--dashboard-shadow-card)",
+				"overflow-hidden rounded-[12px] border border-dashboard-border bg-dashboard-surface shadow-(--dashboard-shadow-card)",
 				className,
 			)}
 			aria-label="Enrollment trend"
@@ -70,7 +70,7 @@ export function EnrollmentTrendCard({ months, insights, className }: Props) {
 					</div>
 				</div>
 
-				<div className="mb-3 rounded-[12px] border border-dashboard-border-subtle bg-dashboard-surface/70 px-3 py-2.5 text-[12.5px] text-dashboard-text-secondary leading-5 sm:mb-4 sm:px-3.5">
+				<div className="mb-3 rounded-[8px] border border-dashboard-border-subtle bg-dashboard-surface/70 px-3 py-2.5 text-[12.5px] text-dashboard-text-secondary leading-5 sm:mb-4 sm:px-3.5">
 					<span className="font-medium text-dashboard-text-primary">Live data:</span> {narrative}
 				</div>
 

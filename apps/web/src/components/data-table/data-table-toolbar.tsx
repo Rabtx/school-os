@@ -45,14 +45,14 @@ export function DataTableToolbar({
 	return (
 		<div
 			className={cn(
-				"flex flex-col gap-3 border-border border-b bg-card px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
+				"flex flex-col gap-2 border-dashboard-border border-b px-3 py-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
 				className,
 			)}
 		>
-			<div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+			<div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
 				{onSearchChange ? (
 					<SearchInput
-						className="w-full sm:max-w-xs"
+						className="h-7 w-full rounded-full sm:w-[240px]"
 						value={search ?? ""}
 						onValueChange={onSearchChange}
 						placeholder={searchPlaceholder}
@@ -61,15 +61,20 @@ export function DataTableToolbar({
 				) : null}
 
 				{filters.map((filter) => (
-					<div key={filter.id} className="flex w-full items-center gap-2 sm:w-auto">
-						<span className="shrink-0 text-muted-foreground text-sm">{filter.label}</span>
+					<div
+						key={filter.id}
+						className="flex h-7 w-full items-center overflow-hidden rounded-full border border-dashboard-border-strong bg-dashboard-surface text-[13px] sm:w-auto"
+					>
+						<span className="flex h-full shrink-0 items-center border-dashboard-border border-e px-3 text-dashboard-text-dim">
+							{filter.label}
+						</span>
 						<SelectField
 							value={filter.value}
 							onValueChange={filter.onChange}
 							items={filter.items}
-							placeholder={filter.placeholder ?? "All"}
+							placeholder={filter.placeholder ?? "Any"}
 							nullable={filter.nullable ?? true}
-							className="min-w-[140px]"
+							className="h-full min-w-[110px] rounded-none border-0 bg-transparent font-medium text-[13px] text-dashboard-text-primary shadow-none dark:bg-transparent"
 						/>
 					</div>
 				))}
@@ -78,7 +83,7 @@ export function DataTableToolbar({
 			<div className="flex items-center gap-2">
 				{children}
 				{canAdd && onAdd ? (
-					<Button type="button" size="sm" onClick={onAdd}>
+					<Button type="button" size="sm" className="h-7 rounded-full" onClick={onAdd}>
 						<HugeiconsIcon icon={Add01Icon} data-icon="inline-start" strokeWidth={2} />
 						{addLabel}
 					</Button>
