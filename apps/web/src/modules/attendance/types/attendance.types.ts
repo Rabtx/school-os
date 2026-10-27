@@ -73,3 +73,30 @@ export type SchoolDayPulse = {
 	summary: AttendanceStatusCounts;
 	attendanceRate: number | null;
 };
+
+export type AttendanceOverviewDay = {
+	date: string;
+	summary: AttendanceStatusCounts;
+	attendanceRate: number | null;
+};
+
+export type AttendanceCheckIn = {
+	markId: string;
+	studentId: string;
+	studentCode: string;
+	fullName: string;
+	status: AttendanceMarkStatus;
+	markedAt: string | null;
+	sectionName: string | null;
+	className: string | null;
+	guardianName: string | null;
+};
+
+/** Leadership overview: 14 days ending on `sessionDate`, check-in sources and latest marks. */
+export type AttendanceOverview = {
+	sessionDate: string;
+	days: AttendanceOverviewDay[];
+	today: { summary: AttendanceStatusCounts; attendanceRate: number | null };
+	checkInSources: Array<{ source: string; count: number }>;
+	checkIns: AttendanceCheckIn[];
+};

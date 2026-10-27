@@ -16,6 +16,7 @@ import {
 	TableRow,
 } from "@school-os/ui/components/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@school-os/ui/components/tabs";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminPageShell } from "@/components/admin/admin-page-shell";
 import { cn } from "@/lib/utils";
@@ -373,7 +374,12 @@ function HomeworkTab({
 	);
 }
 
+const REPORT_TABS = ["overview", "grades", "attendance", "homework"] as const;
+
 export function ReportsPage() {
+	const searchParams = useSearchParams();
+	const requestedTab = searchParams.get("tab");
+	const initialTab = REPORT_TABS.find((tab) => tab === requestedTab) ?? "overview";
 	const { activeTenant } = useTenantContext();
 	const { can, isLoading: permissionsLoading } = usePermissions();
 	const tenantId = activeTenant?.id ?? null;
@@ -435,7 +441,7 @@ export function ReportsPage() {
 				/>
 			</div>
 
-			<Tabs defaultValue="overview" className="w-full">
+			<Tabs key={initialTab} defaultValue={initialTab} className="w-full">
 				<TabsList>
 					<TabsTrigger value="overview">Overview</TabsTrigger>
 					<TabsTrigger value="grades">Grades</TabsTrigger>

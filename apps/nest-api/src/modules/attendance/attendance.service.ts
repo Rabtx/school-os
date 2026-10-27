@@ -26,6 +26,27 @@ import {
 	toPublicSession,
 } from './attendance.types';
 
+const OVERVIEW_CHECK_IN_LIMIT = 8;
+
+/** Attended (present, late, excused) as a percentage with one decimal, or null with no marks. */
+function attendanceRateOf(summary: ReturnType<typeof countMarksByStatusRows>): number | null {
+	const attended = summary.present + summary.late + summary.excused;
+	return summary.total > 0 ? Math.round((attended / summary.total) * 1000) / 10 : null;
+}
+
+/** The Monday on or before a YYYY-MM-DD date. */
+function mondayOf(isoDate: string): string {
+	const weekday = new Date(`${isoDate}T00:00:00Z`).getUTCDay();
+	return shiftIsoDate(isoDate, -((weekday + 6) % 7));
+}
+
+/** Adds whole days to a YYYY-MM-DD date in UTC. */
+function shiftIsoDate(isoDate: string, days: number): string {
+	const date = new Date(`${isoDate}T00:00:00Z`);
+	date.setUTCDate(date.getUTCDate() + days);
+	return date.toISOString().slice(0, 10);
+}
+
 @Injectable()
 export class AttendanceService {
 	constructor(
@@ -222,7 +243,7 @@ export class AttendanceService {
 		return this.buildSessionResponse(tenantId, session);
 	}
 
-	async getSchoolDayPulse(userId: string, tenantId: string, sessionDate: string) {
+	private async requireLeadershipRead(userId: string, tenantId: string) {
 		const membership = await this.requireRead(userId, tenantId);
 		if (!managementRoles.has(membership.role)) {
 			const roles = await this.membershipAccess.listRoleCodes(membership.id, membership.role);
@@ -233,6 +254,59 @@ export class AttendanceService {
 				});
 			}
 		}
+		return membership;
+	}
+
+	/**
+	 * Leadership dashboard: daily attendance for last week and this week (Monday to Sunday,
+	 * the week containing `sessionDate`), how students were checked in, and the latest marks.
+	 */
+	async getOverview(userId: string, tenantId: string, sessionDate: string) {
+		await this.requireLeadershipRead(userId, tenantId);
+
+		const fromDate = shiftIsoDate(mondayOf(sessionDate), -7);
+		const toDate = shiftIsoDate(fromDate, 13);
+		const [dailyRows, sourceRows, checkIns] = await Promise.all([
+			this.attendance.countMarksByDateAndStatus(tenantId, fromDate, toDate),
+			this.attendance.countStudentsByEventSource(tenantId, sessionDate),
+			this.attendance.listCheckInsForDate(tenantId, sessionDate, OVERVIEW_CHECK_IN_LIMIT),
+		]);
+
+		const rowsByDate = new Map<string, typeof dailyRows>();
+		for (const row of dailyRows) {
+			const list = rowsByDate.get(row.sessionDate) ?? [];
+			list.push(row);
+			rowsByDate.set(row.sessionDate, list);
+		}
+
+		const days = Array.from({ length: 14 }, (_, index) => {
+			const date = shiftIsoDate(fromDate, index);
+			const summary = countMarksByStatusRows(rowsByDate.get(date) ?? []);
+			return { date, summary, attendanceRate: attendanceRateOf(summary) };
+		});
+		const today = countMarksByStatusRows(rowsByDate.get(sessionDate) ?? []);
+
+		return {
+			sessionDate,
+			days,
+			today: { summary: today, attendanceRate: attendanceRateOf(today) },
+			checkInSources: sourceRows,
+			checkIns: checkIns.map((row) => ({
+				markId: row.markId,
+				studentId: row.studentId,
+				studentCode: row.studentCode,
+				fullName: `${row.firstName} ${row.lastName}`,
+				status: row.status,
+				markedAt: row.markedAt,
+				sectionName: row.sectionName,
+				className: row.className,
+				guardianName: row.guardianName,
+			})),
+		};
+	}
+
+	async getSchoolDayPulse(userId: string, tenantId: string, sessionDate: string) {
+		await this.requireLeadershipRead(userId, tenantId);
 
 		const sessions = await this.attendance.listSessionsForDate(tenantId, sessionDate);
 		const sessionIds = sessions.map((session) => session.id);
@@ -240,9 +314,7 @@ export class AttendanceService {
 
 		const summary = countMarksByStatusRows(statusRows);
 
-		const attended = summary.present + summary.late + summary.excused;
-		const attendanceRate =
-			summary.total > 0 ? Math.round((attended / summary.total) * 1000) / 10 : null;
+		const attendanceRate = attendanceRateOf(summary);
 
 		const sectionsWithSessions = new Set(
 			sessions.map((session) => session.sectionId).filter(Boolean),

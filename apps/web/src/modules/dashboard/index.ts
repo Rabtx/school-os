@@ -1,7 +1,5 @@
 export { AdminDashboard } from "./components/admin-dashboard";
 export { AdminHomePage } from "./components/admin-home-page";
-export { PrincipalDashboard } from "./components/principal-dashboard";
-export { PrincipalSchoolPulse } from "./components/principal-school-pulse";
 export { StudentDashboard } from "./components/student-dashboard";
 export { TeacherDashboard } from "./components/teacher-dashboard";
 export { useDashboardMetricsQuery } from "./hooks/use-dashboard-queries";

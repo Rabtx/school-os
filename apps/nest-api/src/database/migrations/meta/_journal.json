@@ -183,6 +183,13 @@
 			"when": 1787100647371,
 			"tag": "0025_audit_logs_append_only",
 			"breakpoints": true
+		},
+		{
+			"idx": 28,
+			"version": "7",
+			"when": 1787200647371,
+			"tag": "0026_navigation_figma_layout",
+			"breakpoints": true
 		}
 	]
 }

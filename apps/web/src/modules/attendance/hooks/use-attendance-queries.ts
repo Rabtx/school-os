@@ -96,3 +96,20 @@ export function useStudentAttendanceHistoryQuery(
 		enabled: enabled && Boolean(token && tenantId && studentId),
 	});
 }
+
+/** Leadership dashboard data for one day (and the 13 days before it). */
+export function useAttendanceOverviewQuery(
+	tenantId: string | null,
+	sessionDate: string,
+	enabled = true,
+) {
+	const { token } = useAuth();
+	return useQuery({
+		queryKey: attendanceQueryKeys.overview(tenantId ?? "", sessionDate),
+		queryFn: () => {
+			if (!tenantId) throw new Error("Tenant required");
+			return attendanceService.getOverview(requireToken(token), tenantId, sessionDate);
+		},
+		enabled: enabled && Boolean(token && tenantId),
+	});
+}

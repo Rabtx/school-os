@@ -250,6 +250,11 @@ export function AttendancePage() {
 		setSectionId(sectionSelectItems[0]?.value ?? "");
 	}, [sectionId, sectionSelectItems]);
 
+	// Sidebar class links change ?sectionId while the page stays mounted.
+	useEffect(() => {
+		if (initialSectionId) setSectionId(initialSectionId);
+	}, [initialSectionId]);
+
 	useEffect(() => {
 		if (!initialSectionId || sectionId) return;
 		if (sectionSelectItems.some((item) => item.value === initialSectionId)) {

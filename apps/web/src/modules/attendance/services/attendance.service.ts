@@ -4,6 +4,7 @@ import type {
 	ConfirmAllPresentInput,
 	CreateAttendanceSessionInput,
 	MarkAttendanceInput,
+	AttendanceOverview,
 	SchoolDayPulse,
 	StudentAttendanceHistoryEntry,
 } from "../types/attendance.types";
@@ -55,6 +56,11 @@ export const attendanceService = {
 	getStudentHistory: (accessToken: string, tenantId: string, studentId: string) =>
 		apiClient.get<{ history: StudentAttendanceHistoryEntry[] }>(
 			`/tenants/${tenantId}/attendance/students/${studentId}/history`,
+			{ accessToken },
+		),
+	getOverview: (accessToken: string, tenantId: string, sessionDate: string) =>
+		apiClient.get<AttendanceOverview>(
+			`/tenants/${tenantId}/attendance/overview?sessionDate=${encodeURIComponent(sessionDate)}`,
 			{ accessToken },
 		),
 	getSchoolDayPulse: (accessToken: string, tenantId: string, sessionDate?: string) => {

@@ -1,13 +1,18 @@
 "use client";
 
 import {
+	Add01Icon,
+	LanguageSkillIcon,
 	Logout01Icon,
-	SecurityIcon,
+	Moon02Icon,
+	Motion01Icon,
+	Motion02Icon,
 	Settings02Icon,
 	SidebarLeftIcon,
+	Sun03Icon,
 	Tick02Icon,
 	UnfoldMoreIcon,
-	UserCircle02Icon,
+	WhatsappIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -19,16 +24,40 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@school-os/ui/components/dropdown-menu";
+import { useMotion } from "@school-os/ui/components/motion-provider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@school-os/ui/components/tooltip";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useThemeToggle } from "@/components/motion/theme-toggle";
 import { useAuth } from "@/context/auth-context";
 import { userInitials } from "@/lib/user-display";
 import { cn } from "@/lib/utils";
-import { useTenantContext, useWorkspaceSwitcherPolicy } from "@/modules/tenants";
+import { useDashboardI18n } from "@/modules/dashboard";
+import { resolveNavigationIcon, useAdminNavigationQuery } from "@/modules/navigation";
+import {
+	PermissionCodes,
+	usePermissions,
+	useTenantContext,
+	useWorkspaceSwitcherPolicy,
+} from "@/modules/tenants";
 import { useSessionStore } from "@/store";
 import { AdminNavigationMenu } from "./admin-navigation-menu";
+
+const ROLE_LABELS: Record<string, string> = {
+	owner: "Owner",
+	principal: "Principal",
+	vice_principal: "Vice principal",
+	admin: "School admin",
+	teacher: "Teacher",
+	parent: "Parent",
+	student: "Student",
+};
+
+function roleLabel(role: string | null | undefined): string {
+	if (!role) return "";
+	return ROLE_LABELS[role] ?? role.replaceAll("_", " ");
+}
 
 type School = { id: string; name: string; kind: string; mark: string };
 
@@ -78,6 +107,13 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 	const tenants = useSessionStore((state) => state.tenants);
 	const workspacePolicy = useWorkspaceSwitcherPolicy();
 	const [collapsed, setCollapsed] = useState(false);
+	const { can, role } = usePermissions();
+	const { locale, setLocale } = useDashboardI18n();
+	const theme = useThemeToggle();
+	const motion = useMotion();
+	const navigationQuery = useAdminNavigationQuery(activeTenant?.id ?? null);
+	const accountItems =
+		navigationQuery.data?.sections.find((section) => section.heading === "Account")?.items ?? [];
 
 	const schools: School[] = campuses.map((campus) => ({
 		id: campus.id,
@@ -278,11 +314,42 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 					"[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-dashboard-border [&::-webkit-scrollbar-track]:bg-transparent",
 				)}
 			>
-				<AdminNavigationMenu isCollapsed={isCollapsed} mobile={mobile} onNavigate={onNavigate} />
+				<Suspense fallback={null}>
+					<AdminNavigationMenu isCollapsed={isCollapsed} mobile={mobile} onNavigate={onNavigate} />
+				</Suspense>
 			</nav>
 
-			{/* User card */}
-			<div>
+			{/* Footer: invite, WhatsApp status, user */}
+			<div className="flex flex-col gap-2">
+				{can(PermissionCodes.TENANT_MEMBERSHIP_INVITE) && !isCollapsed ? (
+					<Link
+						href="/admin/members"
+						onClick={onNavigate}
+						className="flex h-7 items-center gap-2 rounded-lg px-2 text-[13px] text-dashboard-text-secondary transition-colors hover:bg-dashboard-hover hover:text-dashboard-text-primary"
+					>
+						<HugeiconsIcon
+							icon={Add01Icon}
+							size={16}
+							strokeWidth={1.8}
+							className="text-dashboard-text-dim"
+						/>
+						Invite staff
+					</Link>
+				) : null}
+
+				{!isCollapsed ? (
+					<div className="flex items-center gap-2 rounded-[8px] border border-dashboard-border bg-dashboard-surface px-3 py-2 text-[13px]">
+						<HugeiconsIcon
+							icon={WhatsappIcon}
+							size={16}
+							strokeWidth={1.8}
+							className="text-dashboard-text-dim"
+						/>
+						<span className="flex-1 text-dashboard-text-secondary">WhatsApp</span>
+						<span className="text-[12px] text-dashboard-text-dim">Not connected</span>
+					</div>
+				) : null}
+
 				<DropdownMenu>
 					<DropdownMenuTrigger
 						render={(props) => (
@@ -294,12 +361,12 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 									isCollapsed && "justify-center",
 								)}
 							>
-								<div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--rx-success)_22%,transparent)] font-medium text-[11px] text-dashboard-text-primary">
+								<div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--rx-success)_22%,transparent)] font-medium text-[11px] text-[var(--rx-success)]">
 									{initials}
 								</div>
 								{!isCollapsed && (
 									<>
-										<WorkspaceName title={displayName} hint={displayEmail} />
+										<WorkspaceName title={displayName} hint={roleLabel(role)} />
 										<HugeiconsIcon
 											icon={Settings02Icon}
 											size={16}
@@ -328,19 +395,51 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 							</DropdownMenuLabel>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator className="bg-dashboard-border" />
+						{accountItems.map((item) =>
+							item.href ? (
+								<DropdownMenuItem
+									key={item.id}
+									render={<Link href={item.href} onClick={onNavigate} />}
+									className="gap-2 focus:bg-dashboard-hover-strong"
+								>
+									<HugeiconsIcon
+										icon={resolveNavigationIcon(item.iconKey)}
+										size={16}
+										strokeWidth={1.8}
+									/>
+									{item.label}
+								</DropdownMenuItem>
+							) : null,
+						)}
+						<DropdownMenuSeparator className="bg-dashboard-border" />
 						<DropdownMenuItem
-							render={<Link href="/admin/account/profile" onClick={onNavigate} />}
+							onClick={() => theme.toggle()}
 							className="gap-2 focus:bg-dashboard-hover-strong"
 						>
-							<HugeiconsIcon icon={UserCircle02Icon} size={16} strokeWidth={1.8} />
-							Profile
+							<HugeiconsIcon
+								icon={theme.isDark ? Sun03Icon : Moon02Icon}
+								size={16}
+								strokeWidth={1.8}
+							/>
+							{theme.isDark ? "Light theme" : "Dark theme"}
 						</DropdownMenuItem>
 						<DropdownMenuItem
-							render={<Link href="/admin/account/security" onClick={onNavigate} />}
+							onClick={() => setLocale(locale === "ur" ? "en" : "ur")}
 							className="gap-2 focus:bg-dashboard-hover-strong"
 						>
-							<HugeiconsIcon icon={SecurityIcon} size={16} strokeWidth={1.8} />
-							Account security
+							<HugeiconsIcon icon={LanguageSkillIcon} size={16} strokeWidth={1.8} />
+							{locale === "ur" ? "English" : "اردو (Urdu)"}
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={motion.toggle}
+							className="gap-2 focus:bg-dashboard-hover-strong"
+						>
+							<HugeiconsIcon
+								icon={motion.enabled ? Motion02Icon : Motion01Icon}
+								size={16}
+								strokeWidth={1.8}
+							/>
+							{motion.enabled ? "Turn animations off" : "Turn animations on"}
 						</DropdownMenuItem>
 						<DropdownMenuSeparator className="bg-dashboard-border" />
 						<DropdownMenuItem
