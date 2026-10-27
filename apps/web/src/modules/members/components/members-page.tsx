@@ -1,14 +1,18 @@
 "use client";
 
-import { UserMultiple02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert, AlertDescription, AlertTitle } from "@school-os/ui/components/alert";
+import { Alert, AlertDescription } from "@school-os/ui/components/alert";
 import { Spinner } from "@school-os/ui/components/spinner";
-import { motion, useReducedMotion } from "motion/react";
-import { useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/modules/auth";
-import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { SettingsHeader, SettingsRow, SettingsSection } from "@/modules/settings";
+import {
+	type MembershipRole,
+	membershipRoleLabels,
+	PermissionCodes,
+	usePermissions,
+	useTenantContext,
+} from "@/modules/tenants";
 import { useMembersQuery } from "../hooks/use-member-queries";
 import { useMembersActions } from "../hooks/use-members-actions";
 import type { Member } from "../types/member.types";
@@ -16,34 +20,30 @@ import { computeMemberInsights } from "../utils/member-ui.utils";
 import { InviteMemberSheet } from "./invite-member-sheet";
 import { MemberDetailSheet } from "./member-detail-sheet";
 import { MembersDirectory } from "./members-directory";
-import { MembersInsightsStrip } from "./members-insights-strip";
 import { type MembersFilters, MembersToolbar } from "./members-toolbar";
 import { PendingInvitesSection } from "./pending-invites-section";
 import { RoleAccessPanel } from "./role-access-panel";
 
-const EASE_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const ROLE_ORDER: MembershipRole[] = [
+	"owner",
+	"principal",
+	"vice_principal",
+	"admin",
+	"teacher",
+	"parent",
+	"student",
+];
 
-function FadeIn({
-	children,
-	delay = 0,
-	className,
-}: {
-	children: React.ReactNode;
-	delay?: number;
-	className?: string;
-}) {
-	const reduce = useReducedMotion();
-	return (
-		<motion.div
-			className={cn("min-w-0", className)}
-			initial={reduce ? false : { opacity: 0, y: 10 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.4, ease: EASE_OUT, delay }}
-		>
-			{children}
-		</motion.div>
-	);
-}
+/** What each role reaches, in the frame's short form. */
+const ROLE_SCOPE: Record<MembershipRole, string> = {
+	owner: "sees everything, billing and ownership",
+	principal: "everything in school",
+	vice_principal: "daily operations and approvals",
+	admin: "members, campuses and records",
+	teacher: "their own classes",
+	parent: "their children only",
+	student: "their own work",
+};
 
 export function MembersPage() {
 	const { activeTenant, campuses } = useTenantContext();
@@ -62,6 +62,12 @@ export function MembersPage() {
 		campusId: "all",
 	});
 	const [inviteOpen, setInviteOpen] = useState(false);
+	// `?invite=1` (the sidebar's "Invite staff") opens the invite sheet once access is known.
+	const inviteRequested = useSearchParams().get("invite") === "1";
+	const canInvite = Boolean(membersQuery.data?.actor.canInvite);
+	useEffect(() => {
+		if (inviteRequested && canInvite) setInviteOpen(true);
+	}, [inviteRequested, canInvite]);
 	const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 	const [detailOpen, setDetailOpen] = useState(false);
 
@@ -95,16 +101,7 @@ export function MembersPage() {
 				);
 			})
 			.toSorted((a, b) => {
-				const roleOrder = [
-					"owner",
-					"principal",
-					"vice_principal",
-					"admin",
-					"teacher",
-					"parent",
-					"student",
-				];
-				const roleDiff = roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role);
+				const roleDiff = ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role);
 				if (roleDiff !== 0) return roleDiff;
 				return a.email.localeCompare(b.email);
 			});
@@ -141,47 +138,83 @@ export function MembersPage() {
 		);
 	}
 
+	const roleCounts = new Map<MembershipRole, number>();
+	for (const member of members) {
+		if (member.status === "suspended") continue;
+		for (const role of new Set([member.role, ...member.roles])) {
+			roleCounts.set(role, (roleCounts.get(role) ?? 0) + 1);
+		}
+	}
+	const rolesInUse = ROLE_ORDER.filter((role) => roleCounts.has(role));
+	const peopleInRoles = members.filter((member) => member.status !== "suspended").length;
+
+	const showRole = (role: MembershipRole) => {
+		setFilters((prev) => ({ ...prev, role, status: "all", query: "" }));
+		document.getElementById("people")?.scrollIntoView({ behavior: "smooth", block: "start" });
+	};
+
 	return (
-		<div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-4 px-3 py-3 sm:space-y-5 sm:px-6 sm:py-6 lg:space-y-6 lg:px-8">
-			<FadeIn>
-				<section className="flex flex-col gap-3 border-dashboard-border border-b pb-4 sm:gap-4 sm:pb-5 md:flex-row md:items-end md:justify-between">
-					<div className="min-w-0">
-						<div className="mb-1.5 flex items-center gap-2 text-[11px] text-dashboard-text-muted uppercase tracking-[0.08em]">
-							<span className="size-1.5 rounded-full bg-dashboard-accent" />
-							<span>People · Access control</span>
-						</div>
-						<div className="flex items-center gap-3">
-							<div className="flex size-10 items-center justify-center rounded-xl bg-dashboard-accent-soft text-dashboard-accent">
-								<HugeiconsIcon icon={UserMultiple02Icon} size={20} strokeWidth={2} />
-							</div>
-							<div>
-								<h1 className="font-semibold text-[22px] text-dashboard-text-primary leading-tight tracking-tight sm:text-[24px]">
-									Members
-								</h1>
-								<p className="mt-1 text-[13px] text-dashboard-text-secondary leading-5">
-									{activeTenant?.name ?? "Organization"} · roles, campuses, and secure invites
-								</p>
-							</div>
-						</div>
-					</div>
-					{insights.expiringSoon > 0 ? (
-						<Alert className="max-w-md border-destructive/25 bg-destructive/10">
-							<AlertTitle className="text-destructive">Invites expiring soon</AlertTitle>
-							<AlertDescription className="text-destructive/90">
-								{insights.expiringSoon} invite{insights.expiringSoon === 1 ? "" : "s"} expiring soon
-								— resend to keep onboarding on track.
-							</AlertDescription>
-						</Alert>
-					) : null}
-				</section>
-			</FadeIn>
+		<div className="min-w-0">
+			<SettingsHeader
+				title="Members and roles"
+				description="Who can do what. The owner and principal decide roles above teacher."
+			/>
 
-			<FadeIn delay={0.04}>
-				<MembersInsightsStrip insights={insights} loading={membersQuery.isLoading} />
-			</FadeIn>
+			{pendingInvites.length > 0 ? (
+				<div className="mb-8 flex flex-wrap items-center gap-3 rounded-[12px] border border-[color-mix(in_oklab,var(--rx-accent)_45%,transparent)] bg-[color-mix(in_oklab,var(--rx-accent)_10%,transparent)] px-4 py-3">
+					<p className="min-w-0 flex-1 text-[14px] text-dashboard-text-primary leading-5">
+						{pendingInvites.length} {pendingInvites.length === 1 ? "invite is" : "invites are"}{" "}
+						waiting to be accepted
+						{insights.expiringSoon > 0 ? `, ${insights.expiringSoon} expiring soon` : ""}.
+					</p>
+					<a
+						href="#invites"
+						className="inline-flex h-7 items-center rounded-[6px] bg-[var(--rx-accent)] px-3 font-medium text-[13px] text-white hover:opacity-90"
+					>
+						Review invites
+					</a>
+				</div>
+			) : null}
 
-			<FadeIn delay={0.08}>
-				<div className="overflow-hidden rounded-[14px] border border-dashboard-border bg-dashboard-surface">
+			<SettingsSection
+				title="Roles"
+				description={
+					membersQuery.isLoading
+						? "Loading…"
+						: `${peopleInRoles} ${peopleInRoles === 1 ? "person" : "people"} across ${rolesInUse.length} ${rolesInUse.length === 1 ? "role" : "roles"}.`
+				}
+			>
+				{rolesInUse.map((role) => {
+					const count = roleCounts.get(role) ?? 0;
+					return (
+						<SettingsRow
+							key={role}
+							label={membershipRoleLabels[role]}
+							description={`${count} ${count === 1 ? "person" : "people"} · ${ROLE_SCOPE[role]}`}
+						>
+							<button
+								type="button"
+								onClick={() => showRole(role)}
+								className="inline-flex h-7 items-center rounded-[6px] border border-dashboard-border-strong px-2.5 text-[13px] text-dashboard-text-primary hover:bg-dashboard-hover"
+							>
+								View people
+							</button>
+						</SettingsRow>
+					);
+				})}
+				{!membersQuery.isLoading && rolesInUse.length === 0 ? (
+					<p className="py-6 text-center text-[13px] text-dashboard-text-dim">No members yet.</p>
+				) : null}
+			</SettingsSection>
+
+			<section id="people" className="mb-8 scroll-mt-4">
+				<div className="mb-3">
+					<h2 className="font-medium text-[14px] text-dashboard-text-primary leading-5">People</h2>
+					<p className="text-[12px] text-dashboard-text-dim leading-4">
+						Open someone to change their role, campus or status.
+					</p>
+				</div>
+				<div className="overflow-hidden rounded-[12px] border border-dashboard-border bg-dashboard-surface">
 					<MembersToolbar
 						filters={filters}
 						onFiltersChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
@@ -200,9 +233,9 @@ export function MembersPage() {
 						onResendInvite={(inviteId, email) => void actions.resendInvite(inviteId, email)}
 					/>
 				</div>
-			</FadeIn>
+			</section>
 
-			<FadeIn delay={0.12}>
+			<div id="invites" className="mb-8 scroll-mt-4">
 				<PendingInvitesSection
 					invites={pendingInvites}
 					canInvite={Boolean(actor?.canInvite)}
@@ -210,11 +243,9 @@ export function MembersPage() {
 					onRevoke={(id, email) => void actions.revokeInvite(id, email)}
 					pending={actions.isPending}
 				/>
-			</FadeIn>
+			</div>
 
-			<FadeIn delay={0.16}>
-				<RoleAccessPanel />
-			</FadeIn>
+			<RoleAccessPanel />
 
 			<InviteMemberSheet
 				open={inviteOpen}

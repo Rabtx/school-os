@@ -323,7 +323,7 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 			<div className="flex flex-col gap-2">
 				{can(PermissionCodes.TENANT_MEMBERSHIP_INVITE) && !isCollapsed ? (
 					<Link
-						href="/admin/members"
+						href="/admin/settings/members?invite=1"
 						onClick={onNavigate}
 						className="flex h-7 items-center gap-2 rounded-lg px-2 text-[13px] text-dashboard-text-secondary transition-colors hover:bg-dashboard-hover hover:text-dashboard-text-primary"
 					>

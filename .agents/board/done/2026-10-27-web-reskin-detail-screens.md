@@ -5,14 +5,14 @@ type: feature
 from: pm
 to: web
 priority: high
-status: doing
+status: done
 assignee: claude
 reviewer: none
 parent: none
 depends_on: ["str-web-reskin-shell-lists"]
 branch: ccr-bf0f9944-6h1l31
 worktree: none
-scope: ["apps/web/src/modules/students/**", "apps/web/src/modules/guardians/**", "apps/web/src/modules/attendance/**", "apps/web/src/modules/homework/**", "apps/web/src/modules/gradebook/**", "apps/web/src/modules/timetable/**", "apps/web/src/modules/reports/**"]
+scope: ["apps/web/src/modules/settings/**", "apps/web/src/modules/members/**", "apps/web/src/modules/students/**", "apps/web/src/modules/guardians/**", "apps/web/src/modules/attendance/**", "apps/web/src/modules/homework/**", "apps/web/src/modules/gradebook/**", "apps/web/src/modules/timetable/**", "apps/web/src/modules/reports/**"]
 allowed_shared: []
 created: 2026-10-27
 updated: 2026-10-27
@@ -52,7 +52,11 @@ Progress:
 
 - PR #104: student profile panel, guardians table, roll call.
 - PR #105: shell and principal home rebuilt to the dashboard frame (structure, not just tokens).
-- Next PR: shared Figma list layout (`ListPage`, full-bleed `DataTable` with selection, `DataTableFooterBar`, CSV export) on Students, Guardians and Teachers.
-- Members follows "Settings · Members & roles" (`232:138695`) and moves to the settings screens.
-- Remaining: homework, gradebook, timetable, reports, settings.
+- PR #106: shared Figma list layout (`ListPage`, full-bleed `DataTable` with selection, `DataTableFooterBar`, CSV export) on Students, Guardians and Teachers.
+- PR #107: homework (`77:57765`).
+- PR #108: gradebook report cards (`77:90702`), single-flight token refresh, onboarding gate race fix.
+- PR #109: timetable class week grid for leadership (`77:73662`), `GET /timetable/sections/:id/week`.
+- PR #110: attendance report (`77:71451`), `GET /attendance/report?period=week|month|year`, follow-up rule (3+ absences or 4+ late).
+- PR #111: settings area (`77:89099`) with general, campuses, members and roles (`232:138695`), communication and attendance rules on the real tenant config; organization and members move into settings (migration 0029).
 
+Sections with no backend yet show an honest state instead of sample data: WhatsApp connection and parent alert outcomes (Phase 4), AI report-card comments and publish (Phase 7). Grades and homework report tabs have no Figma frame and keep the earlier layout.

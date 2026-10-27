@@ -1,5 +1,6 @@
-import { MembersPage } from "@/modules/members";
+import { redirect } from "next/navigation";
 
+// Members moved into settings (Figma "Settings · Members & roles").
 export default function AdminMembersPage() {
-	return <MembersPage />;
+	redirect("/admin/settings/members");
 }
