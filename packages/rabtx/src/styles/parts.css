@@ -5,3 +5,16 @@
 @source "../segmented";
 @source "../stat";
 @source "../empty-state";
+@source "../filter-pill";
+@source "../nav-item";
+@source "../table";
+
+/*
+ * Header cells start-align in the base layer, so a column's own utility (text-right) always wins
+ * without needing class merging. Browsers centre <th> by default.
+ */
+@layer base {
+	.rx-table th {
+		text-align: start;
+	}
+}

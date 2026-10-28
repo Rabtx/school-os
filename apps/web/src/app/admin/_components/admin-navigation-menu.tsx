@@ -8,6 +8,13 @@ import {
 	Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+	NavSection,
+	navCountLabel,
+	navItemClass,
+	navItemIconClass,
+	navItemParts,
+} from "@rabtx/ui/nav-item";
 import { Skeleton } from "@school-os/ui/components/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@school-os/ui/components/tooltip";
 import Link from "next/link";
@@ -50,14 +57,7 @@ const REPORT_LINKS = [
 	{ tab: "homework", label: "Homework report" },
 ];
 
-const rowClass = (active: boolean, collapsed: boolean) =>
-	cn(
-		"group/item relative flex h-7 w-full items-center gap-2 rounded-lg px-2 text-start text-[13px] tracking-[-0.15px] transition-colors duration-150",
-		collapsed && "justify-center px-0",
-		active
-			? "bg-dashboard-hover font-medium text-dashboard-text-primary"
-			: "font-normal text-dashboard-text-secondary hover:bg-dashboard-hover hover:text-dashboard-text-primary",
-	);
+const rowClass = navItemClass;
 
 export function AdminNavigationMenu({ isCollapsed, mobile = false, onNavigate }: Props) {
 	const pathname = usePathname();
@@ -217,19 +217,9 @@ function NavGroup({
 	children: ReactNode;
 }) {
 	return (
-		<div>
-			{collapsed ? (
-				<div className="mx-auto mb-1 h-px w-5 bg-dashboard-border" />
-			) : (
-				<div className="flex h-7 items-center justify-between px-2">
-					<span className="font-medium text-[11px] text-dashboard-text-dim uppercase tracking-[0.08em]">
-						{heading}
-					</span>
-					{action}
-				</div>
-			)}
-			<ul className="space-y-0.5">{children}</ul>
-		</div>
+		<NavSection heading={heading} collapsed={collapsed} action={action}>
+			{children}
+		</NavSection>
 	);
 }
 
@@ -259,19 +249,10 @@ function NavRow({
 }) {
 	const body = (
 		<>
-			<span
-				className={cn(
-					"flex shrink-0 transition-colors",
-					active
-						? "text-dashboard-text-primary"
-						: "text-dashboard-text-dim group-hover/item:text-dashboard-text-secondary",
-				)}
-			>
-				{icon}
-			</span>
+			<span className={navItemIconClass(active)}>{icon}</span>
 			{collapsed ? null : (
 				<>
-					<span className="min-w-0 flex-1 truncate">{label}</span>
+					<span className={navItemParts.label}>{label}</span>
 					{trailing}
 				</>
 			)}
@@ -307,8 +288,9 @@ function NavRow({
 }
 
 function CountBadge({ value }: { value?: number }) {
-	if (!value) return null;
-	return <span className="shrink-0 text-[12px] text-dashboard-text-dim tabular-nums">{value}</span>;
+	const label = navCountLabel(value);
+	if (!label) return null;
+	return <span className={navItemParts.count}>{label}</span>;
 }
 
 function ClassRow({

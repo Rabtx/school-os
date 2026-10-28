@@ -17,6 +17,9 @@ export const NAV = [
 			{ href: "/ui/tabs", label: "Tabs" },
 			{ href: "/ui/segmented-control", label: "Segmented control" },
 			{ href: "/ui/empty-state", label: "Empty state" },
+			{ href: "/ui/filter-pill", label: "Filter pill" },
+			{ href: "/ui/table", label: "Data table" },
+			{ href: "/ui/nav-item", label: "Nav item" },
 		],
 	},
 ];
