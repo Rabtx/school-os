@@ -45,6 +45,7 @@ import { AdmitStudentWizard } from "./admit-student-wizard";
 import { StudentAvatar } from "./student-avatar";
 import { StudentProfilePanel } from "./student-profile-panel";
 import { StudentRosterCards } from "./student-roster-cards";
+import { type ActiveFilter, NoResults, NoAccess } from "@/components/states";
 
 type RosterView = "table" | "cards";
 
@@ -422,9 +423,10 @@ export function StudentsPage() {
 
 	if (!canRead) {
 		return (
-			<Alert>
-				<AlertDescription>You do not have permission to view student records.</AlertDescription>
-			</Alert>
+			<NoAccess
+				title="Student records are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 
@@ -498,6 +500,48 @@ export function StudentsPage() {
 			setError(err instanceof Error ? err.message : "Could not link guardian");
 		}
 	}
+
+	const clearRosterSearch = () => {
+		setRosterSearch("");
+		rosterTable.resetPage();
+	};
+	const clearSectionFilter = () => {
+		setSectionFilter("");
+		rosterTable.setFilter("section", "");
+	};
+	const clearStatusFilter = () => {
+		setStatusFilter("");
+		rosterTable.setFilter("status", "");
+	};
+	const activeRosterFilters: ActiveFilter[] = [
+		...(rosterSearch.trim()
+			? [{ key: "search", label: `"${rosterSearch.trim()}"`, onRemove: clearRosterSearch }]
+			: []),
+		...(sectionFilter
+			? [
+					{
+						key: "section",
+						label:
+							`Class ${sectionFilterItems.find((item) => item.value === sectionFilter)?.label ?? ""}`.trim(),
+						onRemove: clearSectionFilter,
+					},
+				]
+			: []),
+		...(statusFilter
+			? [
+					{
+						key: "status",
+						label: statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1),
+						onRemove: clearStatusFilter,
+					},
+				]
+			: []),
+	];
+	const clearRosterFilters = () => {
+		clearRosterSearch();
+		clearSectionFilter();
+		clearStatusFilter();
+	};
 
 	const selectedStudents = rosterTable.filteredRows.filter((row) => selectedIds.has(row.id));
 	const exportRows = selectedStudents.length > 0 ? selectedStudents : rosterTable.filteredRows;
@@ -628,6 +672,15 @@ export function StudentsPage() {
 							onChange: setSelectedIds,
 							label: (row) => row.fullName,
 						}}
+						emptyState={
+							activeRosterFilters.length > 0 ? (
+								<NoResults
+									noun="students"
+									filters={activeRosterFilters}
+									onClearAll={clearRosterFilters}
+								/>
+							) : undefined
+						}
 						emptyTitle="No students yet"
 						emptyDescription={
 							campusId

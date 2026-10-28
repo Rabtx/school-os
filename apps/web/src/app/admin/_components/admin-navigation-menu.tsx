@@ -23,6 +23,7 @@ import {
 	useAdminNavigationQuery,
 } from "@/modules/navigation";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { useCommandSearch } from "./command-search/command-search";
 
 type Props = {
 	isCollapsed: boolean;
@@ -58,12 +59,9 @@ const rowClass = (active: boolean, collapsed: boolean) =>
 			: "font-normal text-dashboard-text-secondary hover:bg-dashboard-hover hover:text-dashboard-text-primary",
 	);
 
-function openGlobalSearch() {
-	window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
-}
-
 export function AdminNavigationMenu({ isCollapsed, mobile = false, onNavigate }: Props) {
 	const pathname = usePathname();
+	const commandSearch = useCommandSearch();
 	const searchParams = useSearchParams();
 	const { activeTenant, activeCampus } = useTenantContext();
 	const { can } = usePermissions();
@@ -123,7 +121,10 @@ export function AdminNavigationMenu({ isCollapsed, mobile = false, onNavigate }:
 						tooltipSide={tooltipSide}
 						icon={<HugeiconsIcon icon={Search01Icon} size={16} strokeWidth={1.8} />}
 						trailing={<span className="text-[12px] text-dashboard-text-dim">⌘K</span>}
-						onClick={openGlobalSearch}
+						onClick={() => {
+							onNavigate?.();
+							commandSearch.open();
+						}}
 					/>
 				</li>
 				{(primary?.items ?? []).map((item) => (

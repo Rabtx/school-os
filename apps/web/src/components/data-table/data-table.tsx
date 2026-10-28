@@ -33,6 +33,8 @@ type Props<T> = {
 	loading?: boolean;
 	emptyTitle?: string;
 	emptyDescription?: string;
+	/** Replaces the empty title and description, e.g. `NoResults` when filters hide every row. */
+	emptyState?: React.ReactNode;
 	sort?: DataTableSortState;
 	onSort?: (columnId: string) => void;
 	editingRowId?: string | null;
@@ -84,6 +86,7 @@ export function DataTable<T>({
 	loading,
 	emptyTitle = "No results",
 	emptyDescription = "Try adjusting your search or filters.",
+	emptyState,
 	sort,
 	onSort,
 	editingRowId,
@@ -239,11 +242,17 @@ export function DataTable<T>({
 
 					{!loading && rows.length === 0 && !isCreating ? (
 						<TableRow className="border-dashboard-border hover:bg-transparent">
-							<TableCell colSpan={colSpan} className="h-32 text-center">
-								<p className="font-medium text-[14px] text-dashboard-text-primary">{emptyTitle}</p>
-								<p className="mx-auto mt-1 max-w-sm text-[13px] text-dashboard-text-dim">
-									{emptyDescription}
-								</p>
+							<TableCell colSpan={colSpan} className="h-32 text-center whitespace-normal">
+								{emptyState ?? (
+									<>
+										<p className="font-medium text-[14px] text-dashboard-text-primary">
+											{emptyTitle}
+										</p>
+										<p className="mx-auto mt-1 max-w-sm text-[13px] text-dashboard-text-dim">
+											{emptyDescription}
+										</p>
+									</>
+								)}
 							</TableCell>
 						</TableRow>
 					) : null}

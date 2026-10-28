@@ -41,6 +41,7 @@ import { formatTeacherStatus, teacherDisplayName } from "../utils/teacher-ui.uti
 import { TeacherAvatar } from "./teacher-avatar";
 import { TeacherIdCard } from "./teacher-id-card";
 import { TeacherRosterCards } from "./teacher-roster-cards";
+import { NoAccess } from "@/components/states";
 
 type RosterView = "table" | "cards";
 
@@ -254,9 +255,10 @@ export function TeachersPage() {
 
 	if (!canRead) {
 		return (
-			<Alert>
-				<AlertDescription>You do not have permission to view teachers.</AlertDescription>
-			</Alert>
+			<NoAccess
+				title="Teachers are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

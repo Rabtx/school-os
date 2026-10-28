@@ -8,6 +8,7 @@ import { Field, FieldGroup, FieldLabel } from "@school-os/ui/components/field";
 import { Input } from "@school-os/ui/components/input";
 import { useCallback, useMemo, useState } from "react";
 import { FormDrawer } from "@/components/admin";
+import { useConfirmedAction } from "@/components/states";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -42,6 +43,7 @@ export function AcademicGradesPage() {
 	const createClass = useCreateClassMutation(tenantId ?? "");
 	const updateClass = useUpdateClassMutation(tenantId ?? "");
 	const deleteClass = useDeleteClassMutation(tenantId ?? "");
+	const confirmedAction = useConfirmedAction();
 
 	const [search, setSearch] = useState("");
 	const [drawerOpen, setDrawerOpen] = useState(false);
@@ -105,7 +107,19 @@ export function AcademicGradesPage() {
 								variant="ghost"
 								className="text-destructive hover:text-destructive"
 								aria-label={`Delete ${item.name}`}
-								onClick={() => void deleteClass.mutateAsync(item.id).catch(() => undefined)}
+								onClick={() =>
+									void confirmedAction({
+										title: `Delete ${item.name}?`,
+										consequences: [
+											{ label: "Sections", value: "A class with sections cannot be deleted" },
+											{ label: "Records", value: "Kept; the class is hidden, not erased" },
+										],
+										confirmLabel: "Delete class",
+										action: () => deleteClass.mutateAsync(item.id),
+										success: `${item.name} deleted`,
+										failure: `Could not delete ${item.name}`,
+									})
+								}
 							>
 								<HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
 							</Button>
@@ -113,7 +127,7 @@ export function AcademicGradesPage() {
 					) : null,
 			},
 		],
-		[canWrite, deleteClass, openEdit],
+		[canWrite, confirmedAction, deleteClass, openEdit],
 	);
 
 	const table = useClientDataTable({

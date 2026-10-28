@@ -27,6 +27,7 @@ import { Spinner } from "@school-os/ui/components/spinner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { type ComponentProps, useState } from "react";
+import { useConfirm } from "@/components/states";
 import { useAuth } from "../context/auth-context";
 import {
 	useBeginTotpSetupMutation,
@@ -80,6 +81,7 @@ function SecurityIndicator({
 export function AccountSecurity({ basePath = "/admin/account" }: { basePath?: string }) {
 	const router = useRouter();
 	const { user, loading, logout, logoutAll } = useAuth();
+	const confirm = useConfirm();
 	const sessions = useSessionsQuery();
 	const security = useSecurityStatusQuery();
 	const changePassword = useChangePasswordMutation();
@@ -324,7 +326,24 @@ export function AccountSecurity({ basePath = "/admin/account" }: { basePath?: st
 										<Button
 											size="sm"
 											variant="outline"
-											onClick={() => deletePasskey.mutate(passkey.id)}
+											onClick={async () => {
+												const confirmed = await confirm({
+													title: `Remove ${passkey.name}?`,
+													subtitle: passkey.deviceType,
+													consequences: [
+														{
+															label: "This device",
+															value: "Can no longer sign in with this passkey",
+														},
+														{
+															label: "Other ways in",
+															value: "Password, email link and other passkeys still work",
+														},
+													],
+													confirmLabel: "Remove passkey",
+												});
+												if (confirmed) deletePasskey.mutate(passkey.id);
+											}}
 											disabled={deletePasskey.isPending}
 										>
 											<HugeiconsIcon
@@ -503,7 +522,23 @@ export function AccountSecurity({ basePath = "/admin/account" }: { basePath?: st
 									<Button
 										size="sm"
 										variant="outline"
-										onClick={() =>
+										onClick={async () => {
+											const confirmed = await confirm({
+												title: session.isCurrent
+													? "Sign out of this device?"
+													: "Sign out that device?",
+												subtitle: session.userAgent ?? undefined,
+												consequences: [
+													{
+														label: "That device",
+														value: session.isCurrent
+															? "You are signed out here right away"
+															: "Signed out the next time it does anything",
+													},
+												],
+												confirmLabel: "Sign out device",
+											});
+											if (!confirmed) return;
 											revoke.mutate(session.id, {
 												onSuccess: async () => {
 													if (session.isCurrent) {
@@ -511,8 +546,8 @@ export function AccountSecurity({ basePath = "/admin/account" }: { basePath?: st
 														router.push("/login");
 													}
 												},
-											})
-										}
+											});
+										}}
 										disabled={revoke.isPending}
 									>
 										Revoke

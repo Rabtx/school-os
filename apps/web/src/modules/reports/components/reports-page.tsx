@@ -1,7 +1,6 @@
 "use client";
 
 import { Analytics01Icon } from "@hugeicons/core-free-icons";
-import { Alert, AlertDescription } from "@school-os/ui/components/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@school-os/ui/components/card";
 import { EmptyState } from "@school-os/ui/components/empty-state";
 import { SelectField } from "@school-os/ui/components/select-field";
@@ -29,6 +28,7 @@ import {
 	useReportOverviewQuery,
 } from "../hooks/use-reports-queries";
 import type { ReportTerm } from "../types/reports.types";
+import { NoAccess } from "@/components/states";
 
 const termOptions = [
 	{ label: "Term 1", value: "term1" },
@@ -411,11 +411,10 @@ export function ReportsPage() {
 
 	if (!canRead) {
 		return (
-			<AdminPageShell title="Reports" description="You do not have permission to view reports.">
-				<Alert variant="destructive">
-					<AlertDescription>Missing assessments.read permission.</AlertDescription>
-				</Alert>
-			</AdminPageShell>
+			<NoAccess
+				title="Reports are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

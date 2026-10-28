@@ -23,6 +23,7 @@ import { MembersDirectory } from "./members-directory";
 import { type MembersFilters, MembersToolbar } from "./members-toolbar";
 import { PendingInvitesSection } from "./pending-invites-section";
 import { RoleAccessPanel } from "./role-access-panel";
+import { NoAccess } from "@/components/states";
 
 const ROLE_ORDER: MembershipRole[] = [
 	"owner",
@@ -130,11 +131,10 @@ export function MembersPage() {
 
 	if (!canRead) {
 		return (
-			<Alert>
-				<AlertDescription>
-					You do not have permission to view organization members.
-				</AlertDescription>
-			</Alert>
+			<NoAccess
+				title="Members are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

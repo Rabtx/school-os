@@ -9,6 +9,7 @@ import { AdminPageShell } from "@/components/admin/admin-page-shell";
 import { HomeworkSubmissionsPanel } from "@/modules/homework/components/homework-submissions-panel";
 import { useHomeworkDetailQuery } from "@/modules/homework/hooks/use-homework-queries";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { NoAccess } from "@/components/states";
 
 type Props = {
 	homeworkId: string;
@@ -35,11 +36,10 @@ export function HomeworkDetailPage({ homeworkId }: Props) {
 
 	if (!canRead) {
 		return (
-			<AdminPageShell title="Homework">
-				<Alert variant="destructive">
-					<AlertDescription>Missing homework.read permission.</AlertDescription>
-				</Alert>
-			</AdminPageShell>
+			<NoAccess
+				title="Homework is not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

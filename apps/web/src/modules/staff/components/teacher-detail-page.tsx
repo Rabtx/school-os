@@ -19,6 +19,7 @@ import {
 	useTeacherQuery,
 	useUpsertTeacherProfileMutation,
 } from "../hooks/use-staff-queries";
+import { NoAccess } from "@/components/states";
 
 type Props = {
 	membershipId: string;
@@ -90,9 +91,10 @@ export function TeacherDetailPage({ membershipId }: Props) {
 
 	if (!canRead) {
 		return (
-			<Alert>
-				<AlertDescription>You do not have permission to view teachers.</AlertDescription>
-			</Alert>
+			<NoAccess
+				title="Teachers are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

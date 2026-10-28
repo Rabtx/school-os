@@ -57,6 +57,7 @@ import {
 	SubjectChip,
 	SubmittedBar,
 } from "./homework-cells";
+import { NoAccess } from "@/components/states";
 
 const statusOptions = [
 	{ label: "All statuses", value: "all" },
@@ -408,11 +409,10 @@ export function HomeworkPage() {
 
 	if (!canRead) {
 		return (
-			<AdminPageShell title="Homework" description="You do not have permission to view homework.">
-				<Alert variant="destructive">
-					<AlertDescription>Missing homework.read permission.</AlertDescription>
-				</Alert>
-			</AdminPageShell>
+			<NoAccess
+				title="Homework is not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

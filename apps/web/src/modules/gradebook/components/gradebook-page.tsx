@@ -2,7 +2,6 @@
 
 import { ArrowLeft01Icon, ArrowRight01Icon, SparklesIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert, AlertDescription } from "@school-os/ui/components/alert";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { Spinner } from "@school-os/ui/components/spinner";
 import { useEffect, useMemo, useState } from "react";
@@ -20,6 +19,7 @@ import type {
 	GradebookTerm,
 } from "@/modules/gradebook/types/gradebook.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { NoAccess } from "@/components/states";
 
 const TERMS: { label: string; value: GradebookTerm }[] = [
 	{ label: "Term 1", value: "term1" },
@@ -122,11 +122,10 @@ export function GradebookPage() {
 
 	if (!canRead) {
 		return (
-			<div className="p-6">
-				<Alert variant="destructive">
-					<AlertDescription>You do not have permission to view the gradebook.</AlertDescription>
-				</Alert>
-			</div>
+			<NoAccess
+				title="The gradebook is not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 
