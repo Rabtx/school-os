@@ -23,6 +23,7 @@ import { useMemo, useState } from "react";
 import { AdminPageShell } from "@/components/admin/admin-page-shell";
 import { InitialsAvatar } from "@/components/initials-avatar";
 import { ListPage } from "@/components/list-page";
+import { HomeworkCheckAnswers } from "./homework-check-answers";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -99,8 +100,13 @@ export function HomeworkPage() {
 	const canRead = can(PermissionCodes.HOMEWORK_READ);
 	const canWrite = can(PermissionCodes.HOMEWORK_WRITE);
 
-	const tab: "assigned" | "drafts" =
-		searchParams.get("tab") === "drafts" || initialStatus === "draft" ? "drafts" : "assigned";
+	const tabParam = searchParams.get("tab");
+	const tab: "assigned" | "drafts" | "submissions" =
+		tabParam === "submissions"
+			? "submissions"
+			: tabParam === "drafts" || initialStatus === "draft"
+				? "drafts"
+				: "assigned";
 	const [sectionSubjectFilter, setSectionSubjectFilter] = useState("");
 	const [dueFilter, setDueFilter] = useState("");
 	const [search, setSearch] = useState("");
@@ -238,17 +244,30 @@ export function HomeworkPage() {
 			header: <span className="sr-only">Actions</span>,
 			headerClassName: "text-right",
 			className: "text-right",
-			renderCell: (row) =>
-				canWrite ? (
-					<Button
-						size="icon-sm"
-						variant="ghost"
-						aria-label={`Edit ${row.title}`}
-						onClick={() => openEditSheet(row)}
-					>
-						<HugeiconsIcon icon={Edit02Icon} strokeWidth={1.8} />
-					</Button>
-				) : null,
+			renderCell: (row) => (
+				<span className="inline-flex items-center gap-1">
+					{row.status !== "draft" ? (
+						<Button
+							size="sm"
+							variant="ghost"
+							nativeButton={false}
+							render={<Link href={`/admin/homework?tab=submissions&homeworkId=${row.id}`} />}
+						>
+							Check answers
+						</Button>
+					) : null}
+					{canWrite ? (
+						<Button
+							size="icon-sm"
+							variant="ghost"
+							aria-label={`Edit ${row.title}`}
+							onClick={() => openEditSheet(row)}
+						>
+							<HugeiconsIcon icon={Edit02Icon} strokeWidth={1.8} />
+						</Button>
+					) : null}
+				</span>
+			),
 		},
 	];
 
@@ -416,14 +435,31 @@ export function HomeworkPage() {
 		);
 	}
 
+	const tabs = [
+		{ label: "Assigned", href: "/admin/homework", active: tab === "assigned" },
+		{ label: "Drafts", href: "/admin/homework?tab=drafts", active: tab === "drafts" },
+		{
+			label: "Submissions",
+			href: "/admin/homework?tab=submissions",
+			active: tab === "submissions",
+		},
+	];
+
+	if (tab === "submissions") {
+		return (
+			<HomeworkCheckAnswers
+				assignments={listQuery.data ?? []}
+				loading={listQuery.isLoading}
+				tabs={tabs}
+			/>
+		);
+	}
+
 	return (
 		<>
 			<ListPage
 				title="Homework"
-				tabs={[
-					{ label: "Assigned", href: "/admin/homework", active: tab === "assigned" },
-					{ label: "Drafts", href: "/admin/homework?tab=drafts", active: tab === "drafts" },
-				]}
+				tabs={tabs}
 				banner={
 					listQuery.error ? (
 						<Alert variant="destructive">

@@ -16,6 +16,7 @@ import {
 import {
 	type HomeworkSubmissionSummary,
 	type PublicHomeworkSubmissionWithStudent,
+	toPendingHomeworkSubmission,
 	toPublicHomeworkSubmission,
 } from './homework-submissions.types';
 
@@ -41,18 +42,7 @@ export class HomeworkSubmissionsService {
 			row.assignment.sectionSubjectId,
 		);
 
-		const rows = await this.submissions.listForHomework(tenantId, homeworkId);
-		const submissions = rows.map(({ submission, student }) =>
-			Object.assign(toPublicHomeworkSubmission(submission), {
-				studentName: `${student.firstName} ${student.lastName}`.trim(),
-				studentCode: student.studentCode,
-			}),
-		);
-
-		return {
-			submissions,
-			summary: this.buildSummary(submissions),
-		};
+		return this.getSubmissionsInternal(tenantId, row);
 	}
 
 	async bulkUpdateSubmissions(
@@ -78,7 +68,7 @@ export class HomeworkSubmissionsService {
 
 		await this.submissions.upsertSubmissions(upsertRows);
 
-		return this.getSubmissionsInternal(tenantId, homeworkId);
+		return this.getSubmissionsInternal(tenantId, row);
 	}
 
 	async markSubmitted(
@@ -126,7 +116,7 @@ export class HomeworkSubmissionsService {
 			},
 		]);
 
-		return this.getSubmissionsInternal(tenantId, homeworkId);
+		return this.getSubmissionsInternal(tenantId, row);
 	}
 
 	async getStudentHomeworkHistory(userId: string, tenantId: string, studentId: string) {
@@ -215,14 +205,35 @@ export class HomeworkSubmissionsService {
 		return progressMap;
 	}
 
-	private async getSubmissionsInternal(tenantId: string, homeworkId: string) {
-		const rows = await this.submissions.listForHomework(tenantId, homeworkId);
-		const submissions = rows.map(({ submission, student }) =>
+	private async getSubmissionsInternal(
+		tenantId: string,
+		row: Awaited<ReturnType<HomeworkSubmissionsService['requireHomework']>>,
+	) {
+		const homeworkId = row.assignment.id;
+		const [rows, recipientIds] = await Promise.all([
+			this.submissions.listForHomework(tenantId, homeworkId),
+			this.resolveRecipientStudentIds(tenantId, row),
+		]);
+		const recorded = rows.map(({ submission, student }) =>
 			Object.assign(toPublicHomeworkSubmission(submission), {
 				studentName: `${student.firstName} ${student.lastName}`.trim(),
 				studentCode: student.studentCode,
 			}),
 		);
+
+		// Students who never handed in have no row yet; list them as pending so the teacher sees
+		// (and can excuse or mark) the whole class, not just the ones who submitted.
+		const recordedIds = new Set(recorded.map((submission) => submission.studentId));
+		const unrecorded = await this.students.findStudentsByIds(
+			tenantId,
+			recipientIds.filter((studentId) => !recordedIds.has(studentId)),
+		);
+		const submissions = [
+			...recorded,
+			...unrecorded.map((student) =>
+				toPendingHomeworkSubmission(tenantId, row.assignment, student),
+			),
+		].toSorted((a, b) => a.studentName.localeCompare(b.studentName));
 
 		return {
 			submissions,
@@ -269,7 +280,9 @@ export class HomeworkSubmissionsService {
 			homeworkId,
 			studentId: update.studentId,
 			status: update.status,
-			submittedAt: isSubmitted ? now : isCleared ? null : null,
+			// A graded paper counts as handed in. On conflict the repository keeps the first hand-in
+			// time, so marking or re-saving never moves it.
+			submittedAt: isSubmitted || isGraded ? now : null,
 			grade: isCleared ? null : (update.grade ?? null),
 			marksObtained: isCleared ? null : (update.marksObtained ?? null),
 			totalMarks: isCleared ? null : (update.totalMarks ?? null),
