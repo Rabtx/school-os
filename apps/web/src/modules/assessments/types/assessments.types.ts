@@ -27,6 +27,15 @@ export type Assessment = {
 	updatedAt: string;
 };
 
+/** Results so far, on list rows: how many are marked and their mean as a percentage. */
+export type AssessmentResultsSummary = {
+	graded: number;
+	absent: number;
+	averagePercentage: number | null;
+};
+
+export type AssessmentListItem = Assessment & { results: AssessmentResultsSummary };
+
 export type AssessmentResult = {
 	id: string | null;
 	studentId: string;

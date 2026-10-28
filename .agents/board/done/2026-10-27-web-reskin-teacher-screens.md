@@ -5,7 +5,7 @@ type: feature
 from: pm
 to: web
 priority: normal
-status: doing
+status: done
 assignee: claude
 reviewer: none
 parent: none
@@ -54,5 +54,6 @@ Progress:
 - PR 2: roll call (`160:32559`, row menu `200:85320`) on the shared list layout for teachers and leadership: Roll call / Late arrivals / Absences tabs (`?status=`), class, date and status pills, guardian, check-in time and method columns, row menu to mark or open the profile, stats footer. The session response adds each student's primary guardian and latest check-in source. Teachers land on their first homeroom with students instead of an empty page. Parent alert status waits for Phase 4.
 - PR 3: check answers (`165:36039`) as the homework page's Submissions tab (`?tab=submissions&homeworkId=`), reached from each assignment's "Check answers" action. Homework picker, status filter (needs marking / marked / not handed in), search, handed-in and marks columns, stats footer, and a side panel to mark, comment, excuse or mark not handed in, with save and next. The submissions API now lists every recipient, so students who never handed in show as not handed in instead of being left out. Fixes marking wiping the hand-in time and attachment. The AI checker waits for Phase 7.
 - PR 4: marks (`167:37954`) as the gradebook's default tab, with report cards (`166:36303`) as the second. A new marks endpoint (`GET /gradebook/marks?sectionId&subjectId`) returns every published test and homework for one class subject per student, with homework average, a trend over every marked item and an overall (mean of marked tests and homework) with its grade. Marks tab: sort, class and subject pills, latest two homework (marks, waiting, missing, not due), the latest three tests, homework average meter, trend, overall and grade, row menu to mark waiting homework or open the profile, CSV export, Add assessment, and a banner linking to check answers when homework waits on the teacher. AI publish and review wait for Phase 7; terms are not modelled on tests yet, so the Term pill is left out of Marks.
-- Next: tests (`181:49526`), then close the card.
+- PR 5: tests (`181:49526`) on the shared list layout: Tests and Quizzes tabs, sort, class and status pills, search, Test planner and New test/quiz in the toolbar. Columns: test, class and subject with draft and exam chips, date and start time, duration, students, and a result (not sent, sent to N students, waiting for marks, or the average with how many are left to mark). A side panel shows status, publish (confirmed) or close, enter marks, details, results and who sits it. The assessment list API adds a results summary per row (marked, absent, mean percentage) in one grouped query. Questions, practice sets, the question bank and family notices have no backend yet; the panel says so instead of showing them.
+- Card closed: every teacher frame on Figma page `212:33177` is rebuilt.
 

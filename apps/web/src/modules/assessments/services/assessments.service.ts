@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import type {
 	Assessment,
 	AssessmentDetail,
+	AssessmentListItem,
 	CreateAssessmentInput,
 	UpdateAssessmentInput,
 	UpsertAssessmentResultsInput,
@@ -17,7 +18,7 @@ export const assessmentsService = {
 		if (params?.sectionSubjectId) search.set("sectionSubjectId", params.sectionSubjectId);
 		if (params?.status) search.set("status", params.status);
 		const query = search.toString();
-		return apiClient.get<{ assessments: Assessment[] }>(
+		return apiClient.get<{ assessments: AssessmentListItem[] }>(
 			`/tenants/${tenantId}/assessments${query ? `?${query}` : ""}`,
 			{ accessToken },
 		);
