@@ -41,6 +41,9 @@ export class TenantGuard implements CanActivate {
 			});
 		}
 
+		// The path tenant does not have to be the token's active tenant (`tid`): someone who belongs
+		// to two schools can read either without switching. What protects the data is this check, an
+		// active membership in the path tenant on every request, and roles are loaded for that tenant.
 		const membership = await this.memberships.requireActiveMembership(request.user.sub, tenantId);
 
 		const tenant = await this.tenantsRepository.findById(tenantId);

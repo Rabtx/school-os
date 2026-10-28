@@ -148,4 +148,99 @@ describe('AuthService', () => {
 		expect(service.toClientSession(session, true)).toEqual(session);
 		expect(service.toClientSession(session, false)).not.toHaveProperty('refreshToken');
 	});
+
+	it('rotates the current session refresh token when the password changes', async () => {
+		usersService.findById = vi.fn().mockResolvedValue(user);
+		crypto.verifyPassword = vi.fn().mockResolvedValue(true);
+		crypto.createRefreshToken = vi.fn().mockReturnValue('next-refresh-token');
+		crypto.hashRefreshToken = vi.fn().mockReturnValue('next-refresh-hash');
+		authRepository.changePassword = vi.fn().mockResolvedValue(undefined);
+		const caller = { sub: user.id, sid: 'session-1' } as never;
+
+		const nextRefreshToken = service.issueRefreshToken(caller);
+		const result = await service.changePassword(
+			caller,
+			{ currentPassword: 'old-password', newPassword: 'new-password-123' },
+			nextRefreshToken,
+		);
+
+		expect(crypto.createRefreshToken).toHaveBeenCalledWith('session-1');
+		expect(crypto.hashRefreshToken).toHaveBeenCalledWith('next-refresh-token');
+		expect(authRepository.changePassword).toHaveBeenCalledWith({
+			userId: user.id,
+			currentSessionId: 'session-1',
+			passwordHash: 'password-hash',
+			refreshTokenHash: 'next-refresh-hash',
+		});
+		expect(result).toMatchObject({ accepted: true });
+	});
+
+	it('rejects a wrong current password without touching sessions', async () => {
+		usersService.findById = vi.fn().mockResolvedValue(user);
+		crypto.verifyPassword = vi.fn().mockResolvedValue(false);
+		authRepository.changePassword = vi.fn();
+
+		await expect(
+			service.changePassword(
+				{ sub: user.id, sid: 'session-1' } as never,
+				{
+					currentPassword: 'wrong',
+					newPassword: 'new-password-123',
+				},
+				'next-refresh-token',
+			),
+		).rejects.toMatchObject({ response: { code: 'AUTH_CURRENT_PASSWORD_INVALID' } });
+		expect(authRepository.changePassword).not.toHaveBeenCalled();
+	});
+
+	describe('refresh', () => {
+		const session = {
+			id: 'session-1',
+			userId: user.id,
+			refreshTokenHash: 'stored-hash',
+			userAgent: 'Mozilla/5.0 (iPhone) Safari',
+			ipAddress: '10.0.0.1',
+			revokedAt: null,
+			expiresAt: new Date(Date.now() + 86_400_000),
+		};
+
+		beforeEach(() => {
+			crypto.getSessionIdFromRefreshToken = vi.fn().mockReturnValue('session-1');
+			crypto.verifyRefreshToken = vi.fn().mockReturnValue(true);
+			crypto.createRefreshToken = vi.fn().mockReturnValue('next-token');
+			crypto.hashRefreshToken = vi.fn().mockReturnValue('next-hash');
+			authRepository.findSessionById = vi.fn().mockResolvedValue(session);
+			// Stop right after rotation; what follows is covered elsewhere.
+			authRepository.rotateSession = vi.fn().mockResolvedValue(null);
+			usersService.findById = vi.fn().mockResolvedValue(user);
+		});
+
+		it('records where the session was used without treating a new IP as theft', async () => {
+			const warn = vi.spyOn(Reflect.get(service, 'logger'), 'warn');
+			const seenFrom = { ipAddress: '10.9.9.9', userAgent: session.userAgent };
+
+			await expect(service.refresh('refresh-token', seenFrom)).rejects.toMatchObject({
+				response: { code: 'AUTH_REFRESH_TOKEN_INVALID' },
+			});
+
+			expect(authRepository.rotateSession).toHaveBeenCalledWith(
+				'session-1',
+				'stored-hash',
+				'next-hash',
+				expect.any(Date),
+				seenFrom,
+			);
+			expect(warn).not.toHaveBeenCalled();
+		});
+
+		it('leaves a warning when a different browser or app uses the session', async () => {
+			const warn = vi.spyOn(Reflect.get(service, 'logger'), 'warn');
+
+			await expect(
+				service.refresh('refresh-token', { ipAddress: '10.0.0.1', userAgent: 'curl/8.0' }),
+			).rejects.toBeDefined();
+
+			expect(warn).toHaveBeenCalledWith(expect.stringContaining('different user agent'));
+		});
+	});
 });

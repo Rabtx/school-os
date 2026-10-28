@@ -1,5 +1,6 @@
 import {
 	ConflictException,
+	ForbiddenException,
 	Injectable,
 	ServiceUnavailableException,
 	UnauthorizedException,
@@ -7,6 +8,7 @@ import {
 import { OAuth2Client } from 'google-auth-library';
 
 import { AppConfigService } from '@/config/app-config.service';
+import { MembershipsRepository } from '@/modules/memberships/memberships.repository';
 import { UsersService } from '@/modules/users/users.service';
 import { SocialAuthRepository } from './social-auth.repository';
 
@@ -18,6 +20,7 @@ export class SocialAuthService {
 		private readonly config: AppConfigService,
 		private readonly repository: SocialAuthRepository,
 		private readonly users: UsersService,
+		private readonly memberships: MembershipsRepository,
 	) {
 		this.google = new OAuth2Client(config.googleClientId);
 	}
@@ -36,6 +39,12 @@ export class SocialAuthService {
 		}
 
 		const existingUser = await this.users.findByEmail(profile.email);
+		if (!existingUser && !(await this.mayCreateAccount(profile.email))) {
+			throw new ForbiddenException({
+				code: 'SOCIAL_SIGNUP_DOMAIN_NOT_ALLOWED',
+				message: 'This school only lets its own email domain create accounts with Google.',
+			});
+		}
 		if (existingUser) {
 			throw new ConflictException({
 				code: 'SOCIAL_ACCOUNT_LINK_REQUIRED',
@@ -82,6 +91,20 @@ export class SocialAuthService {
 			});
 		}
 		return { linked: true };
+	}
+
+	/**
+	 * Whether a Google email may open a brand-new account: any email when AUTH_GOOGLE_ALLOWED_DOMAINS
+	 * is empty, otherwise an allowed domain or an email the school has a live invite for (a parent
+	 * on Gmail, say).
+	 */
+	private async mayCreateAccount(email: string): Promise<boolean> {
+		const allowed = this.config.googleAllowedDomains;
+		if (allowed.length === 0) return true;
+		if (allowed.includes(email.slice(email.lastIndexOf('@') + 1))) return true;
+		const now = new Date();
+		const invites = await this.memberships.listPendingInvitesForEmail(email);
+		return invites.some((invite) => invite.expiresAt > now);
 	}
 
 	async getStatus(userId: string) {

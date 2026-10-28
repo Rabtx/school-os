@@ -6,6 +6,7 @@ import {
 	authChallenges,
 	membershipInvites,
 	sessions,
+	totpFactors,
 	webauthnAuthenticationChallenges,
 } from '@/database/schema';
 
@@ -16,6 +17,7 @@ export type MaintenanceResult = {
 	webauthnChallenges: number;
 	sessions: number;
 	expiredInvites: number;
+	abandonedTotpSetups: number;
 };
 
 @Injectable()
@@ -25,13 +27,14 @@ export class MaintenanceRepository {
 	/**
 	 * One-time codes and WebAuthn challenges are useless a day after they expire. Sessions are kept
 	 * for 30 days after they end so recent sign-in history stays reviewable. Invites are never
-	 * deleted: a lapsed pending invite is marked expired so the history remains.
+	 * deleted: a lapsed pending invite is marked expired so the history remains. A TOTP setup never
+	 * confirmed within a day is abandoned, and its stored secret is deleted.
 	 */
 	async purgeExpired(now = new Date()): Promise<MaintenanceResult> {
 		const dayAgo = new Date(now.getTime() - DAY_MS);
 		const monthAgo = new Date(now.getTime() - 30 * DAY_MS);
 
-		const [challenges, webauthn, staleSessions, invites] = await Promise.all([
+		const [challenges, webauthn, staleSessions, invites, totpSetups] = await Promise.all([
 			this.database.db
 				.delete(authChallenges)
 				.where(lt(authChallenges.expiresAt, dayAgo))
@@ -54,6 +57,10 @@ export class MaintenanceRepository {
 				.set({ status: 'expired', updatedAt: now })
 				.where(and(eq(membershipInvites.status, 'pending'), lt(membershipInvites.expiresAt, now)))
 				.returning({ id: membershipInvites.id }),
+			this.database.db
+				.delete(totpFactors)
+				.where(and(eq(totpFactors.isEnabled, false), lt(totpFactors.updatedAt, dayAgo)))
+				.returning({ userId: totpFactors.userId }),
 		]);
 
 		return {
@@ -61,6 +68,7 @@ export class MaintenanceRepository {
 			webauthnChallenges: webauthn.length,
 			sessions: staleSessions.length,
 			expiredInvites: invites.length,
+			abandonedTotpSetups: totpSetups.length,
 		};
 	}
 }
