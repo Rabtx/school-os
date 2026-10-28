@@ -18,6 +18,7 @@ import type {
 	UpsertStaffProfileInput,
 } from './staff.dto';
 import { StaffRepository } from './staff.repository';
+import { RECENT_ATTENDANCE_DAYS, summarizeRecentAttendance } from './teacher-recent-attendance';
 import {
 	type PublicTeacher,
 	type PublicTeacherDashboard,
@@ -127,7 +128,7 @@ export class StaffService {
 		const sectionIds = [...new Set(accessibleSections.map((section) => section.id))];
 		const homeroomSectionIds = homeroomSections.map((section) => section.id);
 
-		const [enrollmentCounts, sessions, absenceHistory] = await Promise.all([
+		const [enrollmentCounts, sessions, absenceHistory, recentMarks] = await Promise.all([
 			this.staff.countActiveEnrollmentsBySections(tenant.tenantId, sectionIds),
 			this.staff.findSessionsBySectionsAndDate(tenant.tenantId, homeroomSectionIds, sessionDate),
 			homeroomSectionIds.length > 0
@@ -138,7 +139,14 @@ export class StaffService {
 						sessionDate,
 					)
 				: Promise.resolve([]),
+			this.staff.countSectionMarksByDay(
+				tenant.tenantId,
+				sectionIds,
+				subtractWeekdays(sessionDate, RECENT_ATTENDANCE_DAYS - 1),
+				sessionDate,
+			),
 		]);
+		const recentAttendanceBySection = summarizeRecentAttendance(recentMarks);
 
 		const sessionBySectionId = new Map(
 			sessions
@@ -156,10 +164,15 @@ export class StaffService {
 
 		const sections: PublicTeacherDashboardSection[] = accessibleSections.map((section) => {
 			const studentCount = enrollmentCounts.get(section.id) ?? 0;
+			const recentAttendance = recentAttendanceBySection.get(section.id) ?? {
+				rate: null,
+				days: [],
+			};
 			if (section.accessType !== 'homeroom') {
 				return {
 					section,
 					studentCount,
+					recentAttendance,
 					todayAttendance: {
 						sessionId: null,
 						isComplete: true,
@@ -184,6 +197,7 @@ export class StaffService {
 			return {
 				section,
 				studentCount,
+				recentAttendance,
 				todayAttendance: {
 					sessionId: session?.id ?? null,
 					isComplete,
@@ -251,21 +265,23 @@ export class StaffService {
 
 		const sectionSubjectIds = detail.subjectAssignments.map((row) => row.id);
 		const yesterdayDate = subtractWeekdays(sessionDate, 1);
-		const [draftHomeworkCount, dueTodayHomeworkCount, yesterdaySessions] = await Promise.all([
-			this.staff.countHomeworkForSectionSubjects(tenant.tenantId, sectionSubjectIds, {
-				status: 'draft',
-			}),
-			this.staff.countHomeworkForSectionSubjects(tenant.tenantId, sectionSubjectIds, {
-				dueOnDate: sessionDate,
-			}),
-			homeroomSectionIds.length > 0
-				? this.staff.findSessionsBySectionsAndDate(
-						tenant.tenantId,
-						homeroomSectionIds,
-						yesterdayDate,
-					)
-				: Promise.resolve([]),
-		]);
+		const [draftHomeworkCount, dueTodayHomeworkCount, yesterdaySessions, toReviewCount] =
+			await Promise.all([
+				this.staff.countHomeworkForSectionSubjects(tenant.tenantId, sectionSubjectIds, {
+					status: 'draft',
+				}),
+				this.staff.countHomeworkForSectionSubjects(tenant.tenantId, sectionSubjectIds, {
+					dueOnDate: sessionDate,
+				}),
+				homeroomSectionIds.length > 0
+					? this.staff.findSessionsBySectionsAndDate(
+							tenant.tenantId,
+							homeroomSectionIds,
+							yesterdayDate,
+						)
+					: Promise.resolve([]),
+				this.staff.countHomeworkSubmissionsToReview(tenant.tenantId, sectionSubjectIds),
+			]);
 
 		const yesterdayMarkedSectionIds = new Set(
 			yesterdaySessions
@@ -308,6 +324,7 @@ export class StaffService {
 			todaySchedule,
 			morningDigest: {
 				draftHomeworkCount,
+				toReviewCount,
 				dueTodayHomeworkCount,
 				upcomingPeriod,
 				yesterdayUnmarkedSections,

@@ -5,5 +5,6 @@ export { useMyDayTimetableQuery, useMyWeekTimetableQuery } from "./hooks/use-tim
 export type {
 	TeacherDaySchedule,
 	TeacherWeekSchedule,
+	TimetableClassSlot,
 	TimetableSlot,
 } from "./types/timetable.types";

@@ -5,17 +5,17 @@ type: feature
 from: pm
 to: web
 priority: normal
-status: open
-assignee: none
+status: doing
+assignee: claude
 reviewer: none
 parent: none
 depends_on: ["str-web-reskin-detail-screens"]
-branch: none
+branch: ccr-bf0f9944-6h1l31
 worktree: none
-scope: ["apps/web/src/modules/dashboard/components/teacher-dashboard.tsx", "apps/web/src/modules/staff/**", "apps/web/src/app/admin/my-classes/**"]
+scope: ["apps/web/src/modules/dashboard/components/teacher-home/**", "apps/web/src/modules/staff/**", "apps/web/src/app/admin/my-classes/**", "apps/nest-api/src/modules/staff/**"]
 allowed_shared: []
 created: 2026-10-27
-updated: 2026-10-27
+updated: 2026-10-28
 ---
 
 ## What
@@ -47,4 +47,9 @@ Same pattern as the principal screens; teacher views only show their assigned se
 - Screenshot compared with the Figma frame; node IDs recorded below.
 
 ## Resolution
+
+Progress:
+
+- PR 1: teacher home (`158:31492`) and My classes (`158:32640`). The dashboard API adds `toReviewCount` (homework handed in, not graded) and each class's roll-call rate and daily trend over the last 10 school days. Home: next class, roll call, to review, due today and drafts; today's lessons with taught/now/next status; homeroom roll call; needs-you list; students absent several days in a row. Unread messages and AI drafts wait for Phases 4 and 7, so their cards show homework due today and drafts instead. My classes: Today, This week and All classes tabs as one table with attendance meter, trend and status, row menu for roll call, homework and tests. The old command-centre components and onboarding dialog are removed.
+- Next: roll call, homework and check answers, marks and report cards.
 

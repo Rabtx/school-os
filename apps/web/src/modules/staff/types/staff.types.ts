@@ -74,6 +74,11 @@ export type TeacherDashboardAttendanceSummary = {
 export type TeacherDashboardSection = {
 	section: TeacherAccessibleSection;
 	studentCount: number;
+	/** Daily roll call over the last 10 school days, oldest first, and the rate across them. */
+	recentAttendance: {
+		rate: number | null;
+		days: { date: string; rate: number }[];
+	};
 	todayAttendance: {
 		sessionId: string | null;
 		isComplete: boolean;
@@ -116,6 +121,8 @@ export type TeacherDashboardYesterdaySection = {
 
 export type TeacherDashboardMorningDigest = {
 	draftHomeworkCount: number;
+	/** Submissions handed in and not graded yet. */
+	toReviewCount: number;
 	dueTodayHomeworkCount: number;
 	upcomingPeriod: TeacherDashboardUpcomingPeriod | null;
 	yesterdayUnmarkedSections: TeacherDashboardYesterdaySection[];

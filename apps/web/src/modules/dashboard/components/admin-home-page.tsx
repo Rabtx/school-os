@@ -7,7 +7,7 @@ import { isSchoolLeadershipRole, PermissionCodes, usePermissions } from "@/modul
 import { AdminDashboard } from "./admin-dashboard";
 import { PrincipalHome } from "./principal-home/principal-home";
 import { StudentDashboard } from "./student-dashboard";
-import { TeacherDashboard } from "./teacher-dashboard";
+import { TeacherHome } from "./teacher-home/teacher-home";
 
 export function AdminHomePage() {
 	const router = useRouter();
@@ -57,7 +57,7 @@ export function AdminHomePage() {
 	}
 
 	if (role === "teacher" && !isOpsDashboard) {
-		return <TeacherDashboard />;
+		return <TeacherHome />;
 	}
 
 	if (isSchoolLeadershipRole(role) || role === "owner" || role === "admin") {
