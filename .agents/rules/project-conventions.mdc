@@ -10,7 +10,7 @@ alwaysApply: true
 - **Lint/format**: oxlint and oxfmt only (no ESLint/Prettier). Config: root `.oxlintrc.json` and `.oxfmtrc.json`. Pre-commit hook (lefthook) runs `oxlint --fix`.
 - **Style**: Tabs, line width 100. oxlint and oxfmt apply to `apps/**/*.ts(x)`, `packages/**/*.ts(x)`, `*.config.ts`, `*.config.mjs`.
 - **Shared packages**: `packages/rabtx` (`@rabtx/ui`, the component library being rebuilt; see `DESIGN.md`), `packages/ui` (legacy shadcn-style components + design tokens in `src/styles/globals.css`), `packages/typescript-config` (tsconfig bases), `packages/logger` (TS + Rust logger).
-- **Apps**: `apps/web` (Next.js), `apps/mobile` (Expo Router + Uniwind), `apps/docs` (Fumadocs), `apps/nest-api` (NestJS), `apps/ai-api` (FastAPI), `apps/rust` (Axum). Add new apps under `apps/` and wire in `turbo.json`.
+- **Apps**: `apps/web` (Next.js), `apps/mobile` (Expo Router + Uniwind), `apps/docs` (Fumadocs), `apps/nest-api` (NestJS), `apps/rust` (Axum). Add new apps under `apps/` and wire in `turbo.json`.
 - **Expo mobile**: Use file-based routes in `apps/mobile/src/app`, shared logic in `apps/mobile/src`, and UI primitives in `apps/mobile/src/components/ui`.
 - **Safe area**: In React Native use `react-native-safe-area-context` (`SafeAreaProvider`, `SafeAreaView`) instead of deprecated `react-native` `SafeAreaView`.
 - **Workspace imports**: Use `@school-os/<package>` (e.g. `@school-os/ui`, `@school-os/logger`). Prefer shared packages over duplicating code across apps.

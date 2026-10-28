@@ -40,8 +40,6 @@ services:
         generateValue: true
       - key: AUTH_TOKEN_SECRET
         generateValue: true
-      - key: AI_SERVICE_TOKEN
-        generateValue: true
       # Required for auth emails in production (https://resend.com).
       - key: RESEND_API_KEY
         sync: false
@@ -56,7 +54,3 @@ services:
         sync: false
       - key: WEBAUTHN_ORIGIN
         sync: false
-      # Optional until apps/ai-api is hosted; use a public URL or leave localhost
-      # (assist routes will fail until set).
-      - key: AI_API_URL
-        value: http://127.0.0.1:8000

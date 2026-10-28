@@ -73,7 +73,7 @@ The default team is intentionally small:
 - human product owner — direction, approvals, and final decisions;
 - PM — Codex delivery coordination;
 - backend, web, mobile — implementation owners;
-- AI/Python and UI/UX — specialist implementation/support roles;
+- AI and UI/UX — specialist implementation/support roles;
 - QA and reviewer — activated when the risk or change requires them.
 
 Add another agent only when there is a measurable workload, capability gap, or separation-of-duties
@@ -86,7 +86,7 @@ For each working session I will:
 1. Inspect the board, active worktrees, recent commits, and team notes.
 2. Report what changed, what is blocked, what needs your decision, and the next actions.
 3. Convert approved outcomes into slices and scoped cards with one accountable owner each.
-4. Coordinate dependencies between backend, AI/Python, web, mobile, UI/UX, QA, and reviewer.
+4. Coordinate dependencies between backend, AI, web, mobile, UI/UX, QA, and reviewer.
 5. Check completion evidence before recommending a card or agent as done.
 6. Keep staffing and role quality observable through review findings, regressions, scope violations,
    and validation evidence.

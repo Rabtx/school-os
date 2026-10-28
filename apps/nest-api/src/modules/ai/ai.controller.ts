@@ -24,14 +24,14 @@ export class AiController {
 	constructor(private readonly ai: AiService) {}
 
 	@Get('status')
-	@ApiOperation({ summary: 'Check AI assistance upstream availability' })
+	@ApiOperation({ summary: 'Whether AI assistance is set up' })
 	status() {
 		return this.ai.status();
 	}
 
 	@Post('assist')
 	@HttpCode(HttpStatus.OK)
-	@ApiOperation({ summary: 'In-app AI assistance (proxied to FastAPI)' })
+	@ApiOperation({ summary: 'In-app AI assistance' })
 	assist(
 		@CurrentTenant() tenant: TenantContext,
 		@Body(new ZodValidationPipe(assistRequestSchema)) body: AssistRequestDto,

@@ -33,10 +33,9 @@ const QUICK_PROMPTS = [
 	},
 	{
 		label: "AI pipeline",
-		description: "Web → Nest → FastAPI",
+		description: "Web → Nest API",
 		icon: Globe02Icon,
-		prompt:
-			"How does in-app AI assistance flow from the web app through Nest to the FastAPI service?",
+		prompt: "How does in-app AI assistance flow from the web app through the Nest API?",
 	},
 ] as const;
 
@@ -64,7 +63,7 @@ export function AiAssistScreen() {
 		void aiService
 			.status(token, tenantId)
 			.then((status) => {
-				setModelLabel(status.ok ? (status.provider ?? "Assist") : "Offline");
+				setModelLabel(status.ok ? (status.provider ?? "Assist") : "Not set up");
 			})
 			.catch(() => setModelLabel("Offline"));
 	}, [token, tenantId]);

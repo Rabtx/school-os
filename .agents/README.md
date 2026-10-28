@@ -2,7 +2,7 @@
 
 Cross-team communication for the agents building this monorepo:
 **backend** (NestJS), **web** (Next.js), **mobile** (Expo), **rust** (Axum),
-**ai-python** (FastAPI), **ui-ux** (the design system), and the human.
+**ai** (the TypeScript AI layer in the Nest API), **ui-ux** (the design system), and the human.
 
 ```
 .agents/

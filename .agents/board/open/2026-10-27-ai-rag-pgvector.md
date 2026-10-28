@@ -2,8 +2,8 @@
 id: str-ai-rag-pgvector
 title: RAG over school knowledge with pgvector
 type: feature
-from: ai-python
-to: ai-python
+from: ai
+to: ai
 priority: high
 status: open
 assignee: none
@@ -12,7 +12,7 @@ parent: none
 depends_on: ["str-ai-tool-registry"]
 branch: none
 worktree: none
-scope: ["apps/ai-api/**", "apps/nest-api/src/database/**"]
+scope: ["apps/nest-api/src/modules/ai/**", "apps/nest-api/src/database/**"]
 allowed_shared: []
 created: 2026-10-27
 updated: 2026-10-27

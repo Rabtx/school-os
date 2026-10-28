@@ -6,7 +6,7 @@ School OS is a **mobile-first, Apple-polished** school management platform built
 
 It is **not a generic ERP**. It is a **trust and communication engine** for affordable private schools (roughly 200–2,000 students) — starting with **Smart Attendance** and WhatsApp alerts, then expanding into communication, academics, finance, and AI-assisted teaching tools.
 
-This repository is the **production monorepo** for that product: Bun, Turborepo, Next.js, Expo, NestJS, optional FastAPI AI assist, shared packages, Docker, and CI.
+This repository is the **production monorepo** for that product: Bun, Turborepo, Next.js, Expo, NestJS, shared packages, Docker, and CI.
 
 ### 100-second tour
 
@@ -102,7 +102,7 @@ The web app is rebuilt screen by screen to the School OS Figma file, on live dat
 | Parent **My children** (ID card, homework, attendance) | ✅ web · 🔜 mobile |
 | WhatsApp alerts, rules engine, approvals, OTP | 🔜 next, after the screen rebuild |
 | AI tool registry, RAG (pgvector), memory, evals | 🔜 after messaging |
-| Expo mobile scaffold, billing hooks (Stripe / Razorpay), FastAPI AI proxy, docs site | ✅ scaffolds |
+| Expo mobile scaffold, billing hooks (Stripe / Razorpay), docs site | ✅ scaffolds |
 
 --- | --- |
 | Monorepo (Bun, Turbo, oxlint, oxfmt, Lefthook, CI) | ✅ |
@@ -110,7 +110,6 @@ The web app is rebuilt screen by screen to the School OS Figma file, on live dat
 | Expo mobile scaffold (`apps/mobile`) | ✅ |
 | NestJS API spine — auth, sessions, MFA, passkeys, profiles (`apps/nest-api`) | ✅ |
 | Billing hooks — Stripe / Razorpay (`apps/nest-api`) | ✅ |
-| AI assist proxy — FastAPI (`apps/ai-api`) | ✅ |
 | Docs site (`apps/docs`) | ✅ |
 | Tenants, academic structure, students (table + **ID cards**), guardians, staff | ✅ |
 | Attendance (homeroom), teacher dashboard + **my classes** roster (table + **ID cards**) | ✅ |
@@ -127,7 +126,7 @@ The web app is rebuilt screen by screen to the School OS Figma file, on live dat
 | **Mobile** | Expo SDK 57, Expo Router, NativeWind | Parent, teacher, guard, bus workflows |
 | **API** | NestJS 11, Drizzle, PostgreSQL / Neon | Production backend spine |
 | **Docs** | Fumadocs + MDX | Product and engineering documentation |
-| **AI assist** | FastAPI (optional) | Proxied by Nest — never public-facing LLM keys |
+| **AI** | TypeScript in `apps/nest-api` (planned) | Tool registry, retrieval, memory and evals; provider keys stay on the server |
 | **Rust demo** | Axum (optional) | Reference binary / experiments |
 
 Shared packages (`@school-os/ui`, `@school-os/logger`, TypeScript configs), Docker Compose, Dev Container, Lefthook hooks, and CI/CD pipelines are included out of the box.
@@ -136,9 +135,9 @@ Shared packages (`@school-os/ui`, `@school-os/logger`, TypeScript configs), Dock
 
 | Topic | Portfolio spec | This repo (source of truth) |
 | --- | --- | --- |
-| Backend | FastAPI or Hono / Express | **NestJS** — modules, guards, queues, WebSockets |
+| Backend | Hono / Express | **NestJS** — modules, guards, queues, WebSockets |
 | Database | PostgreSQL + SQLite cache | **PostgreSQL** (Neon in prod); Redis planned for cache/queues |
-| AI | OpenAI / Ollama | **FastAPI** behind Nest proxy; human approval for high-risk actions |
+| AI | OpenAI / Ollama | **TypeScript** inside the Nest API; human approval for high-risk actions |
 | Messaging | Twilio / WhatsApp Cloud API | Planned via notification engine + outbox worker |
 | Payments | Stripe / Razorpay | **Stripe + Razorpay** providers in `nest-api` billing module |
 
@@ -190,7 +189,7 @@ bun run lint && bun run format && bun run typecheck
        └────────┬────────┘
                 ▼
        ┌─────────────────┐
-       │  apps/nest-api  │◄── optional ── apps/ai-api (FastAPI)
+       │  apps/nest-api  │  (AI layer in TypeScript, planned)
        │    (NestJS)     │
        └────────┬────────┘
                 ▼
@@ -227,7 +226,6 @@ school-os/
 │   ├── mobile/       Expo Router mobile app
 │   ├── nest-api/     NestJS production API
 │   ├── docs/         Fumadocs documentation site
-│   ├── ai-api/       Optional FastAPI AI assist
 │   └── rust/         Optional Rust/Axum demo
 ├── packages/
 │   ├── ui/           Shared shadcn-style components + tokens
@@ -247,7 +245,6 @@ school-os/
 | --- | --- |
 | `bun run dev` | Start dev servers (Turbo; excludes Rust by default) |
 | `bun run dev:all` | Start all apps including Rust |
-| `bun run dev:ai` | Start FastAPI AI assist only |
 | `bun run build` | Build all apps |
 | `bun run lint` / `lint:fix` | oxlint + ShellCheck + Ruff |
 | `bun run format` | Format TS/JS, shell, Python, Rust |
@@ -281,7 +278,7 @@ docker compose up -d --build
 | Nest API | `:4000` |
 | Postgres (host) | `:5433` |
 
-Optional profiles: `docker compose --profile rust up -d --build` · `--profile ai` for FastAPI.
+Optional profile: `docker compose --profile rust up -d --build`.
 
 See [docker/README.md](docker/README.md) and `/docs/docker`.
 

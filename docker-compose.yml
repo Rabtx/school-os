@@ -12,4 +12,3 @@ include:
   - path: docker/compose/nest-api.yml
   - path: docker/compose/web.yml
   - path: docker/compose/rust-api.yml
-  - path: docker/compose/ai-api.yml

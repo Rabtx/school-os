@@ -15,10 +15,10 @@ roles:
     reviewers:
       - reviewer
       - qa
-  ai-python:
+  ai:
     team: ai
     paths:
-      - apps/ai-api/**
+      - apps/nest-api/src/modules/ai/**
       - scripts/python/**
     reviewers:
       - reviewer
