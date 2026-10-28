@@ -89,11 +89,16 @@ export class PasskeysService {
 		return toPasskeyView(passkey);
 	}
 
+	/**
+	 * An email narrows the prompt to that account's passkeys. An unknown email, an inactive account
+	 * or one without passkeys gets the same discoverable options as no email at all, so the response
+	 * never reveals which emails have accounts or passkeys; the browser simply finds no credential.
+	 */
 	async beginAuthentication(email?: string) {
-		const user = email ? await this.users.findByEmail(email) : null;
-		if (email && !user?.isActive) throw invalidPasskey();
-		const passkeys = user ? await this.repository.listForUser(user.id) : [];
-		if (user && passkeys.length === 0) throw invalidPasskey();
+		const found = email ? await this.users.findByEmail(email) : null;
+		const candidate = found?.isActive ? found : null;
+		const passkeys = candidate ? await this.repository.listForUser(candidate.id) : [];
+		const user = passkeys.length > 0 ? candidate : null;
 		const options = await generateAuthenticationOptions({
 			rpID: this.config.webAuthnRpId,
 			...(user

@@ -139,6 +139,7 @@ export class AuthRepository {
 		userId: string;
 		currentSessionId: string;
 		passwordHash: string;
+		refreshTokenHash: string;
 	}): Promise<void> {
 		await this.database.db.transaction(async (transaction) => {
 			const now = new Date();
@@ -157,6 +158,17 @@ export class AuthRepository {
 					and(
 						eq(sessions.userId, input.userId),
 						ne(sessions.id, input.currentSessionId),
+						isNull(sessions.revokedAt),
+					),
+				);
+			// A refresh token copied before the change no longer works on this session either.
+			await transaction
+				.update(sessions)
+				.set({ refreshTokenHash: input.refreshTokenHash, lastUsedAt: now })
+				.where(
+					and(
+						eq(sessions.id, input.currentSessionId),
+						eq(sessions.userId, input.userId),
 						isNull(sessions.revokedAt),
 					),
 				);
@@ -236,10 +248,18 @@ export class AuthRepository {
 		currentRefreshTokenHash: string,
 		refreshTokenHash: string,
 		expiresAt: Date,
+		seenFrom?: { ipAddress: string | null; userAgent: string | null },
 	): Promise<SessionRecord | null> {
 		const [session] = await this.database.db
 			.update(sessions)
-			.set({ refreshTokenHash, expiresAt, lastUsedAt: new Date() })
+			.set({
+				refreshTokenHash,
+				expiresAt,
+				lastUsedAt: new Date(),
+				// Last place the session was used, so the sessions list shows where it is now.
+				...(seenFrom?.ipAddress ? { ipAddress: seenFrom.ipAddress } : {}),
+				...(seenFrom?.userAgent ? { userAgent: seenFrom.userAgent } : {}),
+			})
 			.where(
 				and(
 					eq(sessions.id, sessionId),

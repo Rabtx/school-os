@@ -33,7 +33,7 @@ export class MaintenanceService implements OnModuleInit, OnModuleDestroy {
 		try {
 			const result = await this.maintenance.purgeExpired();
 			this.logger.log(
-				`Maintenance: removed ${result.authChallenges} codes, ${result.webauthnChallenges} WebAuthn challenges, ${result.sessions} sessions; expired ${result.expiredInvites} invites`,
+				`Maintenance: removed ${result.authChallenges} codes, ${result.webauthnChallenges} WebAuthn challenges, ${result.sessions} sessions; expired ${result.expiredInvites} invites; dropped ${result.abandonedTotpSetups} abandoned TOTP setups`,
 			);
 		} catch (error) {
 			this.logger.error('Maintenance run failed', error instanceof Error ? error.stack : error);

@@ -53,6 +53,8 @@ export const envSchema = z
 		/** Comma-separated allowed WebAuthn origins (web + native). */
 		WEBAUTHN_ORIGIN: z.string().min(1).default('http://localhost:3000'),
 		GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+		/** Comma-separated email domains that may create a new account with Google. Empty allows any. */
+		AUTH_GOOGLE_ALLOWED_DOMAINS: z.string().default(''),
 		BILLING_DEFAULT_PROVIDER: z.enum(['stripe', 'razorpay']).default('stripe'),
 		STRIPE_SECRET_KEY: z.string().min(1).optional(),
 		STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),

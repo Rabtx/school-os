@@ -5,6 +5,7 @@ import {
 	HttpException,
 	HttpStatus,
 	Injectable,
+	Logger,
 	UnauthorizedException,
 } from '@nestjs/common';
 
@@ -30,6 +31,7 @@ import type {
 	AccessTokenPayload,
 	AuthChallengeResult,
 	AuthSessionResult,
+	ChangePasswordResult,
 	ClientAuthSession,
 	ClientLoginResult,
 	LoginResult,
@@ -55,6 +57,8 @@ const DUMMY_BCRYPT_HASH = '$2b$12$LJ3m4sMKfRJf5TQ3GV8HYOsYfTX2v7mX5qW8pN6rK1cC0z
 
 @Injectable()
 export class AuthService {
+	private readonly logger = new Logger(AuthService.name);
+
 	constructor(
 		private readonly config: AppConfigService,
 		private readonly crypto: AuthCryptoService,
@@ -223,7 +227,7 @@ export class AuthService {
 		return this.createSession(await this.passkeys.finishAuthentication(input), metadata);
 	}
 
-	async refresh(refreshToken: string): Promise<AuthSessionResult> {
+	async refresh(refreshToken: string, metadata?: RequestMetadata): Promise<AuthSessionResult> {
 		const sessionId = this.crypto.getSessionIdFromRefreshToken(refreshToken);
 		if (!sessionId) {
 			throw invalidRefreshTokenException();
@@ -245,6 +249,14 @@ export class AuthService {
 			throw invalidRefreshTokenException();
 		}
 
+		// IPs change all the time on phones, so a new address is not treated as theft. A different
+		// browser or app using the same refresh token is unusual enough to leave a trace.
+		if (metadata?.userAgent && session.userAgent && metadata.userAgent !== session.userAgent) {
+			this.logger.warn(
+				`Session ${session.id} for user ${session.userId} refreshed from a different user agent`,
+			);
+		}
+
 		const nextRefreshToken = this.crypto.createRefreshToken(session.id);
 		const expiresAt = this.getSessionExpiry();
 		const rotated = await this.authRepository.rotateSession(
@@ -252,6 +264,7 @@ export class AuthService {
 			session.refreshTokenHash,
 			this.crypto.hashRefreshToken(nextRefreshToken),
 			expiresAt,
+			metadata,
 		);
 		if (!rotated) {
 			throw invalidRefreshTokenException();
@@ -364,7 +377,7 @@ export class AuthService {
 	async changePassword(
 		user: AccessTokenPayload,
 		body: ChangePasswordBody,
-	): Promise<AuthChallengeResult> {
+	): Promise<ChangePasswordResult> {
 		const record = await this.usersService.findById(user.sub);
 		if (
 			!record?.passwordHash ||
@@ -376,12 +389,17 @@ export class AuthService {
 			});
 		}
 		const passwordHash = await this.crypto.hashPassword(body.newPassword);
+		const refreshToken = this.crypto.createRefreshToken(user.sid);
 		await this.authRepository.changePassword({
 			userId: user.sub,
 			currentSessionId: user.sid,
 			passwordHash,
+			refreshTokenHash: this.crypto.hashRefreshToken(refreshToken),
 		});
-		return acceptedChallenge('Password changed successfully. Other sessions were signed out.');
+		return {
+			...acceptedChallenge('Password changed successfully. Other sessions were signed out.'),
+			refreshToken,
+		};
 	}
 
 	async authenticateAccessToken(token: string): Promise<AccessTokenPayload> {

@@ -55,4 +55,20 @@ describe('MfaService', () => {
 		expect(result.recoveryCodes).toHaveLength(10);
 		expect(new Set(result.recoveryCodes).size).toBe(10);
 	});
+
+	it('refuses to restart setup while TOTP is enabled, so it cannot be switched off without a code', async () => {
+		factor = {
+			userId: 'a01a0cab-a947-44f0-bfcd-4b8e8c907534',
+			secretEncrypted: 'secret',
+			isEnabled: true,
+			verifiedAt: new Date(),
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+
+		await expect(
+			service.beginTotpSetup('a01a0cab-a947-44f0-bfcd-4b8e8c907534'),
+		).rejects.toMatchObject({ response: { code: 'MFA_ALREADY_ENABLED' } });
+		expect(repository.savePendingTotp).not.toHaveBeenCalled();
+	});
 });

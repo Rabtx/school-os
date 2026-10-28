@@ -48,7 +48,13 @@ export const authService = {
 	resetPassword: (input: ResetPasswordInput) =>
 		apiClient.post<AuthChallengeResult>("/auth/reset-password", input),
 	changePassword: (accessToken: string, input: ChangePasswordInput) =>
-		apiClient.post<AuthChallengeResult>("/auth/change-password", input, { accessToken }),
+		apiClient.post<AuthChallengeResult & { refreshToken?: string }>(
+			"/auth/change-password",
+			input,
+			{
+				accessToken,
+			},
+		),
 	requestMagicLink: (email: string) =>
 		apiClient.post<AuthChallengeResult>("/auth/methods/magic-link/request", { email }),
 	consumeMagicLink: (token: string) =>

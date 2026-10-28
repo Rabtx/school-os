@@ -63,4 +63,70 @@ describe('PasskeysService', () => {
 			'challenge-value',
 		);
 	});
+	it.each([
+		['an unknown email', null, []],
+		['an inactive account', { id: 'user-1', isActive: false }, []],
+		['an account without passkeys', { id: 'user-1', isActive: true }, []],
+	])('answers %s exactly like a discoverable request', async (_case, found, passkeys) => {
+		const repository = {
+			createAuthenticationChallenge: vi.fn().mockResolvedValue({ id: 'challenge-id' }),
+			listForUser: vi.fn().mockResolvedValue(passkeys),
+		} as unknown as PasskeysRepository;
+		const users = { findByEmail: vi.fn().mockResolvedValue(found) } as unknown as UsersService;
+		const crypto = {
+			hashOtp: vi.fn().mockReturnValue('challenge-hash'),
+		} as unknown as AuthCryptoService;
+		const service = new PasskeysService(
+			{ webAuthnRpId: 'localhost', mfaChallengeTtlMinutes: 5 } as AppConfigService,
+			crypto,
+			repository,
+			users,
+		);
+
+		const result = await service.beginAuthentication('someone@example.com');
+
+		expect(result.challengeId).toBe('challenge-id');
+		expect(generateAuthenticationOptionsMock).toHaveBeenCalledWith({
+			rpID: 'localhost',
+			userVerification: 'required',
+		});
+		expect(repository.createAuthenticationChallenge).toHaveBeenCalledWith(
+			expect.objectContaining({ userId: null }),
+		);
+		expect(crypto.hashOtp).toHaveBeenCalledWith(
+			'webauthn_authentication',
+			'discoverable',
+			'challenge-value',
+		);
+	});
+
+	it('narrows the prompt to the passkeys of an account that has them', async () => {
+		const repository = {
+			createAuthenticationChallenge: vi.fn().mockResolvedValue({ id: 'challenge-id' }),
+			listForUser: vi
+				.fn()
+				.mockResolvedValue([{ credentialId: 'cred-1', transports: ['internal'] }]),
+		} as unknown as PasskeysRepository;
+		const users = {
+			findByEmail: vi.fn().mockResolvedValue({ id: 'user-1', isActive: true }),
+		} as unknown as UsersService;
+		const crypto = {
+			hashOtp: vi.fn().mockReturnValue('challenge-hash'),
+		} as unknown as AuthCryptoService;
+		const service = new PasskeysService(
+			{ webAuthnRpId: 'localhost', mfaChallengeTtlMinutes: 5 } as AppConfigService,
+			crypto,
+			repository,
+			users,
+		);
+
+		await service.beginAuthentication('someone@example.com');
+
+		expect(generateAuthenticationOptionsMock).toHaveBeenCalledWith(
+			expect.objectContaining({ allowCredentials: [{ id: 'cred-1', transports: ['internal'] }] }),
+		);
+		expect(repository.createAuthenticationChallenge).toHaveBeenCalledWith(
+			expect.objectContaining({ userId: 'user-1' }),
+		);
+	});
 });

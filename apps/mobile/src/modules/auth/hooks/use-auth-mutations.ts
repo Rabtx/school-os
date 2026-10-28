@@ -3,6 +3,7 @@ import { useAuth } from "../context/auth-context";
 import { authQueryKeys } from "../queries/auth-query-keys";
 import { authService } from "../services/auth.service";
 import { assertPasskeysAvailable } from "../services/passkey-native";
+import { tokenStorage } from "../services/token-storage";
 import type { ChangePasswordInput, LoginInput, TwoFactorInput } from "../types/auth.types";
 
 export function useLoginMutation() {
@@ -52,7 +53,11 @@ export function useChangePasswordMutation() {
 	return useMutation({
 		mutationFn: (input: ChangePasswordInput) =>
 			authService.changePassword(requireToken(token), input),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: authQueryKeys.all }),
+		onSuccess: async (result) => {
+			// The server rotated this session's refresh token; the old one would now read as reuse.
+			if (result.refreshToken) await tokenStorage.setRefreshToken(result.refreshToken);
+			await queryClient.invalidateQueries({ queryKey: authQueryKeys.all });
+		},
 	});
 }
 

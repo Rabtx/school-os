@@ -109,6 +109,9 @@ export class AppConfigService {
 	get googleClientId(): string | undefined {
 		return this.config.googleClientId;
 	}
+	get googleAllowedDomains(): string[] {
+		return this.config.googleAllowedDomains;
+	}
 	get billingDefaultProvider(): AppConfig['billingDefaultProvider'] {
 		return this.config.billingDefaultProvider;
 	}

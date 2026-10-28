@@ -33,6 +33,7 @@ export type AppConfig = {
 	webAuthnRpId: string;
 	webAuthnOrigins: string[];
 	googleClientId?: string;
+	googleAllowedDomains: string[];
 	billingDefaultProvider: 'stripe' | 'razorpay';
 	stripeSecretKey?: string;
 	stripeWebhookSecret?: string;
@@ -97,6 +98,9 @@ export function createAppConfig(env: Env = parseEnv()): AppConfig {
 			.map((origin) => origin.trim().replace(/\/$/, ''))
 			.filter(Boolean),
 		...(env.GOOGLE_CLIENT_ID ? { googleClientId: env.GOOGLE_CLIENT_ID } : {}),
+		googleAllowedDomains: env.AUTH_GOOGLE_ALLOWED_DOMAINS.split(',')
+			.map((domain) => domain.trim().toLowerCase().replace(/^@/, ''))
+			.filter(Boolean),
 		billingDefaultProvider: env.BILLING_DEFAULT_PROVIDER,
 		...(env.STRIPE_SECRET_KEY ? { stripeSecretKey: env.STRIPE_SECRET_KEY } : {}),
 		...(env.STRIPE_WEBHOOK_SECRET ? { stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET } : {}),

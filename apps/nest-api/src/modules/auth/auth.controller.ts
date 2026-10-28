@@ -41,6 +41,7 @@ import {
 	VerifyEmailBodyDto,
 } from './dto/auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { isNativeClient } from './native-client';
 import { RefreshCookieService } from './refresh-cookie.service';
 import { presentLoginResult, presentSession, resolveRefreshToken } from './session-response';
 
@@ -108,6 +109,7 @@ export class AuthController {
 	): Promise<ClientAuthSession> {
 		const result = await this.authService.refresh(
 			resolveRefreshToken(this.refreshCookie, request, body.refreshToken),
+			getRequestMetadata(request),
 		);
 		return presentSession(this.authService, this.refreshCookie, request, response, result);
 	}
@@ -211,11 +213,16 @@ export class AuthController {
 	@ApiBearerAuth()
 	@HttpCode(HttpStatus.OK)
 	@ApiOperation({ summary: 'Change the current password and revoke other sessions' })
-	changePassword(
+	async changePassword(
 		@CurrentUser() user: AccessTokenPayload,
 		@Body() body: ChangePasswordBodyDto,
-	): Promise<AuthChallengeResult> {
-		return this.authService.changePassword(user, body);
+		@Req() request: Request,
+		@Res({ passthrough: true }) response: Response,
+	): Promise<AuthChallengeResult & { refreshToken?: string }> {
+		const { refreshToken, ...result } = await this.authService.changePassword(user, body);
+		// The session's refresh token was rotated: web gets the cookie, native apps the body field.
+		this.refreshCookie.set(response, refreshToken);
+		return isNativeClient(request) ? { ...result, refreshToken } : result;
 	}
 
 	@Get('sessions')

@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	UnauthorizedException,
+} from '@nestjs/common';
 import { generateSecret, generateURI, verify } from 'otplib';
 import QRCode from 'qrcode';
 
@@ -27,6 +32,14 @@ export class MfaService {
 	}
 
 	async beginTotpSetup(userId: string) {
+		// Starting over would replace an enabled factor with a pending one, switching two-factor off
+		// without a code. Turning it off goes through `disableTotp`, which asks for one.
+		if (await this.isTotpEnabled(userId)) {
+			throw new ConflictException({
+				code: 'MFA_ALREADY_ENABLED',
+				message: 'Two-factor sign-in is already on. Turn it off before setting it up again.',
+			});
+		}
 		const user = await this.users.getCurrentUser(userId);
 		const secret = generateSecret();
 		const uri = generateURI({ issuer: this.config.appName, label: user.email, secret });
