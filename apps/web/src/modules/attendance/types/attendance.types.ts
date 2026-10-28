@@ -1,3 +1,5 @@
+import type { SessionRules } from "@/modules/rules/types/rules.types";
+
 export type AttendanceMarkStatus =
 	| "present"
 	| "absent"
@@ -53,6 +55,8 @@ export type AttendanceSessionView = {
 	marks: AttendanceMark[];
 	summary: AttendanceStatusCounts;
 	students: AttendanceStudentContext[];
+	/** The school's attendance rules for this day and viewer (closing time, late from, edit window). */
+	rules: SessionRules;
 };
 
 export type CreateAttendanceSessionInput = {

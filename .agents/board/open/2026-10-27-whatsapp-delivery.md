@@ -15,7 +15,7 @@ worktree: none
 scope: ["apps/nest-api/src/modules/notifications/**"]
 allowed_shared: []
 created: 2026-10-27
-updated: 2026-10-27
+updated: 2026-10-28
 ---
 
 ## What
@@ -29,6 +29,14 @@ Phase 4 of `.agents/plans/school-os-master-plan.md`. Feeds the dashboard parent-
 ## Proposal or Ask
 
 Webhook for receipts with signature check; connection status endpoint for the sidebar card.
+
+## From the rules engine
+
+The attendance policy (`apps/nest-api/src/modules/rules`) already decides the timing; this card runs it on a schedule:
+
+- Auto-mark absent: at `isAutoAbsentDue(policy, localMinutes)`, mark still-unmarked students absent (source `rule`, audited).
+- Absence alerts: queue one per absent student at `absenceAlertAt(policy, sessionDate, timeZone, quietHours)`, which already moves sends out of quiet hours.
+- Gate scans: when a scan arrives, `classifyScan(policy, localMinutes)` gives present, late or no change.
 
 ## Scope
 

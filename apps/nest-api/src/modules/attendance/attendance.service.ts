@@ -12,6 +12,13 @@ import { PermissionCodes } from '@/modules/authorization/permission-codes';
 import { hasManagementRole, managementRoles } from '@/modules/memberships/membership-roles';
 import { MembershipsService } from '@/modules/memberships/memberships.service';
 import { StaffRepository } from '@/modules/staff/staff.repository';
+import {
+	canTeacherChangeMarks,
+	lateFromMinutes,
+	fromMinutes,
+	teacherEditDeadline,
+} from '@/modules/rules/attendance-rules';
+import { RulesService } from '@/modules/rules/rules.service';
 import { StudentsRepository } from '@/modules/students/students.repository';
 import type {
 	ConfirmAllPresentInput,
@@ -79,6 +86,7 @@ export class AttendanceService {
 		private readonly membershipAccess: MembershipsService,
 		private readonly staff: StaffRepository,
 		private readonly accessScope: AccessScopeService,
+		private readonly rules: RulesService,
 	) {}
 
 	async getOrCreateSession(userId: string, tenantId: string, input: CreateAttendanceSessionInput) {
@@ -93,7 +101,7 @@ export class AttendanceService {
 		);
 		if (existing) {
 			await this.requireSectionReadAccess(tenantId, membership, section);
-			return this.buildSessionResponse(tenantId, existing);
+			return this.buildSessionResponse(tenantId, existing, membership);
 		}
 
 		const markMembership = await this.requireMark(userId, tenantId);
@@ -113,7 +121,7 @@ export class AttendanceService {
 			});
 		}
 
-		return this.buildSessionResponse(tenantId, session);
+		return this.buildSessionResponse(tenantId, session, markMembership);
 	}
 
 	async getSession(userId: string, tenantId: string, sessionId: string) {
@@ -123,7 +131,7 @@ export class AttendanceService {
 			const section = await this.requireSection(tenantId, session.sectionId);
 			await this.requireSectionReadAccess(tenantId, membership, section);
 		}
-		return this.buildSessionResponse(tenantId, session);
+		return this.buildSessionResponse(tenantId, session, membership);
 	}
 
 	async findSession(
@@ -147,7 +155,7 @@ export class AttendanceService {
 			});
 		}
 
-		return this.buildSessionResponse(tenantId, session);
+		return this.buildSessionResponse(tenantId, session, membership);
 	}
 
 	async markAttendance(
@@ -165,6 +173,7 @@ export class AttendanceService {
 		if (section) {
 			await this.requireSectionMarkAccess(tenantId, membership, section);
 		}
+		await this.requireEditWindow(tenantId, membership, session);
 
 		const enrolled = await this.students.listEnrollments(tenantId, {
 			sectionId: session.sectionId ?? undefined,
@@ -220,6 +229,7 @@ export class AttendanceService {
 		if (section) {
 			await this.requireSectionMarkAccess(tenantId, membership, section);
 		}
+		await this.requireEditWindow(tenantId, membership, session);
 
 		if (!session.sectionId) {
 			throw new BadRequestException({
@@ -263,7 +273,7 @@ export class AttendanceService {
 			markedByMembershipId: membership.id,
 		});
 
-		return this.buildSessionResponse(tenantId, session);
+		return this.buildSessionResponse(tenantId, session, membership);
 	}
 
 	private async requireLeadershipRead(userId: string, tenantId: string) {
@@ -509,19 +519,54 @@ export class AttendanceService {
 	private async buildSessionResponse(
 		tenantId: string,
 		session: NonNullable<Awaited<ReturnType<AttendanceRepository['findSessionById']>>>,
+		viewer: MembershipRecord,
 	) {
-		const [marks, students] = await Promise.all([
+		const [marks, students, rules] = await Promise.all([
 			this.attendance.listMarksForSession(tenantId, session.id),
 			session.sectionId
 				? this.attendance.listSessionStudentContext(tenantId, session.id, session.sectionId)
 				: Promise.resolve([]),
+			this.sessionRules(tenantId, session.sessionDate, viewer),
 		]);
 		return {
 			session: toPublicSession(session),
 			marks: marks.map(toPublicMark),
 			summary: countMarksByStatus(marks),
 			students,
+			rules,
 		};
+	}
+
+	/** The school's attendance rules as they apply to this day and this viewer. */
+	private async sessionRules(tenantId: string, sessionDate: string, viewer: MembershipRecord) {
+		const { policy, clock } = await this.rules.getAttendancePolicy(tenantId);
+		const deadline = teacherEditDeadline(policy, sessionDate, clock.timeZone);
+		return {
+			rollCallClosesAt: policy.rollCallClosesAt,
+			lateAfter: policy.lateAfter,
+			graceMinutes: policy.graceMinutes,
+			lateFrom: fromMinutes(lateFromMinutes(policy)),
+			editableUntil: deadline?.toISOString() ?? null,
+			/** Leadership can always correct marks; teachers only inside the edit window. */
+			canEdit:
+				managementRoles.has(viewer.role) ||
+				canTeacherChangeMarks(policy, sessionDate, new Date(), clock.timeZone),
+		};
+	}
+
+	/** Teachers change a day's marks only until the school's edit window closes. */
+	private async requireEditWindow(
+		tenantId: string,
+		membership: MembershipRecord,
+		session: { sessionDate: string },
+	) {
+		if (managementRoles.has(membership.role)) return;
+		const { policy, clock } = await this.rules.getAttendancePolicy(tenantId);
+		if (canTeacherChangeMarks(policy, session.sessionDate, new Date(), clock.timeZone)) return;
+		throw new ForbiddenException({
+			code: 'ATTENDANCE_EDIT_WINDOW_CLOSED',
+			message: 'Marks for this day can no longer be changed by teachers. Ask the principal.',
+		});
 	}
 
 	private async requireSectionMarkAccess(

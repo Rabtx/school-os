@@ -40,6 +40,7 @@ empty state instead of sample data.
 | Attendance report | `/admin/reports?tab=attendance` | Rate by class and weekday, late arrivals, unexplained absences, follow-ups |
 | Timetable | `/admin/timetable` | Week grid per class with periods, rooms and teachers |
 | Settings | `/admin/settings` | School, campuses, attendance rules, communication policy, members and roles |
+| Attendance rules | `/admin/settings/attendance` | Roll call close, late after and grace, auto-absent, gate scan rules, teacher edit window and absence alert timing, saved as versions |
 
 ### Teacher
 
@@ -66,7 +67,7 @@ empty state instead of sample data.
 | Feature | Where it shows | When |
 | --- | --- | --- |
 | WhatsApp parent alerts | "WhatsApp not connected" on dashboard, sidebar and roll call | Next, after the screen rebuild |
-| Rules engine, approvals, OTP | Settings and alert cards | With WhatsApp |
+| Approvals, OTP; running auto-absent and alerts on a schedule | Settings and alert cards | With WhatsApp (attendance rules are live) |
 | AI drafting, marking and report comments | Teacher comment card on report cards | After messaging (tool registry, RAG, evals) |
 | Questions, practice sets, question bank | Tests side panel | With the AI layer |
 | Terms on tests | Marks has no term filter | Gradebook follow-up |
