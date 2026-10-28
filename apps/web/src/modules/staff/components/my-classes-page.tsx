@@ -1,379 +1,486 @@
 "use client";
 
-import {
-	BookOpen02Icon,
-	Home10Icon,
-	Notebook01Icon,
-	TeacherIcon,
-	UserGroupIcon,
-} from "@hugeicons/core-free-icons";
+import { Calendar03Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert, AlertDescription } from "@school-os/ui/components/alert";
-import { Badge } from "@school-os/ui/components/badge";
-import { SearchInput } from "@school-os/ui/components/search-input";
-import { Separator } from "@school-os/ui/components/separator";
-import { Skeleton } from "@school-os/ui/components/skeleton";
-import { ToggleGroup, ToggleGroupItem } from "@school-os/ui/components/toggle-group";
+import { Button } from "@school-os/ui/components/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@school-os/ui/components/dropdown-menu";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { AdminPageShell } from "@/components/admin";
-import { useAcademicYearsQuery, useClassesQuery } from "@/modules/academic";
-import { formatSectionLabel } from "@/modules/academic/utils/format-section-label";
+import { AttendanceMeter, AttendanceTrend } from "@/components/attendance-viz";
+import {
+	DataTable,
+	type DataTableColumn,
+	DataTableFooterBar,
+	DataTableToolbar,
+	useClientDataTable,
+} from "@/components/data-table";
+import { ListPage } from "@/components/list-page";
+import { NoResults } from "@/components/states";
+import { useNow } from "@/lib/use-now";
+import { cn } from "@/lib/utils";
 import { useTenantContext } from "@/modules/tenants";
-import { useMyTeacherDashboardQuery, useMyTeacherProfileQuery } from "../hooks/use-staff-queries";
-import type { TeacherAccessibleSection } from "../types/staff.types";
+import { type TimetableClassSlot, useMyWeekTimetableQuery } from "@/modules/timetable";
+import { useMyTeacherDashboardQuery } from "../hooks/use-staff-queries";
+import type { TeacherAccessibleSection, TeacherDashboardSection } from "../types/staff.types";
 import { ClassAssessmentScheduleSheet } from "./class-assessment-schedule-sheet";
 import { ClassHomeworkAssignSheet } from "./class-homework-assign-sheet";
-import { MyClassesEmptyState } from "./my-classes-empty-state";
-import { TeacherClassCard } from "./teacher-class-card";
 
-function localSessionDate(): string {
-	return new Date().toLocaleDateString("en-CA");
-}
+type View = "today" | "week" | "all";
 
-type FilterCategory = "all" | "homeroom" | "subject";
-
-const FILTER_LABELS: Record<FilterCategory, string> = {
-	all: "All classes",
-	homeroom: "Homeroom",
-	subject: "Subject classes",
+type ClassRow = {
+	key: string;
+	sectionId: string;
+	sectionName: string;
+	section: TeacherAccessibleSection | null;
+	subjectName: string | null;
+	homeroom: boolean;
+	roomName: string | null;
+	startsAt: string | null;
+	endsAt: string | null;
+	date: string | null;
+	studentCount: number;
+	recentAttendance: TeacherDashboardSection["recentAttendance"];
+	status: { label: string; tone: "accent" | "warning" | "success" | "dim" };
 };
 
-function MyClassesSkeleton() {
-	return (
-		<AdminPageShell
-			title="My classes"
-			description="Homeroom sections and subject classes assigned to you."
-			icon={TeacherIcon}
-			maxWidth="5xl"
-		>
-			<div className="mb-5 flex items-center gap-4 rounded-[14px] border border-dashboard-border bg-dashboard-card-inner px-4 py-3">
-				<Skeleton className="h-8 w-28 rounded-lg" />
-				<Skeleton className="h-8 w-32 rounded-lg" />
-				<Skeleton className="h-8 w-28 rounded-lg" />
-			</div>
-			<div className="mb-6 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-				<Skeleton className="h-9 w-full rounded-lg sm:w-80" />
-				<Skeleton className="h-9 w-full rounded-lg sm:w-72" />
-			</div>
+const EMPTY_ATTENDANCE: TeacherDashboardSection["recentAttendance"] = { rate: null, days: [] };
 
-			<div className="grid gap-3 sm:grid-cols-2">
-				{["sk-1", "sk-2", "sk-3", "sk-4"].map((skKey) => (
-					<div
-						key={skKey}
-						className="flex flex-col gap-3 rounded-[14px] border border-dashboard-border bg-dashboard-card-outer p-4"
-					>
-						<div className="flex items-center justify-between">
-							<Skeleton className="h-5 w-24 rounded-full" />
-							<Skeleton className="h-4 w-16" />
-						</div>
-						<Skeleton className="h-5 w-44" />
-						<Skeleton className="h-4 w-32" />
-						<div className="mt-1 flex gap-2 border-t border-dashboard-border-subtle pt-3">
-							<Skeleton className="h-7 flex-1 rounded-md" />
-							<Skeleton className="h-7 w-20 rounded-md" />
-							<Skeleton className="h-7 w-20 rounded-md" />
-							<Skeleton className="h-7 w-7 rounded-md" />
-						</div>
-					</div>
-				))}
-			</div>
-		</AdminPageShell>
-	);
+function minutesOf(time: string): number {
+	const [hours = "0", minutes = "0"] = time.split(":");
+	return Number(hours) * 60 + Number(minutes);
 }
 
-type OverviewStatProps = {
-	icon: typeof Home10Icon;
-	label: string;
-	value: number | string;
+function clock(time: string): string {
+	const [hours = "0", minutes = "00"] = time.split(":");
+	const hour = Number(hours);
+	return `${hour % 12 === 0 ? 12 : hour % 12}:${minutes}`;
+}
+
+function dayLabel(isoDate: string): string {
+	return new Date(`${isoDate}T00:00:00`).toLocaleDateString(undefined, {
+		weekday: "short",
+		day: "numeric",
+		month: "short",
+	});
+}
+
+/** Where a lesson stands: taught, now, next (first upcoming today), later, or a future day. */
+function lessonStatus(
+	date: string,
+	slot: TimetableClassSlot,
+	today: string,
+	now: Date,
+	isNext: boolean,
+) {
+	if (date < today) return { label: "Taught", tone: "dim" } as const;
+	if (date > today) return { label: "Coming up", tone: "dim" } as const;
+	const current = now.getHours() * 60 + now.getMinutes();
+	if (current >= minutesOf(slot.period.endsAt)) return { label: "Taught", tone: "dim" } as const;
+	if (current >= minutesOf(slot.period.startsAt)) return { label: "Now", tone: "success" } as const;
+	if (isNext) return { label: "Next", tone: "accent" } as const;
+	return { label: "Later", tone: "dim" } as const;
+}
+
+const TONE: Record<ClassRow["status"]["tone"], string> = {
+	accent: "text-[var(--rx-accent)]",
+	warning: "text-[var(--rx-warning)]",
+	success: "text-[var(--rx-success)]",
+	dim: "text-dashboard-text-dim",
 };
 
-function OverviewStat({ icon, label, value }: OverviewStatProps) {
-	return (
-		<div className="flex items-center gap-2.5">
-			<span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-dashboard-accent-soft text-dashboard-accent">
-				<HugeiconsIcon icon={icon} size={16} strokeWidth={2} />
-			</span>
-			<span className="flex flex-col leading-tight">
-				<span className="font-semibold text-[15px] text-dashboard-text-primary tabular-nums">
-					{value}
-				</span>
-				<span className="text-[11px] text-dashboard-text-muted">{label}</span>
-			</span>
-		</div>
-	);
-}
-
+/** Figma "Teacher · My classes" (`158:32640`): this teacher's lessons and classes as one table. */
 export function MyClassesPage() {
-	const { activeTenant, campuses, activeCampus } = useTenantContext();
+	const searchParams = useSearchParams();
+	const requested = searchParams.get("view");
+	const view: View = requested === "today" || requested === "all" ? requested : "week";
+	const { activeTenant, activeCampus, campuses } = useTenantContext();
 	const tenantId = activeTenant?.id ?? null;
 	const campusId = activeCampus?.id ?? campuses[0]?.id ?? null;
-	const sessionDate = useMemo(() => localSessionDate(), []);
+	const now = useNow();
+	const today = now.toLocaleDateString("en-CA");
 
-	const profileQuery = useMyTeacherProfileQuery(tenantId);
-	const dashboardQuery = useMyTeacherDashboardQuery(tenantId, sessionDate);
-	const classesQuery = useClassesQuery(tenantId, Boolean(tenantId));
-	const yearsQuery = useAcademicYearsQuery(tenantId, Boolean(tenantId));
+	const dashboardQuery = useMyTeacherDashboardQuery(tenantId, today);
+	const weekQuery = useMyWeekTimetableQuery(tenantId, today, view !== "all");
+	const [search, setSearch] = useState("");
+	const [subjectFilter, setSubjectFilter] = useState("");
+	const [homeworkSection, setHomeworkSection] = useState<TeacherAccessibleSection | null>(null);
+	const [testSection, setTestSection] = useState<TeacherAccessibleSection | null>(null);
 
-	const [searchQuery, setSearchQuery] = useState("");
-	const [filterCategory, setFilterCategory] = useState<FilterCategory>("all");
-	const [assignHomeworkSection, setAssignHomeworkSection] =
-		useState<TeacherAccessibleSection | null>(null);
-	const [assignAssessmentSection, setAssignAssessmentSection] =
-		useState<TeacherAccessibleSection | null>(null);
+	const sections = useMemo(() => dashboardQuery.data?.sections ?? [], [dashboardQuery.data]);
 
-	const classNameById = useMemo(
-		() => new Map((classesQuery.data ?? []).map((item) => [item.id, item.name])),
-		[classesQuery.data],
-	);
-	const campusNameById = useMemo(
-		() => new Map(campuses.map((campus) => [campus.id, campus.name])),
-		[campuses],
-	);
-	const yearNameById = useMemo(
-		() => new Map((yearsQuery.data ?? []).map((year) => [year.id, year.name])),
-		[yearsQuery.data],
-	);
+	const rows = useMemo((): ClassRow[] => {
+		const metricsFor = (sectionId: string, subjectId: string | null) =>
+			sections.find(
+				(item) =>
+					item.section.id === sectionId &&
+					(subjectId
+						? item.section.subjectId === subjectId
+						: item.section.accessType === "homeroom"),
+			) ?? sections.find((item) => item.section.id === sectionId);
 
-	const sectionMetricsByKey = useMemo(() => {
-		const map = new Map<string, NonNullable<typeof dashboardQuery.data>["sections"][number]>();
-		for (const item of dashboardQuery.data?.sections ?? []) {
-			const key = `${item.section.id}-${item.section.subjectId ?? "homeroom"}`;
-			map.set(key, item);
+		if (view === "all") {
+			return sections.map((item) => {
+				const homeroom = item.section.accessType === "homeroom";
+				const status: ClassRow["status"] = homeroom
+					? item.todayAttendance.isComplete
+						? { label: "Roll call done", tone: "success" }
+						: { label: "Roll call open", tone: "warning" }
+					: { label: "Subject class", tone: "dim" };
+				return {
+					key: `${item.section.id}-${item.section.subjectId ?? "homeroom"}`,
+					sectionId: item.section.id,
+					sectionName: item.section.name,
+					section: item.section,
+					subjectName: item.section.subjectName,
+					homeroom,
+					roomName: null,
+					startsAt: null,
+					endsAt: null,
+					date: null,
+					studentCount: item.studentCount,
+					recentAttendance: item.recentAttendance,
+					status,
+				};
+			});
 		}
-		return map;
-	}, [dashboardQuery.data?.sections]);
 
-	const accessibleSections = useMemo(
-		() => profileQuery.data?.accessibleSections ?? [],
-		[profileQuery.data],
-	);
-	const homeroomSections = accessibleSections.filter((s) => s.accessType === "homeroom");
-	const subjectSections = accessibleSections.filter((s) => s.accessType === "subject");
-	const totalStudents = dashboardQuery.data?.stats.totalStudents;
-
-	const filteredSections = useMemo(() => {
-		return accessibleSections.filter((section) => {
-			if (filterCategory === "homeroom" && section.accessType !== "homeroom") return false;
-			if (filterCategory === "subject" && section.accessType !== "subject") return false;
-
-			if (!searchQuery.trim()) return true;
-
-			const q = searchQuery.toLowerCase();
-			const className = classNameById.get(section.classId)?.toLowerCase() ?? "";
-			const campusName = campusNameById.get(section.campusId)?.toLowerCase() ?? "";
-			const label = formatSectionLabel(
-				section,
-				classNameById.get(section.classId),
-				campusNameById.get(section.campusId),
-			).toLowerCase();
-			const subjectName = section.subjectName?.toLowerCase() ?? "";
-			const subjectCode = section.subjectCode?.toLowerCase() ?? "";
-
-			return (
-				label.includes(q) ||
-				className.includes(q) ||
-				campusName.includes(q) ||
-				subjectName.includes(q) ||
-				subjectCode.includes(q)
-			);
+		const days = (weekQuery.data?.days ?? []).filter(
+			(day) => view === "week" || day.date === today,
+		);
+		const lessons = days.flatMap((day) =>
+			day.slots
+				.filter((slot): slot is TimetableClassSlot => slot.type === "class")
+				.map((slot) => ({ date: day.date, slot })),
+		);
+		const current = now.getHours() * 60 + now.getMinutes();
+		const nextIndex = lessons.findIndex(
+			({ date, slot }) => date === today && minutesOf(slot.period.startsAt) > current,
+		);
+		return lessons.map(({ date, slot }, index) => {
+			const metrics = metricsFor(slot.sectionId, slot.subjectId);
+			return {
+				key: `${date}-${slot.period.id}-${slot.sectionId}`,
+				sectionId: slot.sectionId,
+				sectionName: slot.sectionName,
+				section: metrics?.section ?? null,
+				subjectName: slot.subjectName,
+				homeroom: false,
+				roomName: slot.roomName,
+				startsAt: slot.period.startsAt,
+				endsAt: slot.period.endsAt,
+				date,
+				studentCount: metrics?.studentCount ?? 0,
+				recentAttendance: metrics?.recentAttendance ?? EMPTY_ATTENDANCE,
+				status: lessonStatus(date, slot, today, now, index === nextIndex),
+			};
 		});
-	}, [accessibleSections, filterCategory, searchQuery, classNameById, campusNameById]);
+	}, [now, sections, today, view, weekQuery.data]);
 
-	if (!tenantId) {
-		return (
-			<Alert>
-				<AlertDescription>Switch to an organization to view your classes.</AlertDescription>
-			</Alert>
-		);
-	}
+	const subjectItems = useMemo(() => {
+		const names = new Set<string>();
+		for (const row of rows) names.add(row.homeroom ? "Homeroom" : (row.subjectName ?? "Lesson"));
+		return [...names].toSorted().map((name) => ({ label: name, value: name }));
+	}, [rows]);
 
-	if (profileQuery.isLoading || classesQuery.isLoading) {
-		return <MyClassesSkeleton />;
-	}
+	const table = useClientDataTable({
+		data: rows,
+		searchQuery: search,
+		searchFn: (row, query) =>
+			[row.sectionName, row.subjectName, row.roomName]
+				.filter(Boolean)
+				.join(" ")
+				.toLowerCase()
+				.includes(query),
+		filterFn: (row, filters) =>
+			!filters.subject ||
+			(row.homeroom ? "Homeroom" : (row.subjectName ?? "Lesson")) === filters.subject,
+		pageSize: 50,
+	});
 
-	if (profileQuery.isError) {
-		return (
-			<Alert>
-				<AlertDescription>
-					My classes is available for teacher accounts in this organization.
-				</AlertDescription>
-			</Alert>
-		);
-	}
+	const columns = useMemo(
+		(): DataTableColumn<ClassRow>[] => [
+			{
+				id: "class",
+				header: "Class",
+				renderCell: (row) => <span className="font-medium">{row.sectionName}</span>,
+			},
+			{
+				id: "subject",
+				header: "Subject & notes",
+				renderCell: (row) => (
+					<span className="flex flex-wrap gap-1.5">
+						<Chip>{row.homeroom ? "Homeroom" : (row.subjectName ?? "Lesson")}</Chip>
+						{row.roomName ? <Chip>{row.roomName}</Chip> : null}
+					</span>
+				),
+			},
+			...(view === "all"
+				? []
+				: [
+						{
+							id: "time",
+							header: "Time",
+							renderCell: (row: ClassRow) =>
+								row.startsAt && row.endsAt ? (
+									<span className="tabular-nums">
+										{clock(row.startsAt)} – {clock(row.endsAt)}
+									</span>
+								) : (
+									"—"
+								),
+						},
+					]),
+			{
+				id: "students",
+				header: "Students",
+				renderCell: (row) => <span className="tabular-nums">{row.studentCount}</span>,
+			},
+			{
+				id: "attendance",
+				header: "Avg attendance",
+				renderCell: (row) => <AttendanceMeter rate={row.recentAttendance.rate} />,
+			},
+			{
+				id: "trend",
+				header: "Trend",
+				renderCell: (row) => (
+					<AttendanceTrend
+						days={row.recentAttendance.days}
+						label={`${row.sectionName} attendance, last 10 school days`}
+					/>
+				),
+			},
+			{
+				id: "status",
+				header: view === "all" ? "Today" : "Day & status",
+				renderCell: (row) => (
+					<span className="flex items-center gap-2 whitespace-nowrap">
+						{row.date ? (
+							<>
+								<HugeiconsIcon
+									icon={Calendar03Icon}
+									size={14}
+									strokeWidth={1.8}
+									className="text-dashboard-text-dim"
+								/>
+								<span>{dayLabel(row.date)}</span>
+								<span aria-hidden className="h-3 w-px bg-dashboard-border-strong" />
+							</>
+						) : null}
+						<span className={TONE[row.status.tone]}>{row.status.label}</span>
+					</span>
+				),
+			},
+			{
+				id: "actions",
+				header: <span className="sr-only">Actions</span>,
+				className: "text-right",
+				renderCell: (row) => (
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							render={
+								<Button
+									type="button"
+									variant="ghost"
+									size="icon-sm"
+									aria-label={`Actions for ${row.sectionName}`}
+								/>
+							}
+						>
+							<HugeiconsIcon icon={MoreHorizontalIcon} strokeWidth={2} />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuItem
+								render={<Link href={`/admin/my-classes/${row.sectionId}`}>Open class</Link>}
+							/>
+							<DropdownMenuItem
+								render={
+									<Link href={`/admin/attendance?sectionId=${row.sectionId}`}>Roll call</Link>
+								}
+							/>
+							{row.section && row.section.accessType === "subject" ? (
+								<>
+									<DropdownMenuItem onClick={() => setHomeworkSection(row.section)}>
+										New homework
+									</DropdownMenuItem>
+									<DropdownMenuItem onClick={() => setTestSection(row.section)}>
+										Schedule a test
+									</DropdownMenuItem>
+								</>
+							) : null}
+						</DropdownMenuContent>
+					</DropdownMenu>
+				),
+			},
+		],
+		[view],
+	);
 
-	const hasSections = accessibleSections.length > 0;
-	const activeHomeworkSectionLabel = assignHomeworkSection
-		? formatSectionLabel(
-				assignHomeworkSection,
-				classNameById.get(assignHomeworkSection.classId),
-				campusNameById.get(assignHomeworkSection.campusId),
-			)
-		: "";
-	const activeAssessmentSectionLabel = assignAssessmentSection
-		? formatSectionLabel(
-				assignAssessmentSection,
-				classNameById.get(assignAssessmentSection.classId),
-				campusNameById.get(assignAssessmentSection.campusId),
-			)
-		: "";
+	const rated = table.filteredRows.filter((row) => row.recentAttendance.rate !== null);
+	const averageRate =
+		rated.length > 0
+			? rated.reduce((sum, row) => sum + (row.recentAttendance.rate ?? 0), 0) / rated.length
+			: null;
+	const toReview = dashboardQuery.data?.morningDigest.toReviewCount ?? 0;
+	const noun = view === "all" ? "classes" : "lessons";
+	const loading = dashboardQuery.isLoading || (view !== "all" && weekQuery.isLoading);
+	const filtersActive = Boolean(search.trim() || subjectFilter);
 
 	return (
-		<AdminPageShell
+		<ListPage
 			title="My classes"
-			description="Homeroom sections and subject classes assigned to you. Mark attendance, draft homework, or schedule tests in one tap."
-			icon={TeacherIcon}
-			maxWidth="5xl"
+			tabs={[
+				{ label: "Today", href: "/admin/my-classes?view=today", active: view === "today" },
+				{ label: "This week", href: "/admin/my-classes", active: view === "week" },
+				{ label: "All classes", href: "/admin/my-classes?view=all", active: view === "all" },
+				{ label: "Timetable", href: "/admin/timetable" },
+			]}
+			toolbar={
+				<DataTableToolbar
+					className="border-0 px-4 sm:px-6"
+					search={search}
+					onSearchChange={(value) => {
+						setSearch(value);
+						table.resetPage();
+					}}
+					searchPlaceholder="Search classes"
+					filters={[
+						{
+							id: "subject",
+							label: "Subject",
+							value: subjectFilter,
+							placeholder: "All",
+							onChange: (value) => {
+								setSubjectFilter(value);
+								table.setFilter("subject", value);
+							},
+							items: subjectItems,
+						},
+					]}
+				>
+					<Button
+						size="sm"
+						variant="outline"
+						className="h-7 rounded-full"
+						render={<Link href="/admin/timetable" />}
+						nativeButton={false}
+					>
+						Timetable
+					</Button>
+				</DataTableToolbar>
+			}
+			footer={
+				<DataTableFooterBar
+					shown={table.rows.length}
+					total={table.totalRows}
+					noun={noun}
+					stats={[
+						{
+							label: "Avg attendance",
+							value: averageRate === null ? "—" : `${averageRate.toFixed(1)}%`,
+						},
+						{
+							label: "Homework to check",
+							value: toReview,
+							tone: toReview > 0 ? "warning" : undefined,
+						},
+					]}
+					pageIndex={table.pageIndex}
+					pageCount={table.pageCount}
+					pageSize={table.pageSize}
+					onPageChange={table.setPageIndex}
+					onPageSizeChange={table.setPageSize}
+				/>
+			}
 		>
-			{hasSections ? (
-				<>
-					{/* At-a-glance overview */}
-					<div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-[14px] border border-dashboard-border bg-dashboard-card-inner px-4 py-3">
-						<OverviewStat
-							icon={Home10Icon}
-							label="Homeroom sections"
-							value={homeroomSections.length}
-						/>
-						<Separator orientation="vertical" className="hidden h-8 sm:block" />
-						<OverviewStat
-							icon={Notebook01Icon}
-							label="Subject classes"
-							value={subjectSections.length}
-						/>
-						<Separator orientation="vertical" className="hidden h-8 sm:block" />
-						<OverviewStat
-							icon={UserGroupIcon}
-							label="Students across classes"
-							value={totalStudents ?? "—"}
-						/>
-						<span className="ms-auto hidden items-center gap-1.5 text-[12px] text-dashboard-text-muted lg:flex">
-							<HugeiconsIcon icon={BookOpen02Icon} size={14} strokeWidth={2} />
-							Quick actions live on every card
-						</span>
-					</div>
-
-					{/* Search & category filter controls */}
-					<div className="mb-6 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-						<SearchInput
-							placeholder="Search by class, section, subject, or campus..."
-							value={searchQuery}
-							onValueChange={(val) => setSearchQuery(val)}
-							className="w-full sm:w-80"
-						/>
-
-						<ToggleGroup
-							value={[filterCategory]}
-							onValueChange={(next) => {
-								const selected = next[0] as FilterCategory | undefined;
-								if (selected) setFilterCategory(selected);
-							}}
-							variant="outline"
-							size="sm"
-							spacing={0}
-							aria-label="Filter sections"
-							className="justify-start sm:justify-end"
-						>
-							<ToggleGroupItem
-								value="all"
-								className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
-							>
-								All classes
-								<Badge variant="secondary" className="rounded-full px-1.5 py-0 text-[10px]">
-									{accessibleSections.length}
-								</Badge>
-							</ToggleGroupItem>
-
-							<ToggleGroupItem
-								value="homeroom"
-								className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
-							>
-								Homeroom
-								<Badge variant="secondary" className="rounded-full px-1.5 py-0 text-[10px]">
-									{homeroomSections.length}
-								</Badge>
-							</ToggleGroupItem>
-
-							<ToggleGroupItem
-								value="subject"
-								className="flex items-center gap-1.5 px-3 py-1.5 text-xs"
-							>
-								Subject classes
-								<Badge variant="secondary" className="rounded-full px-1.5 py-0 text-[10px]">
-									{subjectSections.length}
-								</Badge>
-							</ToggleGroupItem>
-						</ToggleGroup>
-					</div>
-
-					{/* Section cards */}
-					{filteredSections.length === 0 ? (
-						<MyClassesEmptyState
-							variant="no-results"
-							searchQuery={searchQuery.trim()}
-							filterLabel={filterCategory === "all" ? undefined : FILTER_LABELS[filterCategory]}
-							onClearFilters={() => {
-								setSearchQuery("");
-								setFilterCategory("all");
+			<DataTable
+				fullBleed
+				columns={columns}
+				rows={table.rows}
+				getRowId={(row) => row.key}
+				loading={loading}
+				emptyState={
+					filtersActive ? (
+						<NoResults
+							noun={noun}
+							filters={[
+								...(search.trim()
+									? [{ key: "search", label: `"${search.trim()}"`, onRemove: () => setSearch("") }]
+									: []),
+								...(subjectFilter
+									? [
+											{
+												key: "subject",
+												label: subjectFilter,
+												onRemove: () => {
+													setSubjectFilter("");
+													table.setFilter("subject", "");
+												},
+											},
+										]
+									: []),
+							]}
+							onClearAll={() => {
+								setSearch("");
+								setSubjectFilter("");
+								table.setFilter("subject", "");
 							}}
 						/>
-					) : (
-						<div className="grid gap-3 sm:grid-cols-2">
-							{filteredSections.map((section, index) => {
-								const key = `${section.id}-${section.subjectId ?? "homeroom"}`;
-								return (
-									<TeacherClassCard
-										key={key}
-										section={section}
-										label={formatSectionLabel(
-											section,
-											classNameById.get(section.classId),
-											campusNameById.get(section.campusId),
-										)}
-										campusName={campusNameById.get(section.campusId)}
-										academicYearName={yearNameById.get(section.academicYearId)}
-										metrics={sectionMetricsByKey.get(key)}
-										revealDelay={Math.min(index * 0.04, 0.32)}
-										onAssignHomework={(sec) => setAssignHomeworkSection(sec)}
-										onScheduleAssessment={(sec) => setAssignAssessmentSection(sec)}
-									/>
-								);
-							})}
-						</div>
-					)}
-				</>
-			) : (
-				<MyClassesEmptyState variant="no-sections" />
-			)}
+					) : undefined
+				}
+				emptyTitle={view === "all" ? "No classes assigned yet" : "No lessons on your timetable"}
+				emptyDescription={
+					view === "all"
+						? "Ask the principal to assign you a homeroom or a subject class."
+						: view === "today"
+							? "Nothing scheduled for today."
+							: "Nothing scheduled this week. Your classes are under All classes."
+				}
+			/>
 
-			{/* Integrated quick-action sheets */}
-			{assignHomeworkSection ? (
+			{homeworkSection ? (
 				<ClassHomeworkAssignSheet
-					open={Boolean(assignHomeworkSection)}
-					onOpenChange={(open) => {
-						if (!open) setAssignHomeworkSection(null);
-					}}
-					tenantId={tenantId}
-					campusId={assignHomeworkSection.campusId ?? campusId}
-					sectionId={assignHomeworkSection.id}
-					sectionSubjectId={assignHomeworkSection.subjectId}
-					classLabel={activeHomeworkSectionLabel}
-					subjectName={assignHomeworkSection.subjectName}
+					open
+					onOpenChange={(open) => !open && setHomeworkSection(null)}
+					tenantId={tenantId ?? ""}
+					campusId={homeworkSection.campusId ?? campusId}
+					sectionId={homeworkSection.id}
+					sectionSubjectId={homeworkSection.subjectId}
+					classLabel={homeworkSection.name}
+					subjectName={homeworkSection.subjectName}
 				/>
 			) : null}
-
-			{assignAssessmentSection ? (
+			{testSection ? (
 				<ClassAssessmentScheduleSheet
-					open={Boolean(assignAssessmentSection)}
-					onOpenChange={(open) => {
-						if (!open) setAssignAssessmentSection(null);
-					}}
-					tenantId={tenantId}
-					campusId={assignAssessmentSection.campusId ?? campusId}
-					sectionId={assignAssessmentSection.id}
-					sectionSubjectId={assignAssessmentSection.subjectId}
-					classLabel={activeAssessmentSectionLabel}
-					subjectName={assignAssessmentSection.subjectName}
+					open
+					onOpenChange={(open) => !open && setTestSection(null)}
+					tenantId={tenantId ?? ""}
+					campusId={testSection.campusId ?? campusId}
+					sectionId={testSection.id}
+					sectionSubjectId={testSection.subjectId}
+					classLabel={testSection.name}
+					subjectName={testSection.subjectName}
 				/>
 			) : null}
-		</AdminPageShell>
+		</ListPage>
+	);
+}
+
+function Chip({ children, className }: { children: React.ReactNode; className?: string }) {
+	return (
+		<span
+			className={cn(
+				"inline-flex h-6 items-center rounded-full border border-dashboard-border-strong bg-dashboard-hover/40 px-2.5 text-[12px] text-dashboard-text-secondary",
+				className,
+			)}
+		>
+			{children}
+		</span>
 	);
 }

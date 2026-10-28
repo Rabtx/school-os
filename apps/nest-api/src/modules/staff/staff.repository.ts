@@ -8,6 +8,7 @@ import {
 	classes,
 	enrollments,
 	homeworkAssignments,
+	homeworkSubmissions,
 	memberships,
 	sectionSubjects,
 	sections,
@@ -444,6 +445,58 @@ export class StaffRepository {
 				),
 			)
 			.orderBy(desc(attendanceSessions.sessionDate));
+	}
+
+	/** Submissions handed in (on time or late) and not graded yet, across these subject classes. */
+	async countHomeworkSubmissionsToReview(
+		tenantId: string,
+		sectionSubjectIds: string[],
+	): Promise<number> {
+		if (sectionSubjectIds.length === 0) return 0;
+		const [row] = await this.database.db
+			.select({ count: sql<number>`count(*)::int` })
+			.from(homeworkSubmissions)
+			.innerJoin(homeworkAssignments, eq(homeworkAssignments.id, homeworkSubmissions.homeworkId))
+			.where(
+				and(
+					eq(homeworkAssignments.tenantId, tenantId),
+					inArray(homeworkAssignments.sectionSubjectId, sectionSubjectIds),
+					inArray(homeworkSubmissions.status, ['submitted', 'late']),
+				),
+			);
+		return row?.count ?? 0;
+	}
+
+	/** Roll-call mark counts per section, day and status over a date range. */
+	async countSectionMarksByDay(
+		tenantId: string,
+		sectionIds: string[],
+		fromDate: string,
+		toDate: string,
+	) {
+		if (sectionIds.length === 0) return [];
+		return this.database.db
+			.select({
+				sectionId: attendanceSessions.sectionId,
+				sessionDate: attendanceSessions.sessionDate,
+				status: attendanceMarks.status,
+				count: sql<number>`count(*)::int`,
+			})
+			.from(attendanceMarks)
+			.innerJoin(attendanceSessions, eq(attendanceSessions.id, attendanceMarks.sessionId))
+			.where(
+				and(
+					eq(attendanceMarks.tenantId, tenantId),
+					inArray(attendanceSessions.sectionId, sectionIds),
+					gte(attendanceSessions.sessionDate, fromDate),
+					lte(attendanceSessions.sessionDate, toDate),
+				),
+			)
+			.groupBy(
+				attendanceSessions.sectionId,
+				attendanceSessions.sessionDate,
+				attendanceMarks.status,
+			);
 	}
 
 	async countHomeworkForSectionSubjects(
