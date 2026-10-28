@@ -3,9 +3,25 @@ title: Teacher experience roadmap
 description: Phase 1–5 plan for a fast, AI-assisted teacher workflow in School OS web.
 ---
 
-Teachers should spend seconds—not minutes—on routine work. The web admin surface already includes
-**My classes** (roster table + ID cards), **homework**, **assessments**, **test planner**, and a
-**teacher command center** on `/admin` (time-aware hero, instant approve actions, sidebar flow).
+Teachers should spend seconds—not minutes—on routine work.
+
+## Shipped screens (Figma rebuild, October 2026)
+
+The teacher screens are rebuilt to the Figma file (teacher page `212:33177`). The earlier
+command-center hero, onboarding dialog and preferences sheet were removed in that rebuild.
+See the [product tour](/docs/product-tour) for a video.
+
+| Screen | Figma | Route |
+|--------|-------|-------|
+| Teacher home — next class, roll call, to review, due today, today's lessons, absence streaks | `158:31492` | `/admin` |
+| My classes — Today / This week / All, attendance meter and trend | `158:32640` | `/admin/my-classes` |
+| Roll call — guardian, check-in time and method, row menu, late and absence tabs | `160:32559` | `/admin/attendance` |
+| Check answers — marking side panel with save and next | `165:36039` | `/admin/homework?tab=submissions` |
+| Marks — every test and homework, trend, overall and grade | `167:37954` | `/admin/gradebook` |
+| Report cards — grades with a student panel | `166:36303` | `/admin/gradebook?tab=report-cards` |
+| Tests | `181:49526` | Next |
+
+The plan below is the original roadmap; statuses note where the rebuild replaced a piece.
 
 ## North star (stunning teacher UX)
 
@@ -37,7 +53,8 @@ Ship as small PRs so each slice is reviewable and demo-able.
 
 ### PR A — Morning digest on teacher home
 
-**Status:** Shipped — API `morningDigest` + **command center UI** (hero, instant actions, sidebar).
+**Status:** Shipped — API `morningDigest` (now with `toReviewCount`). The command center UI below was
+replaced by the Figma teacher home.
 
 **Goal:** One glance at start of day: classes today, unpublished homework drafts, attendance gaps
 from yesterday.
@@ -99,7 +116,7 @@ in one flow.
 
 ### Polish — First five minutes onboarding
 
-**Status:** Shipped — `TeacherOnboardingDialog` on first teacher home visit (localStorage prefs).
+**Status:** Removed in the Figma rebuild — `TeacherOnboardingDialog` no longer ships.
 
 **Goal:** Set plan style, notification preference, and quiet-hours badge in under a minute.
 
@@ -113,7 +130,8 @@ in one flow.
 
 ### Phase 2 (started) — Preferences UI
 
-**Status:** Partial — `TeacherPreferencesSheet` on home sidebar; hero respects plan style + quiet hours.
+**Status:** Removed in the Figma rebuild — `TeacherPreferencesSheet` no longer ships; preferences move
+to the settings API.
 
 **Remaining:** Org settings API, digest email/push stubs.
 
