@@ -2,7 +2,6 @@
 
 import { Calendar03Icon, PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Alert, AlertDescription } from "@school-os/ui/components/alert";
 import { Badge } from "@school-os/ui/components/badge";
 import { Button } from "@school-os/ui/components/button";
 import { Field, FieldLabel } from "@school-os/ui/components/field";
@@ -15,6 +14,7 @@ import { useSectionSubjectOptions } from "@/modules/academics/hooks/use-section-
 import { useAssessmentsPlannerQuery } from "@/modules/assessments/hooks/use-assessments-queries";
 import type { Assessment } from "@/modules/assessments/types/assessments.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { NoAccess } from "@/components/states";
 
 function startOfWeek(date: Date) {
 	const copy = new Date(date);
@@ -98,11 +98,10 @@ export function TestPlannerPage() {
 
 	if (!canRead) {
 		return (
-			<AdminPageShell title="Test planner">
-				<Alert variant="destructive">
-					<AlertDescription>Missing assessments.read permission.</AlertDescription>
-				</Alert>
-			</AdminPageShell>
+			<NoAccess
+				title="The test planner is not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

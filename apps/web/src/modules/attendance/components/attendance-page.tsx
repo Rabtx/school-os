@@ -42,6 +42,7 @@ import {
 	filterRosterByStatus,
 } from "../utils/attendance-ui.utils";
 import { AttendanceRollCallTable } from "./attendance-roll-call-table";
+import { NoAccess } from "@/components/states";
 
 /** Layout-matched skeleton for the session form card. */
 function SessionFormSkeleton() {
@@ -403,9 +404,10 @@ export function AttendancePage() {
 
 	if (!canRead) {
 		return (
-			<Alert>
-				<AlertDescription>You do not have permission to view attendance.</AlertDescription>
-			</Alert>
+			<NoAccess
+				title="Attendance is not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

@@ -10,6 +10,7 @@ import { Input } from "@school-os/ui/components/input";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { useCallback, useMemo, useState } from "react";
 import { FormDrawer } from "@/components/admin";
+import { useConfirmedAction } from "@/components/states";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -55,6 +56,7 @@ export function AcademicYearsPage() {
 	const createYear = useCreateAcademicYearMutation(tenantId ?? "");
 	const updateYear = useUpdateAcademicYearMutation(tenantId ?? "");
 	const deleteYear = useDeleteAcademicYearMutation(tenantId ?? "");
+	const confirmedAction = useConfirmedAction();
 
 	const [search, setSearch] = useState("");
 	const [drawerOpen, setDrawerOpen] = useState(false);
@@ -132,7 +134,19 @@ export function AcademicYearsPage() {
 								variant="ghost"
 								className="text-destructive hover:text-destructive"
 								aria-label={`Delete ${year.name}`}
-								onClick={() => void deleteYear.mutateAsync(year.id).catch(() => undefined)}
+								onClick={() =>
+									void confirmedAction({
+										title: `Delete ${year.name}?`,
+										consequences: [
+											{ label: "Classes", value: "A year with classes cannot be deleted" },
+											{ label: "Records", value: "Kept; the year is hidden, not erased" },
+										],
+										confirmLabel: "Delete year",
+										action: () => deleteYear.mutateAsync(year.id),
+										success: `${year.name} deleted`,
+										failure: `Could not delete ${year.name}`,
+									})
+								}
 							>
 								<HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
 							</Button>
@@ -140,7 +154,7 @@ export function AcademicYearsPage() {
 					) : null,
 			},
 		],
-		[canWrite, deleteYear, openEdit],
+		[canWrite, confirmedAction, deleteYear, openEdit],
 	);
 
 	const table = useClientDataTable({

@@ -36,6 +36,7 @@ import type {
 	AssignMode,
 } from "@/modules/assessments/types/assessments.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { NoAccess } from "@/components/states";
 
 const statusOptions = [
 	{ label: "All statuses", value: "all" },
@@ -209,14 +210,10 @@ export function AssessmentsPage() {
 
 	if (!canRead) {
 		return (
-			<AdminPageShell
-				title="Tests & exams"
-				description="You do not have permission to view assessments."
-			>
-				<Alert variant="destructive">
-					<AlertDescription>Missing assessments.read permission.</AlertDescription>
-				</Alert>
-			</AdminPageShell>
+			<NoAccess
+				title="Tests and exams are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

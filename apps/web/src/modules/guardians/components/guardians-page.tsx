@@ -27,6 +27,7 @@ import {
 	useUpdateGuardianMutation,
 } from "../hooks/use-guardian-queries";
 import type { Guardian } from "../types/guardian.types";
+import { NoAccess } from "@/components/states";
 
 const channelItems = [
 	{ label: "Email", value: "email" },
@@ -313,9 +314,10 @@ export function GuardiansPage() {
 
 	if (!canRead && !permissionsLoading) {
 		return (
-			<Alert>
-				<AlertDescription>You do not have permission to view guardians.</AlertDescription>
-			</Alert>
+			<NoAccess
+				title="Guardians are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

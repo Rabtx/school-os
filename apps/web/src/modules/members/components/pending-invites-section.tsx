@@ -3,6 +3,7 @@
 import { Mail01Icon, RefreshIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@school-os/ui/components/button";
+import { useConfirm } from "@/components/states";
 import { cn } from "@/lib/utils";
 import type { PendingInvite } from "../types/member.types";
 import { formatInviteExpiry, isExpiringSoon, memberInitials } from "../utils/member-ui.utils";
@@ -25,6 +26,7 @@ export function PendingInvitesSection({
 	pending,
 	className,
 }: Props) {
+	const confirm = useConfirm();
 	if (invites.length === 0) return null;
 
 	return (
@@ -106,10 +108,16 @@ export function PendingInvitesSection({
 									variant="outline"
 									size="sm"
 									disabled={pending}
-									onClick={() => {
-										if (window.confirm(`Revoke invite for ${invite.email}?`)) {
-											onRevoke(invite.id, invite.email);
-										}
+									onClick={async () => {
+										const confirmed = await confirm({
+											title: `Revoke the invite for ${invite.email}?`,
+											consequences: [
+												{ label: "Their link", value: "Stops working straight away" },
+												{ label: "Later", value: "You can send a new invite any time" },
+											],
+											confirmLabel: "Revoke invite",
+										});
+										if (confirmed) onRevoke(invite.id, invite.email);
 									}}
 								>
 									Revoke

@@ -11,6 +11,7 @@ import { SelectField } from "@school-os/ui/components/select-field";
 import { Spinner } from "@school-os/ui/components/spinner";
 import { useCallback, useMemo, useState } from "react";
 import { FormDrawer } from "@/components/admin";
+import { useConfirmedAction, NoAccess } from "@/components/states";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -63,6 +64,7 @@ export function AcademicSectionsPage() {
 	const createSection = useCreateSectionMutation(tenantId ?? "");
 	const updateSection = useUpdateSectionMutation(tenantId ?? "");
 	const deleteSection = useDeleteSectionMutation(tenantId ?? "");
+	const confirmedAction = useConfirmedAction();
 
 	const yearItems = useMemo(
 		() => (yearsQuery.data ?? []).map((year) => ({ label: year.name, value: year.id })),
@@ -205,7 +207,21 @@ export function AcademicSectionsPage() {
 								size="icon-sm"
 								variant="outline"
 								aria-label={`Delete ${section.name}`}
-								onClick={() => void deleteSection.mutateAsync(section.id).catch(() => undefined)}
+								onClick={() =>
+									void confirmedAction({
+										title: `Delete ${section.name}?`,
+										subtitle: classNameById.get(section.classId),
+										consequences: [
+											{ label: "Records", value: "Kept; the section is hidden, not erased" },
+											{ label: "Students", value: "Move enrolled students to another class first" },
+										],
+										typeToConfirm: section.name,
+										confirmLabel: "Delete section",
+										action: () => deleteSection.mutateAsync(section.id),
+										success: `${section.name} deleted`,
+										failure: `Could not delete ${section.name}`,
+									})
+								}
 							>
 								<HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
 							</Button>
@@ -213,7 +229,16 @@ export function AcademicSectionsPage() {
 					) : null,
 			},
 		],
-		[campuses, canWrite, classNameById, deleteSection, teacherNameById, yearNameById, openEdit],
+		[
+			campuses,
+			canWrite,
+			classNameById,
+			confirmedAction,
+			deleteSection,
+			teacherNameById,
+			yearNameById,
+			openEdit,
+		],
 	);
 
 	const table = useClientDataTable({
@@ -323,9 +348,10 @@ export function AcademicSectionsPage() {
 
 	if (!canRead) {
 		return (
-			<Alert>
-				<AlertDescription>You do not have permission to view academic sections.</AlertDescription>
-			</Alert>
+			<NoAccess
+				title="Classes and sections are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

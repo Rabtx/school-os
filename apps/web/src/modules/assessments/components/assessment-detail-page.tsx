@@ -9,6 +9,7 @@ import { AdminPageShell } from "@/components/admin/admin-page-shell";
 import { AssessmentMarksPanel } from "@/modules/assessments/components/assessment-marks-panel";
 import { useAssessmentDetailQuery } from "@/modules/assessments/hooks/use-assessments-queries";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
+import { NoAccess } from "@/components/states";
 
 type Props = {
 	assessmentId: string;
@@ -35,14 +36,10 @@ export function AssessmentDetailPage({ assessmentId }: Props) {
 
 	if (!canRead) {
 		return (
-			<AdminPageShell
-				title="Assessment"
-				description="You do not have permission to view assessments."
-			>
-				<Alert variant="destructive">
-					<AlertDescription>Missing assessments.read permission.</AlertDescription>
-				</Alert>
-			</AdminPageShell>
+			<NoAccess
+				title="Tests and exams are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 

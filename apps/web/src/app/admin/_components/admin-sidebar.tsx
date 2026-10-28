@@ -112,6 +112,14 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 	const theme = useThemeToggle();
 	const motion = useMotion();
 	const navigationQuery = useAdminNavigationQuery(activeTenant?.id ?? null);
+	// Active-year students per campus, from the sidebar classes (leadership only).
+	const studentsByCampus = new Map<string, number>();
+	for (const item of navigationQuery.data?.classes ?? []) {
+		studentsByCampus.set(
+			item.campusId,
+			(studentsByCampus.get(item.campusId) ?? 0) + item.studentCount,
+		);
+	}
 	const accountItems =
 		navigationQuery.data?.sections.find((section) => section.heading === "Account")?.items ?? [];
 
@@ -395,6 +403,44 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 							</DropdownMenuLabel>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator className="bg-dashboard-border" />
+						{workspacePolicy.allowCampusSwitch && campuses.length > 1 ? (
+							<>
+								<DropdownMenuGroup>
+									<DropdownMenuLabel className="font-normal text-[12px] text-dashboard-text-dim">
+										Campus
+									</DropdownMenuLabel>
+									{campuses.map((campus) => {
+										const count = studentsByCampus.get(campus.id);
+										return (
+											<DropdownMenuItem
+												key={campus.id}
+												onClick={() => setActiveCampusId(campus.id)}
+												className="gap-2 focus:bg-dashboard-hover-strong"
+											>
+												<div className="min-w-0 flex-1">
+													<div className="truncate text-[13px] text-dashboard-text-primary">
+														{campus.name}
+													</div>
+													{count === undefined ? null : (
+														<div className="text-[11px] text-dashboard-text-dim">
+															{count.toLocaleString()} students
+														</div>
+													)}
+												</div>
+												{campus.id === activeCampus?.id ? (
+													<HugeiconsIcon
+														icon={Tick02Icon}
+														size={16}
+														className="text-[var(--rx-accent)]"
+													/>
+												) : null}
+											</DropdownMenuItem>
+										);
+									})}
+								</DropdownMenuGroup>
+								<DropdownMenuSeparator className="bg-dashboard-border" />
+							</>
+						) : null}
 						{accountItems.map((item) =>
 							item.href ? (
 								<DropdownMenuItem

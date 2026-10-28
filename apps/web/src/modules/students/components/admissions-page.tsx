@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { AdminPageShell } from "@/components/admin";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
 import { AdmitStudentWizard } from "./admit-student-wizard";
+import { NoAccess } from "@/components/states";
 
 export function AdmissionsPage() {
 	const { activeTenant, activeCampus, campuses } = useTenantContext();
@@ -34,11 +35,10 @@ export function AdmissionsPage() {
 
 	if (!canWrite) {
 		return (
-			<AdminPageShell title="Admissions" description="Enroll new students into your school.">
-				<Alert>
-					<AlertDescription>You do not have permission to admit students.</AlertDescription>
-				</Alert>
-			</AdminPageShell>
+			<NoAccess
+				title="Admissions are not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
 		);
 	}
 
