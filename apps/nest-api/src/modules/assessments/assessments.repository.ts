@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, inArray, isNull, lte } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
 import {
@@ -99,6 +99,28 @@ export class AssessmentsRepository {
 			.innerJoin(subjects, eq(sectionSubjects.subjectId, subjects.id))
 			.where(and(...conditions, isNull(sections.deletedAt), isNull(subjects.deletedAt)))
 			.orderBy(assessments.assessedOn, assessments.startsAt, desc(assessments.createdAt));
+	}
+
+	/** Marked and absent counts plus the mean marked score, per assessment. */
+	async summarizeResults(tenantId: string, assessmentIds: string[]) {
+		if (assessmentIds.length === 0) return [];
+		return this.database.db
+			.select({
+				assessmentId: assessmentResults.assessmentId,
+				graded: sql<number>`count(*) filter (where ${assessmentResults.status} = 'graded')::int`,
+				absent: sql<number>`count(*) filter (where ${assessmentResults.status} = 'absent')::int`,
+				averageScore: sql<
+					string | null
+				>`avg(${assessmentResults.score}) filter (where ${assessmentResults.status} = 'graded')`,
+			})
+			.from(assessmentResults)
+			.where(
+				and(
+					eq(assessmentResults.tenantId, tenantId),
+					inArray(assessmentResults.assessmentId, assessmentIds),
+				),
+			)
+			.groupBy(assessmentResults.assessmentId);
 	}
 
 	async findById(tenantId: string, assessmentId: string) {

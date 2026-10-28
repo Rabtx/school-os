@@ -24,6 +24,7 @@ import {
 	computeAssessmentSummary,
 	type PublicAssessmentDetail,
 	type PublicAssessmentResult,
+	type PublicAssessmentListItem,
 	toPublicAssessment,
 } from './assessments.types';
 
@@ -43,9 +44,7 @@ export class AssessmentsService {
 
 		if (hasManagementRole(roles)) {
 			const rows = await this.assessments.list(tenantId, filters);
-			return {
-				assessments: await Promise.all(rows.map((row) => this.toPublicWithCount(tenantId, row))),
-			};
+			return { assessments: await this.toListItems(tenantId, rows) };
 		}
 
 		const assignments = await this.staff.listSubjectAssignments(tenantId, membership.id);
@@ -60,9 +59,35 @@ export class AssessmentsService {
 			sectionSubjectIds,
 			filters,
 		);
-		return {
-			assessments: await Promise.all(rows.map((row) => this.toPublicWithCount(tenantId, row))),
-		};
+		return { assessments: await this.toListItems(tenantId, rows) };
+	}
+
+	private async toListItems(
+		tenantId: string,
+		rows: Parameters<AssessmentsService['toPublicWithCount']>[1][],
+	): Promise<PublicAssessmentListItem[]> {
+		const [items, summaries] = await Promise.all([
+			Promise.all(rows.map((row) => this.toPublicWithCount(tenantId, row))),
+			this.assessments.summarizeResults(
+				tenantId,
+				rows.map((row) => row.assessment.id),
+			),
+		]);
+		const summaryById = new Map(summaries.map((row) => [row.assessmentId, row]));
+		return items.map((item) => {
+			const summary = summaryById.get(item.id);
+			const average = summary?.averageScore == null ? null : Number(summary.averageScore);
+			return Object.assign(item, {
+				results: {
+					graded: summary?.graded ?? 0,
+					absent: summary?.absent ?? 0,
+					averagePercentage:
+						average === null || item.maxScore <= 0
+							? null
+							: Math.round((average / item.maxScore) * 1000) / 10,
+				},
+			});
+		});
 	}
 
 	async planner(userId: string, tenantId: string, filters: PlannerAssessmentsQuery) {

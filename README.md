@@ -98,7 +98,7 @@ The web app is rebuilt screen by screen to the School OS Figma file, on live dat
 | Teacher home, my classes, roll call (guardian, check-in time and method) | ✅ |
 | Homework with **check answers** (marking panel, save and next) | ✅ |
 | Gradebook — **marks** (every test and homework, trend, overall grade, CSV) and **report cards** | ✅ |
-| Tests & exams, test planner | ✅ (Figma rebuild next) |
+| Tests & exams (tests, quizzes, results, publish), test planner | ✅ |
 | Parent **My children** (ID card, homework, attendance) | ✅ web · 🔜 mobile |
 | WhatsApp alerts, rules engine, approvals, OTP | 🔜 next, after the screen rebuild |
 | AI tool registry, RAG (pgvector), memory, evals | 🔜 after messaging |
