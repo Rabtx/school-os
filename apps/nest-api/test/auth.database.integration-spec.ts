@@ -88,10 +88,14 @@ describe('database-backed authentication', () => {
 		expect(sessions).toHaveLength(1);
 		expect(sessions[0]?.isCurrent).toBe(true);
 
-		await auth.changePassword(current, {
-			currentPassword: password,
-			newPassword: 'integration-password-two',
-		});
+		await auth.changePassword(
+			current,
+			{
+				currentPassword: password,
+				newPassword: 'integration-password-two',
+			},
+			auth.issueRefreshToken(current),
+		);
 	});
 
 	afterAll(async () => {

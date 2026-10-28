@@ -1,4 +1,8 @@
-import type { HomeworkSubmissionRecord } from '@/database/schema';
+import type {
+	HomeworkAssignmentRecord,
+	HomeworkSubmissionRecord,
+	StudentRecord,
+} from '@/database/schema';
 import type { HomeworkSubmissionStatus } from './homework-submissions.dto';
 
 export type PublicHomeworkSubmission = {
@@ -52,5 +56,35 @@ export function toPublicHomeworkSubmission(
 		gradedAt: record.gradedAt?.toISOString() ?? null,
 		createdAt: record.createdAt.toISOString(),
 		updatedAt: record.updatedAt.toISOString(),
+	};
+}
+
+/**
+ * A recipient with no submission row yet. The id is the student's, since there is no row to
+ * point at; updates are keyed by student, so marking or excusing creates the real row.
+ */
+export function toPendingHomeworkSubmission(
+	tenantId: string,
+	assignment: Pick<HomeworkAssignmentRecord, 'id' | 'createdAt' | 'updatedAt'>,
+	student: Pick<StudentRecord, 'id' | 'firstName' | 'lastName' | 'studentCode'>,
+): PublicHomeworkSubmissionWithStudent {
+	return {
+		id: student.id,
+		tenantId,
+		homeworkId: assignment.id,
+		studentId: student.id,
+		status: 'pending',
+		submittedAt: null,
+		grade: null,
+		marksObtained: null,
+		totalMarks: null,
+		feedback: null,
+		attachmentUrl: null,
+		gradedBy: null,
+		gradedAt: null,
+		createdAt: assignment.createdAt.toISOString(),
+		updatedAt: assignment.updatedAt.toISOString(),
+		studentName: `${student.firstName} ${student.lastName}`.trim(),
+		studentCode: student.studentCode,
 	};
 }

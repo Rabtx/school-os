@@ -109,12 +109,14 @@ export class HomeworkSubmissionsRepository {
 				target: [homeworkSubmissions.homeworkId, homeworkSubmissions.studentId],
 				set: {
 					status: sql`excluded.status`,
-					submittedAt: sql`excluded.submitted_at`,
+					// Keep the original hand-in time; only "not handed in" and "excused" clear it.
+					submittedAt: sql`case when excluded.status in ('pending', 'excused') then null else coalesce("homework_submissions"."submitted_at", excluded.submitted_at) end`,
 					grade: sql`excluded.grade`,
 					marksObtained: sql`excluded.marks_obtained`,
 					totalMarks: sql`excluded.total_marks`,
 					feedback: sql`excluded.feedback`,
-					attachmentUrl: sql`excluded.attachment_url`,
+					// Teacher updates carry no attachment; never wipe the student's file.
+					attachmentUrl: sql`coalesce(excluded.attachment_url, "homework_submissions"."attachment_url")`,
 					gradedBy: sql`excluded.graded_by`,
 					gradedAt: sql`excluded.graded_at`,
 					updatedAt: now,
