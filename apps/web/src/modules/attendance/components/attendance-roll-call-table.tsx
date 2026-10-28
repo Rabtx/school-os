@@ -2,6 +2,7 @@
 
 import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { type SegmentOption, SegmentedControl } from "@rabtx/ui/segmented";
 import { Button } from "@school-os/ui/components/button";
 import {
 	DropdownMenu,
@@ -13,7 +14,7 @@ import {
 	DropdownMenuTrigger,
 } from "@school-os/ui/components/dropdown-menu";
 import Link from "next/link";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { AttendanceMarkStatus, AttendanceStudentContext } from "../types/attendance.types";
 
@@ -39,11 +40,11 @@ type Props = {
 	onStatusChange: (studentId: string, status: AttendanceMarkStatus) => void;
 };
 
-const SEGMENTS: { status: AttendanceMarkStatus; label: string; tone: string }[] = [
-	{ status: "present", label: "Present", tone: "text-dashboard-text-primary" },
-	{ status: "late", label: "Late", tone: "text-[var(--rx-warning)]" },
-	{ status: "absent", label: "Absent", tone: "text-[var(--rx-danger)]" },
-	{ status: "excused", label: "Excused", tone: "text-[var(--rx-accent)]" },
+const SEGMENTS: SegmentOption<AttendanceMarkStatus>[] = [
+	{ value: "present", label: "Present" },
+	{ value: "late", label: "Late", tone: "warning" },
+	{ value: "absent", label: "Absent", tone: "danger" },
+	{ value: "excused", label: "Excused", tone: "accent" },
 ];
 
 const METHOD: Record<string, string> = {
@@ -127,7 +128,7 @@ export function AttendanceRollCallTable({
 								<td className="px-2 py-2">
 									{info?.guardianName ? (
 										<span className="flex items-center gap-2 text-dashboard-text-secondary">
-											<InitialsAvatar name={info.guardianName} />
+											<Avatar name={info.guardianName} />
 											<span className="truncate">{info.guardianName}</span>
 										</span>
 									) : (
@@ -143,37 +144,13 @@ export function AttendanceRollCallTable({
 										: "—"}
 								</td>
 								<td className="px-2 py-2">
-									<div
-										role="radiogroup"
-										aria-label={`Attendance for ${student.fullName}`}
-										className="inline-flex rounded-[8px] bg-dashboard-bg p-0.5"
-									>
-										{SEGMENTS.map((segment) => {
-											const selected = status === segment.status;
-											return (
-												<button
-													key={segment.status}
-													type="button"
-													role="radio"
-													aria-checked={selected}
-													disabled={!canMark}
-													onClick={() => onStatusChange(student.id, segment.status)}
-													className={cn(
-														"h-6 rounded-[6px] px-2.5 text-[13px] transition-colors",
-														selected
-															? cn(
-																	"bg-dashboard-surface-strong font-medium shadow-sm",
-																	segment.tone,
-																)
-															: "text-dashboard-text-dim hover:text-dashboard-text-primary",
-														!canMark && "cursor-default",
-													)}
-												>
-													{segment.label}
-												</button>
-											);
-										})}
-									</div>
+									<SegmentedControl
+										label={`Attendance for ${student.fullName}`}
+										options={SEGMENTS}
+										value={SEGMENTS.some((segment) => segment.value === status) ? status : null}
+										disabled={!canMark}
+										onChange={(next) => onStatusChange(student.id, next)}
+									/>
 									{status === "left_early" ? (
 										<span className="ms-2 text-[12px] text-[var(--rx-warning)]">Left early</span>
 									) : null}
@@ -203,8 +180,8 @@ export function AttendanceRollCallTable({
 												{canMark
 													? SEGMENTS.map((segment) => (
 															<DropdownMenuItem
-																key={segment.status}
-																onClick={() => onStatusChange(student.id, segment.status)}
+																key={segment.value}
+																onClick={() => onStatusChange(student.id, segment.value)}
 															>
 																Mark {segment.label.toLowerCase()}
 															</DropdownMenuItem>

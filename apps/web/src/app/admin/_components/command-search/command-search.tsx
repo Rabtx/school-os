@@ -15,7 +15,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { cn } from "@/lib/utils";
 import { resolveNavigationIcon, useAdminNavigationQuery } from "@/modules/navigation";
 import { useStudentsQuery } from "@/modules/students";
@@ -248,7 +248,7 @@ function CommandSearchPanel({
 											)}
 										>
 											{result.avatar ? (
-												<InitialsAvatar name={result.avatar} />
+												<Avatar name={result.avatar} />
 											) : result.icon ? (
 												<HugeiconsIcon icon={result.icon} size={16} strokeWidth={1.8} />
 											) : (

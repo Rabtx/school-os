@@ -9,7 +9,7 @@ import {
 } from "@school-os/ui/components/drawer";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { useConfirmedAction } from "@/components/states";
 import { cn } from "@/lib/utils";
 import { useUpdateAssessmentMutation } from "../hooks/use-assessments-queries";
@@ -73,7 +73,7 @@ export function AssessmentPanel({
 				{row ? (
 					<div className="flex h-full min-h-0 flex-col">
 						<header className="flex items-start gap-3 border-dashboard-border border-b px-5 py-4">
-							<InitialsAvatar name={row.subjectName} tone="accent" />
+							<Avatar name={row.subjectName} tone="accent" />
 							<div className="min-w-0 flex-1">
 								<DrawerTitle className="font-medium text-[15px] text-dashboard-text-primary">
 									{row.title}
@@ -165,7 +165,7 @@ export function AssessmentPanel({
 
 							<Section title="Who gets it">
 								<div className="flex items-center gap-3 rounded-[8px] bg-dashboard-hover/60 px-3 py-2.5">
-									<InitialsAvatar name={row.sectionName} />
+									<Avatar name={row.sectionName} />
 									<div className="min-w-0">
 										<p className="font-medium text-dashboard-text-primary">
 											{row.sectionName} ·{" "}

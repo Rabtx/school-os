@@ -6,7 +6,7 @@ import { SelectField } from "@school-os/ui/components/select-field";
 import { Spinner } from "@school-os/ui/components/spinner";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { ListPage } from "@/components/list-page";
 import { cn } from "@/lib/utils";
 import {
@@ -289,7 +289,7 @@ function GradeTable({
 									onClick={() => onSelect(row.studentId)}
 									className="flex items-center gap-2.5 whitespace-nowrap text-start font-medium text-dashboard-text-primary"
 								>
-									<InitialsAvatar name={row.studentName} />
+									<Avatar name={row.studentName} />
 									{row.studentName}
 								</button>
 							</td>
@@ -363,7 +363,7 @@ function StudentPanel({
 	return (
 		<aside className="flex min-h-0 flex-col gap-4 overflow-auto rounded-[12px] border border-dashboard-border bg-dashboard-surface p-4">
 			<header className="flex items-center gap-3">
-				<InitialsAvatar name={row.studentName} tone="accent" className="size-8 text-[12px]" />
+				<Avatar name={row.studentName} tone="accent" size="md" />
 				<div className="min-w-0 flex-1">
 					<p className="truncate font-medium text-[14px] text-dashboard-text-primary">
 						{row.studentName}

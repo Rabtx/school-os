@@ -21,7 +21,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AdminPageShell } from "@/components/admin/admin-page-shell";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { ListPage } from "@/components/list-page";
 import { HomeworkCheckAnswers } from "./homework-check-answers";
 import {
@@ -232,7 +232,7 @@ export function HomeworkPage() {
 			renderCell: (row) =>
 				row.teacherName ? (
 					<span className="flex items-center gap-2">
-						<InitialsAvatar name={row.teacherName.replaceAll("_", " ")} />
+						<Avatar name={row.teacherName.replaceAll("_", " ")} />
 						{row.teacherName}
 					</span>
 				) : (

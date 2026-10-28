@@ -5,17 +5,17 @@ type: chore
 from: ui-ux
 to: web
 priority: normal
-status: open
-assignee: none
+status: doing
+assignee: claude
 reviewer: none
 parent: none
 depends_on: ["str-web-reskin-shell-lists"]
-branch: none
+branch: ccr-bf0f9944-6h1l31
 worktree: none
 scope: ["packages/rabtx/src/**", "apps/web/src/**"]
 allowed_shared: []
 created: 2026-10-27
-updated: 2026-10-27
+updated: 2026-10-28
 ---
 
 ## What
@@ -46,3 +46,7 @@ Extract as the screens stabilise; web imports from `@rabtx/ui` instead of local 
 
 ## Resolution
 
+Progress:
+
+- PR 1: avatar, stat card, meter and trend, tabs, segmented control and empty state move into `@rabtx/ui` (`./avatar`, `./stat`, `./meter`, `./tabs`, `./segmented`, `./empty-state`). Each has a `*.styles.ts` of Tailwind classes on `--rx-*` tokens, a React wrapper, a spec and a page in the `/ui` gallery. The segmented control is a real radio group (roving tab stop, arrow keys, Home and End). Web now imports them: `InitialsAvatar` and `attendance-viz` are deleted, `ListPage` renders `TabNav`, roll call uses `SegmentedControl`, the dashboard `StatCard` wraps the package card with its count-up, and `StateMessage` wraps `EmptyState`.
+- Next: filter pill, data table and sidebar nav item.
