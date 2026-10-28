@@ -219,8 +219,10 @@ export class AuthController {
 		@Req() request: Request,
 		@Res({ passthrough: true }) response: Response,
 	): Promise<AuthChallengeResult & { refreshToken?: string }> {
-		const { refreshToken, ...result } = await this.authService.changePassword(user, body);
-		// The session's refresh token was rotated: web gets the cookie, native apps the body field.
+		// The session's refresh token is rotated with the change: web gets the cookie, native apps
+		// the body field.
+		const refreshToken = this.authService.issueRefreshToken(user);
+		const result = await this.authService.changePassword(user, body, refreshToken);
 		this.refreshCookie.set(response, refreshToken);
 		return isNativeClient(request) ? { ...result, refreshToken } : result;
 	}

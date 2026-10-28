@@ -31,7 +31,6 @@ import type {
 	AccessTokenPayload,
 	AuthChallengeResult,
 	AuthSessionResult,
-	ChangePasswordResult,
 	ClientAuthSession,
 	ClientLoginResult,
 	LoginResult,
@@ -374,10 +373,20 @@ export class AuthService {
 		return acceptedChallenge('Password reset successfully. Sign in with your new password.');
 	}
 
+	/** A fresh refresh token for the caller's session, stored by the next rotation (see changePassword). */
+	issueRefreshToken(user: AccessTokenPayload): string {
+		return this.crypto.createRefreshToken(user.sid);
+	}
+
+	/**
+	 * `nextRefreshToken` (from `issueRefreshToken`) replaces this session's refresh token in the same
+	 * transaction that revokes the other sessions, so a token copied before the change stops working.
+	 */
 	async changePassword(
 		user: AccessTokenPayload,
 		body: ChangePasswordBody,
-	): Promise<ChangePasswordResult> {
+		nextRefreshToken: string,
+	): Promise<AuthChallengeResult> {
 		const record = await this.usersService.findById(user.sub);
 		if (
 			!record?.passwordHash ||
@@ -389,17 +398,13 @@ export class AuthService {
 			});
 		}
 		const passwordHash = await this.crypto.hashPassword(body.newPassword);
-		const refreshToken = this.crypto.createRefreshToken(user.sid);
 		await this.authRepository.changePassword({
 			userId: user.sub,
 			currentSessionId: user.sid,
 			passwordHash,
-			refreshTokenHash: this.crypto.hashRefreshToken(refreshToken),
+			refreshTokenHash: this.crypto.hashRefreshToken(nextRefreshToken),
 		});
-		return {
-			...acceptedChallenge('Password changed successfully. Other sessions were signed out.'),
-			refreshToken,
-		};
+		return acceptedChallenge('Password changed successfully. Other sessions were signed out.');
 	}
 
 	async authenticateAccessToken(token: string): Promise<AccessTokenPayload> {

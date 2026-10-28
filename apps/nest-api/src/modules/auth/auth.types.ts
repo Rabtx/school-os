@@ -55,9 +55,6 @@ export type AuthChallengeResult = {
 	developmentToken?: string;
 };
 
-/** Password change keeps the caller signed in on a fresh refresh token (the old one stops working). */
-export type ChangePasswordResult = AuthChallengeResult & { refreshToken: string };
-
 export type RegistrationResult = AuthChallengeResult & { user: PublicUser };
 
 export type SessionView = {

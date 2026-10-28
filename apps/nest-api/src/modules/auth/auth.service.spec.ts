@@ -155,20 +155,24 @@ describe('AuthService', () => {
 		crypto.createRefreshToken = vi.fn().mockReturnValue('next-refresh-token');
 		crypto.hashRefreshToken = vi.fn().mockReturnValue('next-refresh-hash');
 		authRepository.changePassword = vi.fn().mockResolvedValue(undefined);
+		const caller = { sub: user.id, sid: 'session-1' } as never;
 
-		const result = await service.changePassword({ sub: user.id, sid: 'session-1' } as never, {
-			currentPassword: 'old-password',
-			newPassword: 'new-password-123',
-		});
+		const nextRefreshToken = service.issueRefreshToken(caller);
+		const result = await service.changePassword(
+			caller,
+			{ currentPassword: 'old-password', newPassword: 'new-password-123' },
+			nextRefreshToken,
+		);
 
 		expect(crypto.createRefreshToken).toHaveBeenCalledWith('session-1');
+		expect(crypto.hashRefreshToken).toHaveBeenCalledWith('next-refresh-token');
 		expect(authRepository.changePassword).toHaveBeenCalledWith({
 			userId: user.id,
 			currentSessionId: 'session-1',
 			passwordHash: 'password-hash',
 			refreshTokenHash: 'next-refresh-hash',
 		});
-		expect(result).toMatchObject({ accepted: true, refreshToken: 'next-refresh-token' });
+		expect(result).toMatchObject({ accepted: true });
 	});
 
 	it('rejects a wrong current password without touching sessions', async () => {
@@ -177,10 +181,14 @@ describe('AuthService', () => {
 		authRepository.changePassword = vi.fn();
 
 		await expect(
-			service.changePassword({ sub: user.id, sid: 'session-1' } as never, {
-				currentPassword: 'wrong',
-				newPassword: 'new-password-123',
-			}),
+			service.changePassword(
+				{ sub: user.id, sid: 'session-1' } as never,
+				{
+					currentPassword: 'wrong',
+					newPassword: 'new-password-123',
+				},
+				'next-refresh-token',
+			),
 		).rejects.toMatchObject({ response: { code: 'AUTH_CURRENT_PASSWORD_INVALID' } });
 		expect(authRepository.changePassword).not.toHaveBeenCalled();
 	});
