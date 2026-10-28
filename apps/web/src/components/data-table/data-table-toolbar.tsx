@@ -2,6 +2,7 @@
 
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { FilterPill, filterPillParts } from "@rabtx/ui/filter-pill";
 import { Button } from "@school-os/ui/components/button";
 import { SearchInput } from "@school-os/ui/components/search-input";
 import { SelectField } from "@school-os/ui/components/select-field";
@@ -61,22 +62,17 @@ export function DataTableToolbar({
 				) : null}
 
 				{filters.map((filter) => (
-					<div
-						key={filter.id}
-						className="flex h-7 w-full items-center overflow-hidden rounded-full border border-dashboard-border-strong bg-dashboard-surface text-[13px] sm:w-auto"
-					>
-						<span className="flex h-full shrink-0 items-center border-dashboard-border border-e px-3 text-dashboard-text-dim">
-							{filter.label}
-						</span>
+					<FilterPill key={filter.id} label={filter.label}>
 						<SelectField
+							aria-label={filter.label}
 							value={filter.value}
 							onValueChange={filter.onChange}
 							items={filter.items}
 							placeholder={filter.placeholder ?? "Any"}
 							nullable={filter.nullable ?? true}
-							className="h-full min-w-[110px] rounded-none border-0 bg-transparent font-medium text-[13px] text-dashboard-text-primary shadow-none dark:bg-transparent"
+							className={`${filterPillParts.control} dark:bg-transparent`}
 						/>
-					</div>
+					</FilterPill>
 				))}
 			</div>
 

@@ -5,7 +5,7 @@ type: chore
 from: ui-ux
 to: web
 priority: normal
-status: doing
+status: done
 assignee: claude
 reviewer: none
 parent: none
@@ -49,4 +49,5 @@ Extract as the screens stabilise; web imports from `@rabtx/ui` instead of local 
 Progress:
 
 - PR 1: avatar, stat card, meter and trend, tabs, segmented control and empty state move into `@rabtx/ui` (`./avatar`, `./stat`, `./meter`, `./tabs`, `./segmented`, `./empty-state`). Each has a `*.styles.ts` of Tailwind classes on `--rx-*` tokens, a React wrapper, a spec and a page in the `/ui` gallery. The segmented control is a real radio group (roving tab stop, arrow keys, Home and End). Web now imports them: `InitialsAvatar` and `attendance-viz` are deleted, `ListPage` renders `TabNav`, roll call uses `SegmentedControl`, the dashboard `StatCard` wraps the package card with its count-up, and `StateMessage` wraps `EmptyState`.
-- Next: filter pill, data table and sidebar nav item.
+- PR 2: filter pill, data table and sidebar nav item (`./filter-pill`, `./table`, `./nav-item`). The table is native `<table>` markup with the package checkbox, `aria-sort` on sorted columns, a skeleton hidden from screen readers (`aria-busy` body), and pure helpers for sorting (`sortRows`, `nextSort`) and selection (`pageSelection`, `withIds`), plus `useClientTable`. Header cells start-align in the base layer so a column's `text-right` wins without class merging. `FilterPillSelect` is a native-select pill; `FilterPill` frames an app's own control. Web's `DataTable`, `defaultSortFn` and `useClientDataTable` now re-export the package, the toolbar uses `FilterPill`, and the sidebar rows use `navItemClass`, `navItemIconClass`, `navItemParts` and `NavSection`.
+- Card closed: every component listed is in `@rabtx/ui` with a spec and a gallery page.
