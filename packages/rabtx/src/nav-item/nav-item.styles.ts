@@ -25,6 +25,16 @@ export const navItemParts = {
 	collapsedRule: "mx-auto mb-1 h-px w-5 bg-(--rx-border)",
 };
 
+export type NavCountTone = "plain" | "accent" | "danger";
+
+/** A plain count is a quiet number; a count waiting on you is a filled pill (Approvals, Messages). */
+export function navCountClass(tone: NavCountTone = "plain") {
+	if (tone === "plain") return navItemParts.count;
+	return `inline-flex h-4 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-[510] tabular-nums text-white ${
+		tone === "accent" ? "bg-(--rx-accent)" : "bg-(--rx-danger)"
+	}`;
+}
+
 /** Counts read as numbers; zero and missing counts show nothing. */
 export function navCountLabel(count: number | undefined): string | null {
 	if (!count) return null;

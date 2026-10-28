@@ -1,5 +1,12 @@
 import type { ComponentType, ReactNode } from "react";
-import { navCountLabel, navItemClass, navItemIconClass, navItemParts } from "./nav-item.styles";
+import {
+	type NavCountTone,
+	navCountClass,
+	navCountLabel,
+	navItemClass,
+	navItemIconClass,
+	navItemParts,
+} from "./nav-item.styles";
 
 type LinkProps = {
 	href: string;
@@ -14,6 +21,8 @@ export type NavItemProps = {
 	icon: ReactNode;
 	/** A count after the label (14 homework to check); zero shows nothing. */
 	count?: number;
+	/** "accent" or "danger" when the count is waiting on the person, such as approvals. */
+	countTone?: NavCountTone;
 	/** Something else after the label, such as a "⌘K" hint. Replaces the count. */
 	trailing?: ReactNode;
 	href: string;
@@ -30,6 +39,7 @@ export function NavItem({
 	label,
 	icon,
 	count,
+	countTone,
 	trailing,
 	href,
 	active = false,
@@ -50,7 +60,7 @@ export function NavItem({
 				<>
 					<span className={navItemParts.label}>{label}</span>
 					{trailing ??
-						(countLabel ? <span className={navItemParts.count}>{countLabel}</span> : null)}
+						(countLabel ? <span className={navCountClass(countTone)}>{countLabel}</span> : null)}
 				</>
 			)}
 		</LinkTag>

@@ -13,6 +13,7 @@ import { AuthorizationModule } from '@/modules/authorization/authorization.modul
 import { BillingModule } from '@/modules/billing/billing.module';
 import { CampusesModule } from '@/modules/campuses/campuses.module';
 import { GradebookModule } from '@/modules/gradebook/gradebook.module';
+import { ApprovalsModule } from '@/modules/approvals/approvals.module';
 import { RulesModule } from '@/modules/rules/rules.module';
 import { GuardiansModule } from '@/modules/guardians/guardians.module';
 import { HealthModule } from '@/modules/health/health.module';
@@ -50,6 +51,7 @@ import { UsersModule } from '@/modules/users/users.module';
 		AssessmentsModule,
 		GradebookModule,
 		RulesModule,
+		ApprovalsModule,
 		ReportsModule,
 		MembersModule,
 		NavigationModule,

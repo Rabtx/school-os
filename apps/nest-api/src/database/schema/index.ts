@@ -1,4 +1,5 @@
 export * from './academic-years.schema';
+export * from './approval-requests.schema';
 export * from './assessment-recipients.schema';
 export * from './assessments.schema';
 export * from './assignment-target-mode.schema';

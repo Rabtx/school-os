@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { navCountLabel, navItemClass, navItemIconClass } from "./nav-item.styles";
+import { navCountClass, navCountLabel, navItemClass, navItemIconClass } from "./nav-item.styles";
 
 describe("nav item", () => {
 	it("fills the active row and centres a collapsed one", () => {
@@ -19,5 +19,11 @@ describe("nav item", () => {
 		expect(navCountLabel(undefined)).toBeNull();
 		expect(navCountLabel(14)).toBe("14");
 		expect(navCountLabel(1200)).toBe("999+");
+	});
+
+	it("fills counts that wait on the person", () => {
+		expect(navCountClass()).toContain("text-(--rx-text-tertiary)");
+		expect(navCountClass("accent")).toContain("bg-(--rx-accent)");
+		expect(navCountClass("danger")).toContain("bg-(--rx-danger)");
 	});
 });

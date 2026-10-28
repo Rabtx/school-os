@@ -5,7 +5,14 @@ const dateSchema = z
 	.trim()
 	.regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
 
-const markStatusSchema = z.enum(['present', 'absent', 'late', 'excused', 'left_early', 'unknown']);
+export const markStatusSchema = z.enum([
+	'present',
+	'absent',
+	'late',
+	'excused',
+	'left_early',
+	'unknown',
+]);
 
 export const createAttendanceSessionSchema = z
 	.object({
@@ -96,3 +103,4 @@ export type StudentHistoryQuery = z.infer<typeof studentHistoryQuerySchema>;
 export type SessionDateQuery = z.infer<typeof sessionDateQuerySchema>;
 export type AttendanceReportQuery = z.infer<typeof attendanceReportQuerySchema>;
 export type FindSessionQuery = z.infer<typeof findSessionQuerySchema>;
+export type AttendanceMarkStatus = z.infer<typeof markStatusSchema>;

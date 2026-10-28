@@ -38,6 +38,10 @@ type Props = {
 	/** Where a student's name leads: the profile panel or the class page. */
 	profileHref: (studentId: string) => string;
 	onStatusChange: (studentId: string, status: AttendanceMarkStatus) => void;
+	/** Set on a locked day: ask the principal to change a mark instead of changing it. */
+	onRequestChange?: (studentId: string, status: AttendanceMarkStatus) => void;
+	/** Changes already asked for on this roll call, by student. */
+	pendingChanges?: Map<string, { status: string }>;
 };
 
 const SEGMENTS: SegmentOption<AttendanceMarkStatus>[] = [
@@ -73,6 +77,8 @@ export function AttendanceRollCallTable({
 	canMark,
 	profileHref,
 	onStatusChange,
+	onRequestChange,
+	pendingChanges,
 }: Props) {
 	if (roster.length === 0) {
 		return (
@@ -103,6 +109,7 @@ export function AttendanceRollCallTable({
 						const status = markDraft[student.id] ?? "unknown";
 						const roll = rollNumbers.get(student.id) ?? 0;
 						const info = context.get(student.id);
+						const asked = pendingChanges?.get(student.id);
 						const marked =
 							status !== "unknown" && status !== "absent" ? markedAt.get(student.id) : undefined;
 						return (
@@ -154,6 +161,14 @@ export function AttendanceRollCallTable({
 									{status === "left_early" ? (
 										<span className="ms-2 text-[12px] text-[var(--rx-warning)]">Left early</span>
 									) : null}
+									{asked ? (
+										<span className="mt-1 block text-[12px] text-[var(--rx-accent)]">
+											Asked to mark{" "}
+											{SEGMENTS.find(
+												(segment) => segment.value === asked.status,
+											)?.label.toLowerCase() ?? asked.status}
+										</span>
+									) : null}
 								</td>
 								<td
 									className="py-2 pe-4 text-end sm:pe-6"
@@ -188,7 +203,26 @@ export function AttendanceRollCallTable({
 														))
 													: null}
 											</DropdownMenuGroup>
-											{canMark ? <DropdownMenuSeparator /> : null}
+											{onRequestChange ? (
+												<DropdownMenuGroup>
+													<DropdownMenuLabel className="font-normal text-[12px] text-dashboard-text-dim">
+														{asked ? "Change asked for" : "Ask the principal to mark"}
+													</DropdownMenuLabel>
+													{asked
+														? null
+														: SEGMENTS.filter((segment) => segment.value !== status).map(
+																(segment) => (
+																	<DropdownMenuItem
+																		key={segment.value}
+																		onClick={() => onRequestChange(student.id, segment.value)}
+																	>
+																		{segment.label}
+																	</DropdownMenuItem>
+																),
+															)}
+												</DropdownMenuGroup>
+											) : null}
+											{canMark || onRequestChange ? <DropdownMenuSeparator /> : null}
 											<DropdownMenuItem
 												render={<Link href={profileHref(student.id)}>Open profile</Link>}
 											/>

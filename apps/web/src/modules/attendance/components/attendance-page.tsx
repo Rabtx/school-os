@@ -9,6 +9,7 @@ import { SearchInput } from "@school-os/ui/components/search-input";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { Skeleton } from "@school-os/ui/components/skeleton";
 import { Spinner } from "@school-os/ui/components/spinner";
+import { useToast } from "@school-os/ui/components/toaster";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -24,6 +25,13 @@ import {
 	useGetOrCreateSessionMutation,
 	useMarkAttendanceMutation,
 } from "@/modules/attendance/hooks/use-attendance-queries";
+import {
+	type ChangeRequestDraft,
+	pendingChangesForSession,
+	RequestChangeDialog,
+	useMyApprovalsQuery,
+	useRequestAttendanceChange,
+} from "@/modules/approvals";
 import type { SessionRules } from "@/modules/rules/types/rules.types";
 import type {
 	AttendanceMarkStatus,
@@ -128,6 +136,7 @@ function markedAtByStudent(marks: { studentId: string; markedAt: string | null }
 
 export function AttendancePage() {
 	const reduce = useReducedMotion();
+	const toast = useToast();
 	const searchParams = useSearchParams();
 	const initialSectionId = searchParams.get("sectionId") ?? "";
 	const initialSessionDate = searchParams.get("sessionDate") ?? "";
@@ -230,6 +239,22 @@ export function AttendancePage() {
 		canMark &&
 		!dayLocked &&
 		(!isTeacherScoped || selectableSections.some((section) => section.id === sectionId));
+
+	// On a locked day a teacher asks the principal instead (Approvals, attendance change).
+	const canRequestChange =
+		canMark &&
+		dayLocked &&
+		Boolean(sessionId) &&
+		(!isTeacherScoped || selectableSections.some((section) => section.id === sectionId));
+	const myApprovalsQuery = useMyApprovalsQuery(tenantId, canRequestChange);
+	const pendingChanges = useMemo(
+		() => pendingChangesForSession(myApprovalsQuery.data, sessionId),
+		[myApprovalsQuery.data, sessionId],
+	);
+	const requestChange = useRequestAttendanceChange(tenantId);
+	const [changeDraft, setChangeDraft] = useState<
+		(ChangeRequestDraft & { studentId: string; status: AttendanceMarkStatus }) | null
+	>(null);
 
 	const enrollmentsQuery = useSectionEnrollmentsQuery(
 		tenantId,
@@ -691,7 +716,7 @@ export function AttendancePage() {
 					<Alert>
 						<AlertDescription>
 							Marks for this day are locked for teachers under the school&apos;s attendance rules.
-							Ask the principal if one needs changing.
+							To change one, open the student&apos;s menu and ask the principal.
 						</AlertDescription>
 					</Alert>
 				) : undefined
@@ -805,6 +830,29 @@ export function AttendancePage() {
 							onStatusChange={(studentId, status) =>
 								setMarkDraft((current) => ({ ...current, [studentId]: status }))
 							}
+							pendingChanges={canRequestChange ? pendingChanges : undefined}
+							onRequestChange={
+								canRequestChange
+									? (studentId, status) =>
+											setChangeDraft({
+												studentId,
+												status,
+												studentName:
+													rosterStudents.find((student) => student.id === studentId)?.fullName ??
+													"this student",
+												dayLabel: new Date(`${sessionDate}T00:00:00`).toLocaleDateString(
+													undefined,
+													{
+														weekday: "short",
+														day: "numeric",
+														month: "short",
+													},
+												),
+												fromLabel: STATUS_LABEL[savedMarks[studentId] ?? "unknown"],
+												toLabel: STATUS_LABEL[status],
+											})
+									: undefined
+							}
 						/>
 					)}
 				</div>
@@ -830,9 +878,49 @@ export function AttendancePage() {
 					</p>
 				</div>
 			)}
+			<RequestChangeDialog
+				draft={changeDraft}
+				busy={requestChange.isPending}
+				onClose={() => setChangeDraft(null)}
+				onSend={(note) => {
+					if (!changeDraft || !sessionId || changeDraft.status === "unknown") return;
+					const draft = { ...changeDraft, status: changeDraft.status };
+					requestChange.mutate(
+						{
+							input: { sessionId, studentId: draft.studentId, status: draft.status },
+							note,
+						},
+						{
+							onSuccess: () => {
+								setChangeDraft(null);
+								toast.show({
+									title: "Sent to the principal",
+									description: `${draft.studentName}: ${draft.fromLabel} → ${draft.toLabel}. You will see it here once they decide.`,
+									status: "success",
+								});
+							},
+							onError: (requestError) =>
+								toast.show({
+									title: "Request not sent",
+									description: requestError instanceof Error ? requestError.message : undefined,
+									status: "error",
+								}),
+						},
+					);
+				}}
+			/>
 		</ListPage>
 	);
 }
+
+const STATUS_LABEL: Record<AttendanceMarkStatus, string> = {
+	present: "Present",
+	late: "Late",
+	absent: "Absent",
+	excused: "Excused",
+	left_early: "Left early",
+	unknown: "Not marked",
+};
 
 /** "08:30" → "8:30", as the school's times are shown elsewhere. */
 function clockLabel(time: string): string {

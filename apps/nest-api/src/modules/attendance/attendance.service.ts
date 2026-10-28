@@ -21,6 +21,7 @@ import {
 import { RulesService } from '@/modules/rules/rules.service';
 import { StudentsRepository } from '@/modules/students/students.repository';
 import type {
+	AttendanceMarkStatus as MarkStatus,
 	ConfirmAllPresentInput,
 	CreateAttendanceSessionInput,
 	MarkAttendanceInput,
@@ -274,6 +275,76 @@ export class AttendanceService {
 		});
 
 		return this.buildSessionResponse(tenantId, session, membership);
+	}
+
+	/**
+	 * Checks a teacher may ask leadership to change one student's mark on a day they can no longer
+	 * edit, and returns what the approval card shows. Used by the approvals engine.
+	 */
+	async prepareChangeRequest(
+		userId: string,
+		tenantId: string,
+		input: { sessionId: string; studentId: string; status: MarkStatus },
+	) {
+		const membership = await this.requireMark(userId, tenantId);
+		const session = await this.requireSession(tenantId, input.sessionId);
+		if (!session.sectionId) {
+			throw new BadRequestException({
+				code: 'ATTENDANCE_SECTION_REQUIRED',
+				message: 'Changes can only be requested for a class roll call',
+			});
+		}
+		const section = await this.requireSection(tenantId, session.sectionId);
+		await this.requireSectionMarkAccess(tenantId, membership, section);
+
+		const [student] = await this.students.findStudentsByIds(tenantId, [input.studentId]);
+		const enrolled = await this.students.listEnrollments(tenantId, { sectionId: section.id });
+		if (
+			!student ||
+			!enrolled.some((row) => row.studentId === input.studentId && row.status === 'active')
+		) {
+			throw new BadRequestException({
+				code: 'STUDENT_NOT_ENROLLED',
+				message: 'Student is not actively enrolled in this section',
+			});
+		}
+
+		const marks = await this.attendance.listMarksForSession(tenantId, session.id);
+		const { policy, clock } = await this.rules.getAttendancePolicy(tenantId);
+		return {
+			membership,
+			sessionDate: session.sessionDate,
+			sectionId: section.id,
+			sectionName: section.name,
+			studentName: `${student.firstName} ${student.lastName}`.trim(),
+			previousStatus: marks.find((mark) => mark.studentId === input.studentId)?.status ?? null,
+			canEditNow:
+				managementRoles.has(membership.role) ||
+				canTeacherChangeMarks(policy, session.sessionDate, new Date(), clock.timeZone),
+		};
+	}
+
+	/**
+	 * Sets one student's mark on behalf of the leader who approved the change, past the teacher edit
+	 * window. Returns the status it replaced so the approval can be undone.
+	 */
+	async applyApprovedChange(input: {
+		tenantId: string;
+		sessionId: string;
+		studentId: string;
+		status: MarkStatus;
+		approverMembershipId: string;
+	}): Promise<MarkStatus> {
+		const session = await this.requireSession(input.tenantId, input.sessionId);
+		const marks = await this.attendance.listMarksForSession(input.tenantId, session.id);
+		const previous = marks.find((mark) => mark.studentId === input.studentId)?.status ?? 'unknown';
+		await this.attendance.markStudents({
+			tenantId: input.tenantId,
+			session,
+			marks: [{ studentId: input.studentId, status: input.status }],
+			markedByMembershipId: input.approverMembershipId,
+		});
+		return previous;
 	}
 
 	private async requireLeadershipRead(userId: string, tenantId: string) {

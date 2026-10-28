@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, gte, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, isNull, or, sql } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
 import {
 	academicYears,
+	approvalRequests,
 	classes,
 	enrollments,
 	guardians,
@@ -28,7 +29,7 @@ export class NavigationRepository {
 
 	/** Counts shown next to sidebar items: active students, guardians, homework still due. */
 	async countSidebarBadges(tenantId: string, now: Date) {
-		const [[studentRow], [guardianRow], [homeworkRow]] = await Promise.all([
+		const [[studentRow], [guardianRow], [homeworkRow], [approvalRow]] = await Promise.all([
 			this.database.db
 				.select({ count: sql<number>`count(*)::int` })
 				.from(students)
@@ -53,11 +54,22 @@ export class NavigationRepository {
 						gte(homeworkAssignments.dueAt, now),
 					),
 				),
+			this.database.db
+				.select({ count: sql<number>`count(*)::int` })
+				.from(approvalRequests)
+				.where(
+					and(
+						eq(approvalRequests.tenantId, tenantId),
+						eq(approvalRequests.status, 'pending'),
+						or(isNull(approvalRequests.expiresAt), gt(approvalRequests.expiresAt, now)),
+					),
+				),
 		]);
 		return {
 			students: studentRow?.count ?? 0,
 			guardians: guardianRow?.count ?? 0,
 			homework: homeworkRow?.count ?? 0,
+			approvals: approvalRow?.count ?? 0,
 		};
 	}
 

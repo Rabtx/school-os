@@ -34,6 +34,7 @@ empty state instead of sample data.
 
 | Screen | Route | What it does |
 | --- | --- | --- |
+| Approvals | `/admin/approvals` | One request at a time, oldest first: what changes if you approve, approve (⌘↵) or decline with a reason, undo for 15 seconds, then the next. The sidebar shows how many wait |
 | Dashboard | `/admin` | Students, attendance today, late arrivals, homework due, attendance trend, check-in method, today's check-ins |
 | Students | `/admin/students` | Search and filter, profile panel with attendance, guardians, enrolment and ID card, CSV export |
 | Guardians · ID cards | `/admin/guardians`, `/admin/students?view=cards` | Guardian directory and printable student ID cards |
@@ -48,7 +49,7 @@ empty state instead of sample data.
 | --- | --- | --- |
 | Teacher home | `/admin` | Next class, roll call status, answers to review, homework due, today's lessons, students absent several days running |
 | My classes | `/admin/my-classes` | Today / This week / All classes with attendance meter and trend |
-| Roll call | `/admin/attendance` | Present, late, absent or excused per student, with guardian, check-in time and method; late and absence tabs |
+| Roll call | `/admin/attendance` | Present, late, absent or excused per student, with guardian, check-in time and method; late and absence tabs. Once the edit window closes, a student's menu asks the principal for a change |
 | Homework | `/admin/homework` | Assigned and draft homework with submission bars, AI draft helper |
 | Check answers | `/admin/homework?tab=submissions` | Mark each answer in a side panel: marks, comment, excused, not handed in, save and next |
 | Marks | `/admin/gradebook` | Every test and homework for a class subject: latest homework, tests, homework average, trend, overall and grade, CSV export |
@@ -67,7 +68,8 @@ empty state instead of sample data.
 | Feature | Where it shows | When |
 | --- | --- | --- |
 | WhatsApp parent alerts | "WhatsApp not connected" on dashboard, sidebar and roll call | Next, after the screen rebuild |
-| Approvals, OTP; running auto-absent and alerts on a schedule | Settings and alert cards | With WhatsApp (attendance rules are live) |
+| Leave and marks-change approvals | Approvals queue | Next (attendance changes are live) |
+| OTP; running auto-absent and alerts on a schedule | Settings and alert cards | With WhatsApp (attendance rules are live) |
 | AI drafting, marking and report comments | Teacher comment card on report cards | After messaging (tool registry, RAG, evals) |
 | Questions, practice sets, question bank | Tests side panel | With the AI layer |
 | Terms on tests | Marks has no term filter | Gradebook follow-up |
