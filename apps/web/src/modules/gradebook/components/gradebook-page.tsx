@@ -4,8 +4,10 @@ import { ArrowLeft01Icon, ArrowRight01Icon, SparklesIcon } from "@hugeicons/core
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { Spinner } from "@school-os/ui/components/spinner";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { InitialsAvatar } from "@/components/initials-avatar";
+import { ListPage } from "@/components/list-page";
 import { cn } from "@/lib/utils";
 import {
 	useAcademicYearsQuery,
@@ -20,6 +22,7 @@ import type {
 } from "@/modules/gradebook/types/gradebook.types";
 import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
 import { NoAccess } from "@/components/states";
+import { GradebookMarks } from "./gradebook-marks";
 
 const TERMS: { label: string; value: GradebookTerm }[] = [
 	{ label: "Term 1", value: "term1" },
@@ -67,10 +70,50 @@ function gradeTone(grade: string | undefined): string {
 	return "text-dashboard-text-primary";
 }
 
-/** Figma "Report cards" (gradebook `77:90702`): class grade matrix and a student panel. */
+/** Gradebook: Marks (default) and Report cards tabs. */
 export function GradebookPage() {
-	const { activeTenant, activeCampus, campuses } = useTenantContext();
+	const searchParams = useSearchParams();
 	const { can, isLoading: permissionsLoading } = usePermissions();
+	const tab = searchParams.get("tab") === "report-cards" ? "report-cards" : "marks";
+	const tabs = [
+		{ label: "Marks", href: "/admin/gradebook", active: tab === "marks" },
+		{
+			label: "Report cards",
+			href: "/admin/gradebook?tab=report-cards",
+			active: tab === "report-cards",
+		},
+	];
+
+	if (permissionsLoading) {
+		return (
+			<div className="flex min-h-[240px] items-center justify-center">
+				<Spinner className="size-6" />
+			</div>
+		);
+	}
+
+	if (!can(PermissionCodes.ASSESSMENTS_READ)) {
+		return (
+			<NoAccess
+				title="The gradebook is not part of your role"
+				description="Ask the principal or an admin if you need access."
+			/>
+		);
+	}
+
+	if (tab === "marks") return <GradebookMarks tabs={tabs} />;
+
+	return (
+		<ListPage title="Gradebook" tabs={tabs}>
+			<ReportCards />
+		</ListPage>
+	);
+}
+
+/** Figma "Report cards" (teacher `166:36303`, gradebook `77:90702`): grade matrix and a student panel. */
+function ReportCards() {
+	const { activeTenant, activeCampus, campuses } = useTenantContext();
+	const { can } = usePermissions();
 	const tenantId = activeTenant?.id ?? null;
 	const campusId = activeCampus?.id ?? campuses[0]?.id ?? null;
 	const canRead = can(PermissionCodes.ASSESSMENTS_READ);
@@ -111,23 +154,6 @@ export function GradebookPage() {
 	const complete = rows.filter(
 		(row) => rowState(row, grid?.subjects.length ?? 0).label === "Complete",
 	).length;
-
-	if (permissionsLoading) {
-		return (
-			<div className="flex min-h-[240px] items-center justify-center">
-				<Spinner className="size-6" />
-			</div>
-		);
-	}
-
-	if (!canRead) {
-		return (
-			<NoAccess
-				title="The gradebook is not part of your role"
-				description="Ask the principal or an admin if you need access."
-			/>
-		);
-	}
 
 	return (
 		<div className="flex h-full min-h-0 flex-col gap-4 px-4 py-5 tracking-[-0.15px] sm:px-6">

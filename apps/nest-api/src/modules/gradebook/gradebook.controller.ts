@@ -22,6 +22,8 @@ import {
 	AddGradebookEntryDto,
 	type GradebookGridQuery,
 	gradebookGridQuerySchema,
+	type MarksheetQuery,
+	marksheetQuerySchema,
 	type StudentReportQuery,
 	studentReportQuerySchema,
 } from './gradebook.dto';
@@ -43,6 +45,17 @@ export class GradebookController {
 		@Query(new ZodValidationPipe(gradebookGridQuerySchema)) query: GradebookGridQuery,
 	) {
 		return this.gradebook.getGradebookGrid(user.sub, tenantId, query);
+	}
+
+	@Get('marks')
+	@RequirePermissions(PermissionCodes.ASSESSMENTS_READ)
+	@ApiOperation({ summary: 'Every test and homework mark for one class subject' })
+	marks(
+		@CurrentUser() user: AccessTokenPayload,
+		@Param('tenantId', new ParseUUIDPipe({ version: '4' })) tenantId: string,
+		@Query(new ZodValidationPipe(marksheetQuerySchema)) query: MarksheetQuery,
+	) {
+		return this.gradebook.getMarksheet(user.sub, tenantId, query);
 	}
 
 	@Post('entries')

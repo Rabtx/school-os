@@ -22,8 +22,10 @@ import { StudentsRepository } from '@/modules/students/students.repository';
 import type {
 	AddGradebookEntryInput,
 	GradebookGridQuery,
+	MarksheetQuery,
 	StudentReportQuery,
 } from './gradebook.dto';
+import { buildMarksheet, type Marksheet } from './gradebook-marksheet';
 import { GradebookRepository } from './gradebook.repository';
 
 export type GradebookCell = {
@@ -140,6 +142,58 @@ export class GradebookService {
 			rows,
 			averages,
 		};
+	}
+
+	async getMarksheet(userId: string, tenantId: string, query: MarksheetQuery): Promise<Marksheet> {
+		const membership = await this.requireRead(userId, tenantId);
+		const roles = await this.membershipAccess.listRoleCodes(membership.id, membership.role);
+
+		if (!hasManagementRole(roles)) {
+			await this.requireSectionAccess(tenantId, membership, query.sectionId);
+		}
+
+		const classSubject = await this.gradebook.findSectionSubject(
+			tenantId,
+			query.sectionId,
+			query.subjectId,
+		);
+		if (!classSubject) {
+			throw new NotFoundException({
+				code: 'GRADEBOOK_SECTION_SUBJECT_NOT_FOUND',
+				message: 'This class does not take that subject',
+			});
+		}
+		const sectionSubjectId = classSubject.sectionSubject.id;
+
+		const [enrollments, assessmentRows, homeworkRows] = await Promise.all([
+			this.gradebook.listActiveEnrollmentsForSection(tenantId, query.sectionId),
+			this.gradebook.listSectionSubjectAssessments(tenantId, sectionSubjectId),
+			this.gradebook.listSectionSubjectHomework(tenantId, sectionSubjectId),
+		]);
+		const assessmentIds = assessmentRows.map((row) => row.id);
+		const homeworkIds = homeworkRows.map((row) => row.id);
+		const [resultRows, assessmentRecipients, submissions, homeworkRecipients] = await Promise.all([
+			this.gradebook.listAssessmentResults(tenantId, assessmentIds),
+			this.gradebook.listAssessmentRecipients(tenantId, assessmentIds),
+			this.gradebook.listHomeworkSubmissions(tenantId, homeworkIds),
+			this.gradebook.listHomeworkRecipients(tenantId, homeworkIds),
+		]);
+
+		return buildMarksheet({
+			sectionId: query.sectionId,
+			subject: {
+				id: classSubject.subject.id,
+				code: classSubject.subject.code,
+				name: classSubject.subject.name,
+			},
+			students: enrollments.map((row) => row.student),
+			assessments: assessmentRows,
+			assessmentResults: resultRows,
+			assessmentRecipients,
+			homework: homeworkRows,
+			submissions,
+			homeworkRecipients,
+		});
 	}
 
 	async addManualEntry(userId: string, tenantId: string, input: AddGradebookEntryInput) {
