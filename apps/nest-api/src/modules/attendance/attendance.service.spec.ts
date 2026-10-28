@@ -52,6 +52,7 @@ describe('AttendanceService', () => {
 		countMarksBySectionAndStatus: ReturnType<typeof vi.fn>;
 		listStudentsOverThreshold: ReturnType<typeof vi.fn>;
 		findActiveAcademicYear: ReturnType<typeof vi.fn>;
+		listSessionStudentContext: ReturnType<typeof vi.fn>;
 	};
 	let academicRepository: {
 		findSectionById: ReturnType<typeof vi.fn>;
@@ -84,6 +85,11 @@ describe('AttendanceService', () => {
 			countMarksBySectionAndStatus: vi.fn().mockResolvedValue([]),
 			listStudentsOverThreshold: vi.fn().mockResolvedValue([]),
 			findActiveAcademicYear: vi.fn().mockResolvedValue(null),
+			listSessionStudentContext: vi
+				.fn()
+				.mockResolvedValue([
+					{ studentId: 'student-1', guardianName: 'Ayesha Khan', checkInSource: 'manual' },
+				]),
 		};
 		academicRepository = {
 			findSectionById: vi.fn(),
@@ -136,6 +142,14 @@ describe('AttendanceService', () => {
 
 		expect(result.session.id).toBe('session-1');
 		expect(attendanceRepository.createSession).not.toHaveBeenCalled();
+		expect(attendanceRepository.listSessionStudentContext).toHaveBeenCalledWith(
+			'tenant-1',
+			'session-1',
+			'section-1',
+		);
+		expect(result.students).toEqual([
+			{ studentId: 'student-1', guardianName: 'Ayesha Khan', checkInSource: 'manual' },
+		]);
 	});
 
 	it('blocks unassigned teachers from marking attendance', async () => {

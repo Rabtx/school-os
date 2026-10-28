@@ -51,5 +51,6 @@ Same pattern as the principal screens; teacher views only show their assigned se
 Progress:
 
 - PR 1: teacher home (`158:31492`) and My classes (`158:32640`). The dashboard API adds `toReviewCount` (homework handed in, not graded) and each class's roll-call rate and daily trend over the last 10 school days. Home: next class, roll call, to review, due today and drafts; today's lessons with taught/now/next status; homeroom roll call; needs-you list; students absent several days in a row. Unread messages and AI drafts wait for Phases 4 and 7, so their cards show homework due today and drafts instead. My classes: Today, This week and All classes tabs as one table with attendance meter, trend and status, row menu for roll call, homework and tests. The old command-centre components and onboarding dialog are removed.
-- Next: roll call, homework and check answers, marks and report cards.
+- PR 2: roll call (`160:32559`, row menu `200:85320`) on the shared list layout for teachers and leadership: Roll call / Late arrivals / Absences tabs (`?status=`), class, date and status pills, guardian, check-in time and method columns, row menu to mark or open the profile, stats footer. The session response adds each student's primary guardian and latest check-in source. Teachers land on their first homeroom with students instead of an empty page. Parent alert status waits for Phase 4.
+- Next: homework and check answers, marks and report cards.
 

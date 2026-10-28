@@ -41,10 +41,18 @@ export type AttendanceStatusCounts = {
 	total: number;
 };
 
+export type AttendanceStudentContext = {
+	studentId: string;
+	guardianName: string | null;
+	/** Source of the student's latest attendance event in the session: "manual", "gate", "qr"… */
+	checkInSource: string | null;
+};
+
 export type AttendanceSessionView = {
 	session: AttendanceSession;
 	marks: AttendanceMark[];
 	summary: AttendanceStatusCounts;
+	students: AttendanceStudentContext[];
 };
 
 export type CreateAttendanceSessionInput = {
