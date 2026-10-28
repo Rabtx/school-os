@@ -36,13 +36,15 @@ export function AttendanceMeter({ rate, className }: { rate: number | null; clas
 	);
 }
 
-/** Daily rates as small columns, oldest first; a day under 85% shows red. */
+/** Rates as small columns, oldest first; one under `threshold` (85% by default) shows red. */
 export function AttendanceTrend({
 	days,
 	label,
+	threshold = 85,
 }: {
 	days: { date: string; rate: number }[];
 	label: string;
+	threshold?: number;
 }) {
 	if (days.length === 0) {
 		return <span className="text-[13px] text-dashboard-text-dim">—</span>;
@@ -56,7 +58,7 @@ export function AttendanceTrend({
 					className="w-[3px] rounded-[1px]"
 					style={{
 						height: `${Math.max(15, day.rate)}%`,
-						background: day.rate < 85 ? "var(--rx-danger)" : "var(--rx-success)",
+						background: day.rate < threshold ? "var(--rx-danger)" : "var(--rx-success)",
 					}}
 				/>
 			))}

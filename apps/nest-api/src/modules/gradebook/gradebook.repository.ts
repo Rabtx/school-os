@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, ne } from 'drizzle-orm';
 
 import { DatabaseService } from '@/database/database.service';
 import {
 	academicYears,
+	assessmentRecipients,
+	assessmentResults,
+	assessments,
 	enrollments,
 	gradebookEntries,
+	homeworkAssignments,
+	homeworkRecipients,
+	homeworkSubmissions,
 	sectionSubjects,
 	sections,
 	students,
@@ -158,5 +164,112 @@ export class GradebookRepository {
 				),
 			)
 			.orderBy(subjects.code);
+	}
+
+	async findSectionSubject(tenantId: string, sectionId: string, subjectId: string) {
+		const [row] = await this.database.db
+			.select({ sectionSubject: sectionSubjects, subject: subjects })
+			.from(sectionSubjects)
+			.innerJoin(subjects, eq(sectionSubjects.subjectId, subjects.id))
+			.where(
+				and(
+					eq(sectionSubjects.tenantId, tenantId),
+					eq(sectionSubjects.sectionId, sectionId),
+					eq(sectionSubjects.subjectId, subjectId),
+					isNull(subjects.deletedAt),
+				),
+			)
+			.limit(1);
+		return row ?? null;
+	}
+
+	/** Tests and exams for one class subject that have left draft, oldest first. */
+	async listSectionSubjectAssessments(tenantId: string, sectionSubjectId: string) {
+		return this.database.db
+			.select()
+			.from(assessments)
+			.where(
+				and(
+					eq(assessments.tenantId, tenantId),
+					eq(assessments.sectionSubjectId, sectionSubjectId),
+					ne(assessments.status, 'draft'),
+				),
+			)
+			.orderBy(asc(assessments.assessedOn), asc(assessments.createdAt));
+	}
+
+	async listAssessmentResults(tenantId: string, assessmentIds: string[]) {
+		if (assessmentIds.length === 0) return [];
+		return this.database.db
+			.select()
+			.from(assessmentResults)
+			.where(
+				and(
+					eq(assessmentResults.tenantId, tenantId),
+					inArray(assessmentResults.assessmentId, assessmentIds),
+				),
+			);
+	}
+
+	/** Homework for one class subject that has been set, oldest due date first. */
+	async listSectionSubjectHomework(tenantId: string, sectionSubjectId: string) {
+		return this.database.db
+			.select()
+			.from(homeworkAssignments)
+			.where(
+				and(
+					eq(homeworkAssignments.tenantId, tenantId),
+					eq(homeworkAssignments.sectionSubjectId, sectionSubjectId),
+					ne(homeworkAssignments.status, 'draft'),
+				),
+			)
+			.orderBy(asc(homeworkAssignments.dueAt), asc(homeworkAssignments.createdAt));
+	}
+
+	async listHomeworkSubmissions(tenantId: string, homeworkIds: string[]) {
+		if (homeworkIds.length === 0) return [];
+		return this.database.db
+			.select()
+			.from(homeworkSubmissions)
+			.where(
+				and(
+					eq(homeworkSubmissions.tenantId, tenantId),
+					inArray(homeworkSubmissions.homeworkId, homeworkIds),
+				),
+			);
+	}
+
+	/** Chosen students for assessments assigned to part of the class. */
+	async listAssessmentRecipients(tenantId: string, assessmentIds: string[]) {
+		if (assessmentIds.length === 0) return [];
+		return this.database.db
+			.select({
+				assessmentId: assessmentRecipients.assessmentId,
+				studentId: assessmentRecipients.studentId,
+			})
+			.from(assessmentRecipients)
+			.where(
+				and(
+					eq(assessmentRecipients.tenantId, tenantId),
+					inArray(assessmentRecipients.assessmentId, assessmentIds),
+				),
+			);
+	}
+
+	/** Chosen students for homework assigned to part of the class. */
+	async listHomeworkRecipients(tenantId: string, homeworkIds: string[]) {
+		if (homeworkIds.length === 0) return [];
+		return this.database.db
+			.select({
+				homeworkId: homeworkRecipients.homeworkId,
+				studentId: homeworkRecipients.studentId,
+			})
+			.from(homeworkRecipients)
+			.where(
+				and(
+					eq(homeworkRecipients.tenantId, tenantId),
+					inArray(homeworkRecipients.homeworkId, homeworkIds),
+				),
+			);
 	}
 }

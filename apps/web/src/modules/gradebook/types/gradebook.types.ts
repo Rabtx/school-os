@@ -69,3 +69,58 @@ export type StudentReport = {
 	entries: StudentReportEntry[];
 	averageGradePoint: number | null;
 };
+
+export type MarksheetAssessment = {
+	id: string;
+	title: string;
+	type: "quiz" | "test" | "exam";
+	assessedOn: string;
+	maxScore: number;
+	status: "draft" | "published" | "closed";
+};
+
+export type MarksheetHomework = {
+	id: string;
+	title: string;
+	dueAt: string | null;
+	status: "draft" | "published" | "closed";
+};
+
+export type MarksheetAssessmentMark = {
+	status: "pending" | "graded" | "absent";
+	score: number | null;
+	percentage: number | null;
+};
+
+export type MarksheetHomeworkMark = {
+	status: "pending" | "submitted" | "late" | "graded" | "excused";
+	marksObtained: number | null;
+	totalMarks: number | null;
+	percentage: number | null;
+};
+
+export type MarksheetRow = {
+	studentId: string;
+	studentName: string;
+	studentCode: string;
+	/** Keyed by assessment id; absent when the student was not set that assessment. */
+	assessments: Record<string, MarksheetAssessmentMark>;
+	/** Keyed by homework id; absent when the student was not set that homework. */
+	homework: Record<string, MarksheetHomeworkMark>;
+	homeworkAverage: number | null;
+	/** Every marked test and homework as a percentage, oldest first. */
+	trend: number[];
+	/** Mean of every marked test and homework, each counted once. */
+	overall: { percentage: number; grade: string } | null;
+	waitingCount: number;
+};
+
+export type Marksheet = {
+	sectionId: string;
+	subject: { id: string; code: string; name: string };
+	assessments: MarksheetAssessment[];
+	homework: MarksheetHomework[];
+	rows: MarksheetRow[];
+	classAverage: number | null;
+	waitingCount: number;
+};

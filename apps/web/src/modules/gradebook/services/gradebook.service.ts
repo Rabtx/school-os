@@ -3,6 +3,7 @@ import type {
 	GradebookEntryInput,
 	GradebookGrid,
 	GradebookTerm,
+	Marksheet,
 	StudentReport,
 } from "../types/gradebook.types";
 
@@ -21,6 +22,15 @@ export const gradebookService = {
 			accessToken,
 		});
 	},
+	marks: (
+		accessToken: string,
+		tenantId: string,
+		params: { sectionId: string; subjectId: string },
+	) =>
+		apiClient.get<Marksheet>(
+			`/tenants/${tenantId}/gradebook/marks?${new URLSearchParams(params).toString()}`,
+			{ accessToken },
+		),
 	addEntry: (accessToken: string, tenantId: string, input: GradebookEntryInput) =>
 		apiClient.post<{ entry: unknown }>(`/tenants/${tenantId}/gradebook/entries`, input, {
 			accessToken,

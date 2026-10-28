@@ -11,6 +11,15 @@ export const gradebookGridQuerySchema = z
 	})
 	.strict();
 
+export const marksheetQuerySchema = z
+	.object({
+		sectionId: z.string().uuid(),
+		subjectId: z.string().uuid(),
+	})
+	.strict();
+
+export type MarksheetQuery = z.infer<typeof marksheetQuerySchema>;
+
 export const addGradebookEntrySchema = z
 	.object({
 		studentId: z.string().uuid(),

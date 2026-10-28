@@ -12,6 +12,7 @@ export type SectionSubjectOption = {
 	value: string;
 	sectionId: string;
 	sectionName: string;
+	subjectId: string;
 	subjectName: string;
 };
 
@@ -40,6 +41,7 @@ export function useSectionSubjectOptions(tenantId: string | null, campusId?: str
 				value: assignment.id,
 				sectionId: assignment.sectionId,
 				sectionName: assignment.sectionName,
+				subjectId: assignment.subjectId,
 				subjectName: assignment.subjectName,
 			}));
 		}
@@ -49,6 +51,7 @@ export function useSectionSubjectOptions(tenantId: string | null, campusId?: str
 			value: item.id,
 			sectionId: item.sectionId,
 			sectionName: item.sectionName,
+			subjectId: item.subjectId,
 			subjectName: item.subjectName,
 		}));
 	}, [adminQuery.data, isTeacherScoped, myProfileQuery.data?.subjectAssignments]);
