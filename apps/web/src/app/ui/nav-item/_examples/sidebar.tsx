@@ -6,7 +6,27 @@ const dot = (color: string) => (
 
 export default function NavItemSidebar() {
 	return (
-		<nav aria-label="Example sidebar" className="w-60 rounded-xl bg-(--rx-subtle) p-2">
+		<nav aria-label="Example sidebar" className="w-60 space-y-3 rounded-xl bg-(--rx-subtle) p-2">
+			<NavSection heading="Primary">
+				<li>
+					<NavItem
+						href="#approvals"
+						label="Approvals"
+						icon={dot("var(--rx-accent)")}
+						count={12}
+						countTone="accent"
+					/>
+				</li>
+				<li>
+					<NavItem
+						href="#messages"
+						label="Messages"
+						icon={dot("var(--rx-danger)")}
+						count={3}
+						countTone="danger"
+					/>
+				</li>
+			</NavSection>
 			<NavSection heading="Classes">
 				<li>
 					<NavItem href="#7b" label="Class 7-B" icon={dot("var(--rx-success)")} count={32} active />

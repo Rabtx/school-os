@@ -2,6 +2,7 @@ import {
 	BubbleChatIcon,
 	Building03Icon,
 	Calendar03Icon,
+	CheckmarkCircle02Icon,
 	ClipboardIcon,
 	DashboardSquare01Icon,
 	File01Icon,
@@ -28,6 +29,7 @@ type IconType = ComponentProps<typeof HugeiconsIcon>["icon"];
 
 const NAVIGATION_ICON_REGISTRY: Record<string, IconType> = {
 	dashboard: DashboardSquare01Icon,
+	approvals: CheckmarkCircle02Icon,
 	"ai-assist": BubbleChatIcon,
 	attendance: ClipboardIcon,
 	calendar: Calendar03Icon,

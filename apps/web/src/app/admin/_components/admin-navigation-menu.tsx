@@ -9,7 +9,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+	type NavCountTone,
 	NavSection,
+	navCountClass,
 	navCountLabel,
 	navItemClass,
 	navItemIconClass,
@@ -287,10 +289,13 @@ function NavRow({
 	);
 }
 
-function CountBadge({ value }: { value?: number }) {
+/** Counts that wait on the person read as a filled pill, as in the Figma sidebar. */
+const COUNT_TONE: Record<string, NavCountTone> = { approvals: "accent" };
+
+function CountBadge({ value, tone }: { value?: number; tone?: NavCountTone }) {
 	const label = navCountLabel(value);
 	if (!label) return null;
-	return <span className={navItemParts.count}>{label}</span>;
+	return <span className={navCountClass(tone)}>{label}</span>;
 }
 
 function ClassRow({
@@ -369,7 +374,7 @@ function AdminNavigationItem({
 			icon={
 				<HugeiconsIcon icon={resolveNavigationIcon(item.iconKey)} size={16} strokeWidth={1.8} />
 			}
-			trailing={<CountBadge value={item.count} />}
+			trailing={<CountBadge value={item.count} tone={COUNT_TONE[item.key]} />}
 		/>
 	);
 
