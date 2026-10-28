@@ -24,6 +24,7 @@ import {
 	useGetOrCreateSessionMutation,
 	useMarkAttendanceMutation,
 } from "@/modules/attendance/hooks/use-attendance-queries";
+import type { SessionRules } from "@/modules/rules/types/rules.types";
 import type {
 	AttendanceMarkStatus,
 	AttendanceStudentContext,
@@ -34,12 +35,7 @@ import {
 	useMyTeacherProfileQuery,
 } from "@/modules/staff/hooks/use-staff-queries";
 import { useSectionEnrollmentsQuery, useStudentsQuery } from "@/modules/students";
-import {
-	PermissionCodes,
-	useOrganizationConfigQuery,
-	usePermissions,
-	useTenantContext,
-} from "@/modules/tenants";
+import { PermissionCodes, usePermissions, useTenantContext } from "@/modules/tenants";
 import { AttendanceScannerPanel, type ScanResult } from "../scanner/attendance-scanner-panel";
 import { scanFeedback } from "../scanner/scan-feedback";
 import {
@@ -157,7 +153,6 @@ export function AttendancePage() {
 		canRead && isTeacherScoped,
 	);
 	const studentsQuery = useStudentsQuery(tenantId, campusId, canRead && !isTeacherScoped);
-	const orgConfigQuery = useOrganizationConfigQuery(tenantId, canRead);
 
 	const classNameById = useMemo(
 		() => new Map((classesQuery.data ?? []).map((item) => [item.id, item.name])),
@@ -228,8 +223,13 @@ export function AttendancePage() {
 	const autoLoadedKey = useRef<string | null>(null);
 	const confirmAllRan = useRef(false);
 
+	const [sessionRules, setSessionRules] = useState<SessionRules | null>(null);
+	// The school's edit window locks a past day for teachers; leadership can always correct it.
+	const dayLocked = sessionRules?.canEdit === false;
 	const canMarkThisSection =
-		canMark && (!isTeacherScoped || selectableSections.some((section) => section.id === sectionId));
+		canMark &&
+		!dayLocked &&
+		(!isTeacherScoped || selectableSections.some((section) => section.id === sectionId));
 
 	const enrollmentsQuery = useSectionEnrollmentsQuery(
 		tenantId,
@@ -262,6 +262,7 @@ export function AttendancePage() {
 		(result: Awaited<ReturnType<typeof loadSession.mutateAsync>>) => {
 			setSessionId(result.session.id);
 			setSessionLoaded(true);
+			setSessionRules(result.rules);
 			const existing: Record<string, AttendanceMarkStatus> = {};
 			for (const mark of result.marks) {
 				existing[mark.studentId] = mark.status;
@@ -273,8 +274,6 @@ export function AttendancePage() {
 		},
 		[],
 	);
-
-	const graceMinutes = orgConfigQuery.data?.settings.attendanceGraceMinutes ?? 15;
 
 	// Open on a class instead of an empty page: for a teacher, the first homeroom with students.
 	useEffect(() => {
@@ -688,6 +687,13 @@ export function AttendancePage() {
 					<Alert variant={error ? "destructive" : "default"}>
 						<AlertDescription>{error ?? message}</AlertDescription>
 					</Alert>
+				) : canMark && dayLocked ? (
+					<Alert>
+						<AlertDescription>
+							Marks for this day are locked for teachers under the school&apos;s attendance rules.
+							Ask the principal if one needs changing.
+						</AlertDescription>
+					</Alert>
 				) : undefined
 			}
 			footer={
@@ -709,7 +715,12 @@ export function AttendancePage() {
 						<span>
 							Unmarked <span className="text-dashboard-text-primary">{liveSummary.unknown}</span>
 						</span>
-						<span>Grace {graceMinutes} min after the bell</span>
+						{sessionRules ? (
+							<span>
+								Roll call closes {clockLabel(sessionRules.rollCallClosesAt)} · late from{" "}
+								{clockLabel(sessionRules.lateFrom)}
+							</span>
+						) : null}
 						{canMarkThisSection ? (
 							<div className="ms-auto flex items-center gap-3">
 								{unsavedCount > 0 ? (
@@ -821,4 +832,10 @@ export function AttendancePage() {
 			)}
 		</ListPage>
 	);
+}
+
+/** "08:30" → "8:30", as the school's times are shown elsewhere. */
+function clockLabel(time: string): string {
+	const [hours = "0", minutes = "00"] = time.split(":");
+	return `${Number(hours)}:${minutes}`;
 }

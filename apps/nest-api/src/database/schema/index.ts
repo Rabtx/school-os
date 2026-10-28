@@ -4,6 +4,7 @@ export * from './assessments.schema';
 export * from './assignment-target-mode.schema';
 export * from './attendance-events.schema';
 export * from './attendance-marks.schema';
+export * from './attendance-policies.schema';
 export * from './attendance-sessions.schema';
 export * from './audit-logs.schema';
 export * from './auth-challenges.schema';

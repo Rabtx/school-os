@@ -7,6 +7,8 @@ import { createMockPermissionsService } from '@/modules/authorization/testing/mo
 import { MembershipsRepository } from '@/modules/memberships/memberships.repository';
 import { MembershipsService } from '@/modules/memberships/memberships.service';
 import { StaffRepository } from '@/modules/staff/staff.repository';
+import { type AttendancePolicy, defaultAttendancePolicy } from '@/modules/rules/attendance-policy';
+import type { RulesService } from '@/modules/rules/rules.service';
 import { StudentsRepository } from '@/modules/students/students.repository';
 import { AttendanceRepository } from './attendance.repository';
 import { AttendanceService } from './attendance.service';
@@ -67,6 +69,12 @@ describe('AttendanceService', () => {
 		teacherHasSectionAccess: ReturnType<typeof vi.fn>;
 		teacherCanAccessStudent: ReturnType<typeof vi.fn>;
 	};
+	let rulesService: { getAttendancePolicy: ReturnType<typeof vi.fn> };
+	const withPolicy = (policy: AttendancePolicy) =>
+		rulesService.getAttendancePolicy.mockResolvedValue({
+			policy,
+			clock: { timeZone: 'Asia/Karachi', quietHours: { start: '22:00', end: '07:00' } },
+		});
 	let membershipsRepository: {
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
 		listRolesForMembership: ReturnType<typeof vi.fn>;
@@ -104,6 +112,9 @@ describe('AttendanceService', () => {
 			teacherHasSectionAccess: vi.fn(),
 			teacherCanAccessStudent: vi.fn(),
 		};
+		rulesService = { getAttendancePolicy: vi.fn() };
+		// No edit limit unless a test sets one, so marking tests do not depend on today's date.
+		withPolicy({ ...defaultAttendancePolicy(), teacherEditWindowHours: null });
 		membershipsRepository = {
 			findActiveByTenantAndUser: vi.fn(),
 			listRolesForMembership: vi.fn().mockResolvedValue([]),
@@ -119,7 +130,80 @@ describe('AttendanceService', () => {
 			),
 			staffRepository as unknown as StaffRepository,
 			{ requireStudentAccess: vi.fn() } as unknown as AccessScopeService,
+			rulesService as unknown as RulesService,
 		);
+	});
+
+	describe('edit window', () => {
+		const teacher = {
+			id: 'teacher-membership-1',
+			tenantId: 'tenant-1',
+			userId: 'user-1',
+			role: 'teacher',
+			status: 'active',
+		};
+
+		beforeEach(() => {
+			withPolicy({ ...defaultAttendancePolicy(), teacherEditWindowHours: 24 });
+			attendanceRepository.findSessionById.mockResolvedValue(sessionRecord);
+			academicRepository.findSectionById.mockResolvedValue(sectionRecord);
+			staffRepository.teacherHasHomeroomAccess.mockResolvedValue(true);
+		});
+
+		it('stops teachers changing a day once the window has closed', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue(teacher);
+			vi.useFakeTimers({
+				now: new Date(`${sessionRecord.sessionDate}T00:00:00Z`).getTime() + 3 * 86_400_000,
+			});
+			try {
+				await expect(
+					service.markAttendance('user-1', 'tenant-1', 'session-1', {
+						marks: [{ studentId: 'student-1', status: 'late' }],
+					}),
+				).rejects.toMatchObject({ response: { code: 'ATTENDANCE_EDIT_WINDOW_CLOSED' } });
+				expect(attendanceRepository.markStudents).not.toHaveBeenCalled();
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+
+		it('lets leadership correct marks after the window and says so on the session', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue({
+				...teacher,
+				role: 'principal',
+			});
+			attendanceRepository.listMarksForSession.mockResolvedValue([]);
+			vi.useFakeTimers({
+				now: new Date(`${sessionRecord.sessionDate}T00:00:00Z`).getTime() + 3 * 86_400_000,
+			});
+			try {
+				const result = await service.getSession('user-1', 'tenant-1', 'session-1');
+				expect(result.rules).toMatchObject({
+					rollCallClosesAt: '09:00',
+					lateFrom: '08:30',
+					canEdit: true,
+				});
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+
+		it('tells a teacher the day is still open inside the window', async () => {
+			membershipsRepository.findActiveByTenantAndUser.mockResolvedValue(teacher);
+			staffRepository.teacherHasSectionAccess.mockResolvedValue(true);
+			attendanceRepository.listMarksForSession.mockResolvedValue([]);
+			// Roll call closes 09:00 local (04:00 UTC); an hour later is well inside 24 hours.
+			vi.useFakeTimers({ now: new Date(`${sessionRecord.sessionDate}T05:00:00Z`).getTime() });
+			try {
+				const result = await service.getSession('user-1', 'tenant-1', 'session-1');
+				expect(result.rules.canEdit).toBe(true);
+				expect(result.rules.editableUntil).toBe(
+					new Date(Date.parse(`${sessionRecord.sessionDate}T04:00:00Z`) + 86_400_000).toISOString(),
+				);
+			} finally {
+				vi.useRealTimers();
+			}
+		});
 	});
 
 	it('returns an existing session for readers', async () => {

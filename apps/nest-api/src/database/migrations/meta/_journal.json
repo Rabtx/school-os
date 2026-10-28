@@ -211,6 +211,13 @@
 			"when": 1787410000000,
 			"tag": "0029_navigation_settings",
 			"breakpoints": true
+		},
+		{
+			"idx": 32,
+			"version": "7",
+			"when": 1787420000000,
+			"tag": "0030_attendance_policies",
+			"breakpoints": true
 		}
 	]
 }
