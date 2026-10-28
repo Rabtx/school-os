@@ -1,0 +1,77 @@
+---
+title: Product tour
+description: A 100-second video of the web app and a map of every screen that ships today, by role.
+---
+
+<video
+  src="/media/school-os-intro.mp4"
+  poster="/media/school-os-intro-poster.jpg"
+  controls
+  playsInline
+  preload="metadata"
+  style={{ width: "100%", borderRadius: 12, border: "1px solid var(--color-fd-border)" }}
+/>
+
+The tour signs in as the principal, then as a teacher, using the seeded demo school. It was
+recorded at 1920×1200 from the running app; nothing in it is mocked.
+
+## What ships today
+
+The web app (`apps/web`) is rebuilt to the School OS Figma file on the `@rabtx/ui` tokens. Every
+screen reads live data from the Nest API. Features whose backend does not exist yet show an honest
+empty state instead of sample data.
+
+### Everyone
+
+| Screen | Route | What it does |
+| --- | --- | --- |
+| Sign in | `/login` | Password, passkey, magic link or Google (domain allowlist); TOTP MFA |
+| ⌘K search | any page | Jump to pages, classes and students |
+| Notifications | top bar | Recent alerts for the signed-in member |
+| Account | `/admin/account/profile`, `/admin/account/security` | Profile; password change (rotates the current session), passkeys, MFA and sessions |
+
+### Principal and leadership
+
+| Screen | Route | What it does |
+| --- | --- | --- |
+| Dashboard | `/admin` | Students, attendance today, late arrivals, homework due, attendance trend, check-in method, today's check-ins |
+| Students | `/admin/students` | Search and filter, profile panel with attendance, guardians, enrolment and ID card, CSV export |
+| Guardians · ID cards | `/admin/guardians`, `/admin/students?view=cards` | Guardian directory and printable student ID cards |
+| Attendance report | `/admin/reports?tab=attendance` | Rate by class and weekday, late arrivals, unexplained absences, follow-ups |
+| Timetable | `/admin/timetable` | Week grid per class with periods, rooms and teachers |
+| Settings | `/admin/settings` | School, campuses, attendance rules, communication policy, members and roles |
+
+### Teacher
+
+| Screen | Route | What it does |
+| --- | --- | --- |
+| Teacher home | `/admin` | Next class, roll call status, answers to review, homework due, today's lessons, students absent several days running |
+| My classes | `/admin/my-classes` | Today / This week / All classes with attendance meter and trend |
+| Roll call | `/admin/attendance` | Present, late, absent or excused per student, with guardian, check-in time and method; late and absence tabs |
+| Homework | `/admin/homework` | Assigned and draft homework with submission bars, AI draft helper |
+| Check answers | `/admin/homework?tab=submissions` | Mark each answer in a side panel: marks, comment, excused, not handed in, save and next |
+| Marks | `/admin/gradebook` | Every test and homework for a class subject: latest homework, tests, homework average, trend, overall and grade, CSV export |
+| Report cards | `/admin/gradebook?tab=report-cards` | Subject grades per student with attendance in a side panel |
+| Tests & exams · Test planner | `/admin/assessments`, `/admin/test-planner` | Schedule tests, enter results, see the term's test calendar |
+
+### Parent
+
+| Screen | Route | What it does |
+| --- | --- | --- |
+| My children | `/admin/my-children` | Each child's ID card, homework and attendance |
+
+## Not built yet
+
+| Feature | Where it shows | When |
+| --- | --- | --- |
+| WhatsApp parent alerts | "WhatsApp not connected" on dashboard, sidebar and roll call | Next, after the screen rebuild |
+| Rules engine, approvals, OTP | Settings and alert cards | With WhatsApp |
+| AI drafting, marking and report comments | Teacher comment card on report cards | After messaging (tool registry, RAG, evals) |
+| Terms on tests | Marks has no term filter | Gradebook follow-up |
+
+## Recording the tour again
+
+The tour is scripted with Playwright against the local stack (`bun run dev` with the seeded
+database). It captures frames through the Chrome DevTools screencast at 4/3 device pixel ratio and
+encodes them with ffmpeg (`libx264`, CRF 18). Keep the file in `apps/docs/public/media/` so the
+docs site and the README share one copy.

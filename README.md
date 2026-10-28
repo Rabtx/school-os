@@ -8,6 +8,12 @@ It is **not a generic ERP**. It is a **trust and communication engine** for affo
 
 This repository is the **production monorepo** for that product: Bun, Turborepo, Next.js, Expo, NestJS, optional FastAPI AI assist, shared packages, Docker, and CI.
 
+### 100-second tour
+
+[![Watch the 100-second tour of School OS](apps/docs/public/media/school-os-intro-poster.jpg)](apps/docs/public/media/school-os-intro.mp4)
+
+Principal and teacher views of the web app, recorded from the running stack with the seeded demo school (1920×1200, H.264). [Download the video](apps/docs/public/media/school-os-intro.mp4) · screen-by-screen map in [product-tour](apps/docs/content/docs/product-tour.mdx).
+
 ---
 
 ## The killer demo
@@ -80,10 +86,25 @@ Face recognition stays **optional and off by default** until consent, legal revi
 
 ## Built today
 
-The monorepo is a **production-shaped foundation**. Core school ops (students, attendance, homework, assessments) are **in progress** on web + Nest; parent mobile and WhatsApp remain on the roadmap.
+The web app is rebuilt screen by screen to the School OS Figma file, on live data from the Nest API. Parent mobile and WhatsApp delivery are still on the roadmap; screens that depend on them say so instead of showing sample data.
 
 | Area | Status |
 | --- | --- |
+| Monorepo (Bun, Turbo, oxlint, oxfmt, Lefthook, CI, CodeQL) | ✅ |
+| Auth — password, passkeys, magic link, Google with domain allowlist, TOTP MFA, rotating refresh sessions | ✅ |
+| Tenants, campuses, academic structure, members and roles, settings | ✅ |
+| App shell — sidebar with live counts, ⌘K search, notifications, campus switcher, confirm dialogs, empty / no-access / offline states | ✅ |
+| Principal dashboard, students (profile panel + **ID cards**), guardians, attendance report, timetable | ✅ |
+| Teacher home, my classes, roll call (guardian, check-in time and method) | ✅ |
+| Homework with **check answers** (marking panel, save and next) | ✅ |
+| Gradebook — **marks** (every test and homework, trend, overall grade, CSV) and **report cards** | ✅ |
+| Tests & exams, test planner | ✅ (Figma rebuild next) |
+| Parent **My children** (ID card, homework, attendance) | ✅ web · 🔜 mobile |
+| WhatsApp alerts, rules engine, approvals, OTP | 🔜 next, after the screen rebuild |
+| AI tool registry, RAG (pgvector), memory, evals | 🔜 after messaging |
+| Expo mobile scaffold, billing hooks (Stripe / Razorpay), FastAPI AI proxy, docs site | ✅ scaffolds |
+
+--- | --- |
 | Monorepo (Bun, Turbo, oxlint, oxfmt, Lefthook, CI) | ✅ |
 | Web admin shell + marketing (`apps/web`) | ✅ |
 | Expo mobile scaffold (`apps/mobile`) | ✅ |
@@ -298,6 +319,7 @@ bun --cwd=apps/docs run dev
 
 Key routes (http://localhost:3002/docs/…):
 
+- [product-tour](http://localhost:3002/docs/product-tour) — the intro video and every screen by role
 - [product-vision](http://localhost:3002/docs/product-vision) — trust engine positioning and feature spec
 - [quick-start](http://localhost:3002/docs/quick-start) — setup and first run
 - [production-roadmap](http://localhost:3002/docs/production-roadmap) — phased NestJS build plan
@@ -335,4 +357,4 @@ Also see [PROJECT.md](PROJECT.md), [DESIGN.md](DESIGN.md), [AGENTS.md](AGENTS.md
 Dual-licensed under **MIT** or **Apache-2.0**:
 [LICENSE-MIT](LICENSE-MIT), [LICENSE-Apache-2.0](LICENSE-Apache-2.0).
 
-Thanks ❤️ 
+Thanks ❤️
