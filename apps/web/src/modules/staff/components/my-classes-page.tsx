@@ -12,7 +12,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { AttendanceMeter, AttendanceTrend } from "@/components/attendance-viz";
+import { Meter, Trend } from "@rabtx/ui/meter";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -244,14 +244,14 @@ export function MyClassesPage() {
 			{
 				id: "attendance",
 				header: "Avg attendance",
-				renderCell: (row) => <AttendanceMeter rate={row.recentAttendance.rate} />,
+				renderCell: (row) => <Meter rate={row.recentAttendance.rate} />,
 			},
 			{
 				id: "trend",
 				header: "Trend",
 				renderCell: (row) => (
-					<AttendanceTrend
-						days={row.recentAttendance.days}
+					<Trend
+						values={row.recentAttendance.days.map((day) => ({ label: day.date, rate: day.rate }))}
 						label={`${row.sectionName} attendance, last 10 school days`}
 					/>
 				),

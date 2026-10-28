@@ -22,7 +22,7 @@ import {
 	DataTableToolbar,
 	useClientDataTable,
 } from "@/components/data-table";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { type ListPageTab, ListPage } from "@/components/list-page";
 import { NoResults } from "@/components/states";
 import { cn } from "@/lib/utils";
@@ -144,7 +144,7 @@ export function HomeworkCheckAnswers({
 					onClick={() => setOpenStudentId(row.studentId)}
 					className="flex items-center gap-2.5 text-start font-medium hover:underline"
 				>
-					<InitialsAvatar name={row.studentName} />
+					<Avatar name={row.studentName} />
 					{row.studentName}
 				</button>
 			),
@@ -391,7 +391,7 @@ function MarkingPanel({
 				{row ? (
 					<div className="flex h-full min-h-0 flex-col">
 						<header className="flex items-start gap-3 border-dashboard-border border-b px-5 py-4">
-							<InitialsAvatar name={row.studentName} />
+							<Avatar name={row.studentName} />
 							<div className="min-w-0 flex-1">
 								<DrawerTitle className="font-medium text-[15px] text-dashboard-text-primary">
 									{row.studentName}

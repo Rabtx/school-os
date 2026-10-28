@@ -1,0 +1,7 @@
+/* Components styled only with Tailwind classes; scanned here so apps need no @source line. */
+@source "../avatar";
+@source "../meter";
+@source "../tabs";
+@source "../segmented";
+@source "../stat";
+@source "../empty-state";

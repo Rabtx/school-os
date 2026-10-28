@@ -13,7 +13,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { downloadCsv } from "@/lib/export-csv";
 import { cn } from "@/lib/utils";
 import { useTenantContext } from "@/modules/tenants";
@@ -473,7 +473,7 @@ function FollowUpTable({
 									>
 										<td className="px-4 py-2">
 											<span className="flex items-center gap-2.5">
-												<InitialsAvatar name={row.fullName} />
+												<Avatar name={row.fullName} />
 												<span className="font-medium text-dashboard-text-primary">
 													{row.fullName}
 												</span>

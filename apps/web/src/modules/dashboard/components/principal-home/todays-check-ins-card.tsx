@@ -4,7 +4,7 @@ import { ArrowRight01Icon, UserGroupIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { useState } from "react";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { cn } from "@/lib/utils";
 import type {
 	AttendanceCheckIn,
@@ -122,7 +122,7 @@ export function TodaysCheckInsCard({ checkIns, markedTotal, loading }: Props) {
 										</td>
 										<td className="px-4 py-2.5">
 											<span className="flex items-center gap-2.5">
-												<InitialsAvatar name={row.fullName} />
+												<Avatar name={row.fullName} />
 												<span className="font-medium text-dashboard-text-primary">
 													{row.fullName}
 												</span>

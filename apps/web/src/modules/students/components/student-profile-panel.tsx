@@ -11,7 +11,7 @@ import {
 } from "@school-os/ui/components/drawer";
 import { Spinner } from "@school-os/ui/components/spinner";
 import { useMemo, type ReactNode } from "react";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useStudentAttendanceHistoryQuery } from "@/modules/attendance/hooks/use-attendance-queries";
 import { PermissionCodes, usePermissions } from "@/modules/tenants";
@@ -215,7 +215,7 @@ export function StudentProfilePanel({
 												key={link.id}
 												className="flex items-center gap-2.5 rounded-[8px] bg-dashboard-surface px-3 py-2"
 											>
-												<InitialsAvatar name={link.guardian.fullName} tone="success" />
+												<Avatar name={link.guardian.fullName} tone="success" />
 												<div className="min-w-0 flex-1">
 													<p className="truncate text-dashboard-text-primary">
 														{link.guardian.fullName}

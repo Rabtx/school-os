@@ -1,8 +1,8 @@
 "use client";
 
 import { HugeiconsIcon } from "@hugeicons/react";
+import { StatCard as RabtxStatCard } from "@rabtx/ui/stat";
 import type { ComponentProps } from "react";
-import { cn } from "@/lib/utils";
 import { useCountUp } from "./use-count-up";
 
 export type Trend = "up" | "down" | "flat";
@@ -21,13 +21,9 @@ type Props = {
 	className?: string;
 };
 
-const trendTone: Record<Trend, string> = {
-	up: "text-dashboard-accent",
-	down: "text-destructive",
-	flat: "text-dashboard-text-dim",
-};
+const deltaTone = { up: "good", down: "bad", flat: "neutral" } as const;
 
-/** Figma "Stat": label and icon chip, value, divider, one-line foot. */
+/** Figma "Stat" from `@rabtx/ui`, with the value counting up on first paint. */
 export function StatCard({
 	label,
 	value,
@@ -42,34 +38,13 @@ export function StatCard({
 	const animated = useCountUp(unavailable ? 0 : value);
 
 	return (
-		<div
-			className={cn(
-				"flex min-w-0 flex-col gap-1.5 rounded-[12px] border border-dashboard-border bg-dashboard-surface px-3.5 py-3 tracking-[-0.15px]",
-				className,
-			)}
-		>
-			<div className="flex items-center gap-2">
-				<div className="min-w-0 flex-1 truncate text-[12px] text-dashboard-text-dim uppercase leading-4">
-					{label}
-				</div>
-				{icon ? (
-					<div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-dashboard-hover text-dashboard-text-secondary">
-						<HugeiconsIcon icon={icon} size={14} strokeWidth={1.8} />
-					</div>
-				) : null}
-			</div>
-			<div className="font-medium text-[24px] text-dashboard-text-primary leading-8 tabular-nums">
-				{unavailable ? formatValue(value) : formatValue(animated)}
-			</div>
-			<div className="h-px w-full bg-dashboard-border" />
-			<div className="flex items-center gap-2 pt-1 text-[13px] leading-5">
-				<p className="min-w-0 flex-1 truncate text-dashboard-text-secondary">{detail}</p>
-				{trendDelta && !unavailable ? (
-					<span className={cn("shrink-0 text-[12px] tabular-nums", trendTone[trend])}>
-						{trendDelta}
-					</span>
-				) : null}
-			</div>
-		</div>
+		<RabtxStatCard
+			label={label}
+			value={unavailable ? formatValue(value) : formatValue(animated)}
+			detail={detail}
+			delta={trendDelta && !unavailable ? { label: trendDelta, tone: deltaTone[trend] } : undefined}
+			icon={icon ? <HugeiconsIcon icon={icon} size={14} strokeWidth={1.8} /> : undefined}
+			className={className}
+		/>
 	);
 }

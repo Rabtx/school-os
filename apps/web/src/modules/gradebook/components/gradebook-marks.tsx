@@ -14,7 +14,7 @@ import {
 } from "@school-os/ui/components/dropdown-menu";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AttendanceMeter, AttendanceTrend } from "@/components/attendance-viz";
+import { Meter, Trend } from "@rabtx/ui/meter";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -22,7 +22,7 @@ import {
 	DataTableToolbar,
 	useClientDataTable,
 } from "@/components/data-table";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import { type ListPageTab, ListPage } from "@/components/list-page";
 import { NoResults } from "@/components/states";
 import { useNow } from "@/lib/use-now";
@@ -137,7 +137,7 @@ export function GradebookMarks({ tabs }: { tabs: ListPageTab[] }) {
 			header: "Student",
 			renderCell: (row) => (
 				<span className="flex items-center gap-2.5 whitespace-nowrap font-medium">
-					<InitialsAvatar name={row.studentName} />
+					<Avatar name={row.studentName} />
 					{row.studentName}
 				</span>
 			),
@@ -192,16 +192,16 @@ export function GradebookMarks({ tabs }: { tabs: ListPageTab[] }) {
 		{
 			id: "homeworkAverage",
 			header: "Homework average",
-			renderCell: (row) => <AttendanceMeter rate={row.homeworkAverage} />,
+			renderCell: (row) => <Meter rate={row.homeworkAverage} />,
 		},
 		{
 			id: "trend",
 			header: "Trend",
 			renderCell: (row) => (
-				<AttendanceTrend
+				<Trend
 					label={`${row.studentName} marks, oldest first`}
 					threshold={60}
-					days={row.trend.map((rate, index) => ({ date: `Mark ${index + 1}`, rate }))}
+					values={row.trend.map((rate, index) => ({ label: `Mark ${index + 1}`, rate }))}
 				/>
 			),
 		},

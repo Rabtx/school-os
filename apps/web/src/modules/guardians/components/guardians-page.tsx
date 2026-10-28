@@ -11,7 +11,7 @@ import { useCallback, useMemo, useState } from "react";
 import { FormDrawer } from "@/components/admin";
 import { ListPage } from "@/components/list-page";
 import { downloadCsv } from "@/lib/export-csv";
-import { InitialsAvatar } from "@/components/initials-avatar";
+import { Avatar } from "@rabtx/ui/avatar";
 import {
 	DataTable,
 	type DataTableColumn,
@@ -175,7 +175,7 @@ export function GuardiansPage() {
 				sortValue: (row) => row.fullName,
 				renderCell: (guardian) => (
 					<span className="flex items-center gap-2.5">
-						<InitialsAvatar name={guardian.fullName} />
+						<Avatar name={guardian.fullName} />
 						<span className="font-medium">{guardian.fullName}</span>
 					</span>
 				),
