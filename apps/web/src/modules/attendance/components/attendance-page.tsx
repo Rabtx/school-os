@@ -12,7 +12,10 @@ import { Spinner } from "@school-os/ui/components/spinner";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { ListPage } from "@/components/list-page";
 import { EASE_OUT } from "@/lib/ease";
+import { useNow } from "@/lib/use-now";
 import { cn } from "@/lib/utils";
 import { useClassesQuery, useSectionsQuery } from "@/modules/academic";
 import { formatSectionLabel } from "@/modules/academic/utils/format-section-label";
@@ -21,9 +24,13 @@ import {
 	useGetOrCreateSessionMutation,
 	useMarkAttendanceMutation,
 } from "@/modules/attendance/hooks/use-attendance-queries";
-import type { AttendanceMarkStatus } from "@/modules/attendance/types/attendance.types";
+import type {
+	AttendanceMarkStatus,
+	AttendanceStudentContext,
+} from "@/modules/attendance/types/attendance.types";
 import {
 	useMySectionStudentsQuery,
+	useMyTeacherDashboardQuery,
 	useMyTeacherProfileQuery,
 } from "@/modules/staff/hooks/use-staff-queries";
 import { useSectionEnrollmentsQuery, useStudentsQuery } from "@/modules/students";
@@ -113,12 +120,24 @@ function FilterPill({ label, children }: { label: string; children: React.ReactN
 	);
 }
 
+function statusFromParam(value: string | null): AttendanceStatusFilter {
+	return value === "late" || value === "absent" ? value : "all";
+}
+
+function markedAtByStudent(marks: { studentId: string; markedAt: string | null }[]) {
+	return new Map(
+		marks.flatMap((mark) => (mark.markedAt ? [[mark.studentId, mark.markedAt] as const] : [])),
+	);
+}
+
 export function AttendancePage() {
 	const reduce = useReducedMotion();
 	const searchParams = useSearchParams();
 	const initialSectionId = searchParams.get("sectionId") ?? "";
 	const initialSessionDate = searchParams.get("sessionDate") ?? "";
 	const wantConfirmAll = searchParams.get("confirmAll") === "1";
+	// Late arrivals and Absences tabs are the same roster, filtered by ?status=.
+	const statusParam = searchParams.get("status");
 	const { activeTenant, activeCampus, campuses } = useTenantContext();
 	const { can, role, isLoading: permissionsLoading } = usePermissions();
 	const tenantId = activeTenant?.id ?? null;
@@ -130,7 +149,13 @@ export function AttendancePage() {
 
 	const sectionsQuery = useSectionsQuery(tenantId, campusId, canRead && !isTeacherScoped);
 	const classesQuery = useClassesQuery(tenantId, canReadAcademic);
+	const today = useNow().toLocaleDateString("en-CA");
 	const myProfileQuery = useMyTeacherProfileQuery(tenantId, canRead && isTeacherScoped);
+	const teacherDashboardQuery = useMyTeacherDashboardQuery(
+		tenantId,
+		today,
+		canRead && isTeacherScoped,
+	);
 	const studentsQuery = useStudentsQuery(tenantId, campusId, canRead && !isTeacherScoped);
 	const orgConfigQuery = useOrganizationConfigQuery(tenantId, canRead);
 
@@ -188,6 +213,10 @@ export function AttendancePage() {
 	// sessionId transitions — only the data inside swaps, never the component tree.
 	const [sessionLoaded, setSessionLoaded] = useState(false);
 	const [savedMarks, setSavedMarks] = useState<Record<string, AttendanceMarkStatus>>({});
+	const [studentContext, setStudentContext] = useState<Map<string, AttendanceStudentContext>>(
+		() => new Map(),
+	);
+	const [markedAt, setMarkedAt] = useState<Map<string, string>>(() => new Map());
 	const [markDraft, setMarkDraft] = useState<Record<string, AttendanceMarkStatus>>({});
 	const [statusFilter, setStatusFilter] = useState<AttendanceStatusFilter>("all");
 	const [search, setSearch] = useState("");
@@ -239,17 +268,36 @@ export function AttendancePage() {
 			}
 			setSavedMarks(existing);
 			setMarkDraft(existing);
+			setStudentContext(new Map(result.students.map((row) => [row.studentId, row])));
+			setMarkedAt(markedAtByStudent(result.marks));
 		},
 		[],
 	);
 
 	const graceMinutes = orgConfigQuery.data?.settings.attendanceGraceMinutes ?? 15;
-	const selectedSection = selectableSections.find((section) => section.id === sectionId);
+
+	// Open on a class instead of an empty page: for a teacher, the first homeroom with students.
+	useEffect(() => {
+		if (sectionId || sectionSelectItems.length === 0) return;
+		if (isTeacherScoped && teacherDashboardQuery.isLoading) return;
+		const withStudents = (teacherDashboardQuery.data?.sections ?? []).find(
+			(item) =>
+				item.section.accessType === "homeroom" &&
+				item.studentCount > 0 &&
+				sectionSelectItems.some((option) => option.value === item.section.id),
+		);
+		setSectionId(withStudents?.section.id ?? sectionSelectItems[0]?.value ?? "");
+	}, [
+		isTeacherScoped,
+		sectionId,
+		sectionSelectItems,
+		teacherDashboardQuery.data,
+		teacherDashboardQuery.isLoading,
+	]);
 
 	useEffect(() => {
-		if (sectionId || sectionSelectItems.length !== 1) return;
-		setSectionId(sectionSelectItems[0]?.value ?? "");
-	}, [sectionId, sectionSelectItems]);
+		setStatusFilter(statusFromParam(statusParam));
+	}, [statusParam]);
 
 	// Sidebar class links change ?sectionId while the page stays mounted.
 	useEffect(() => {
@@ -324,12 +372,11 @@ export function AttendancePage() {
 		try {
 			const result = await loadSession.mutateAsync({ sectionId, sessionDate });
 			applySessionView(result);
-			setStatusFilter("all");
-			setMessage(`Session ready · ${result.session.sessionDate}`);
+			setStatusFilter(statusFromParam(statusParam));
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Could not load attendance session");
 		}
-	}, [applySessionView, loadSession, sectionId, sessionDate]);
+	}, [applySessionView, loadSession, sectionId, sessionDate, statusParam]);
 
 	useEffect(() => {
 		if (!sectionId || !sessionDate || !tenantId) return;
@@ -489,7 +536,18 @@ export function AttendancePage() {
 		setError(null);
 		setMessage(null);
 		try {
-			await markAttendance.mutateAsync({ marks });
+			const saved = await markAttendance.mutateAsync({ marks });
+			setMarkedAt(markedAtByStudent(saved.marks));
+			// A save is a roll-call mark; show that until the session reloads with its events.
+			setStudentContext((current) => {
+				const next = new Map(current);
+				for (const mark of saved.marks) {
+					const row = next.get(mark.studentId);
+					if (row && !row.checkInSource)
+						next.set(mark.studentId, { ...row, checkInSource: "manual" });
+				}
+				return next;
+			});
 			setSavedMarks(Object.fromEntries(rosterIds.map((id) => [id, markDraft[id] ?? "present"])));
 			setMessage("Attendance saved · parent alerts will queue when enabled");
 		} catch (err) {
@@ -506,72 +564,36 @@ export function AttendancePage() {
 		{ label: `Unmarked · ${liveSummary.unknown}`, value: "unmarked" },
 	];
 
+	const tabHref = (status?: "late" | "absent") => {
+		const params = new URLSearchParams();
+		if (sectionId) params.set("sectionId", sectionId);
+		if (sessionDate) params.set("sessionDate", sessionDate);
+		if (status) params.set("status", status);
+		return `/admin/attendance?${params.toString()}`;
+	};
+	const profileHref = (studentId: string) =>
+		isTeacherScoped ? `/admin/my-classes/${sectionId}` : `/admin/students?student=${studentId}`;
+	const showRoster = sessionLoaded && rosterStudents.length > 0;
+
 	return (
-		<div className="mx-auto w-full max-w-7xl space-y-4 px-4 py-5 sm:px-6">
-			<header className="flex flex-wrap items-end justify-between gap-3 tracking-[-0.15px]">
-				<div className="min-w-0">
-					<h1 className="font-medium text-[24px] text-dashboard-text-primary leading-8">
-						Roll call
-					</h1>
-					<p className="max-w-2xl text-[14px] text-dashboard-text-dim leading-5">
-						{selectedSection
-							? formatSectionLabel(
-									selectedSection,
-									classNameById.get(selectedSection.classId),
-									campusNameById.get(selectedSection.campusId),
-								)
-							: "Pick a class to mark attendance"}{" "}
-						· grace window {graceMinutes} min after the bell
-					</p>
-				</div>
-				{sessionLoaded && canMarkThisSection && rosterStudents.length > 0 ? (
-					<div className="flex flex-wrap items-center gap-2">
-						<Button
-							type="button"
-							size="sm"
-							variant="outline"
-							className="h-7 rounded-full"
-							onClick={() => setScanMode(!scanMode)}
-						>
-							<HugeiconsIcon icon={QrCodeIcon} data-icon="inline-start" strokeWidth={1.8} />
-							{scanMode ? "Close scanner" : "Open scanner"}
-						</Button>
-						<Button
-							type="button"
-							size="sm"
-							className="h-7 rounded-full"
-							onClick={() => void handleSaveMarks()}
-							disabled={markAttendance.isPending}
-						>
-							{markAttendance.isPending ? (
-								<Spinner className="size-4" />
-							) : (
-								<HugeiconsIcon icon={Tick02Icon} data-icon="inline-start" strokeWidth={1.8} />
-							)}
-							Save roll call
-						</Button>
-					</div>
-				) : null}
-			</header>
-
-			{error ? (
-				<Alert variant="destructive">
-					<AlertDescription>{error}</AlertDescription>
-				</Alert>
-			) : null}
-			{message ? (
-				<Alert>
-					<AlertDescription>{message}</AlertDescription>
-				</Alert>
-			) : null}
-
-			<div className="overflow-hidden rounded-[12px] border border-dashboard-border bg-dashboard-surface">
+		<ListPage
+			title="Roll call"
+			tabs={[
+				{
+					label: "Roll call",
+					href: tabHref(),
+					active: statusFilter !== "late" && statusFilter !== "absent",
+				},
+				{ label: "Late arrivals", href: tabHref("late"), active: statusFilter === "late" },
+				{ label: "Absences", href: tabHref("absent"), active: statusFilter === "absent" },
+			]}
+			toolbar={
 				<form
 					onSubmit={(event) => {
 						event.preventDefault();
 						void loadSessionForSelection();
 					}}
-					className="flex flex-wrap items-center gap-2 border-dashboard-border border-b px-3 py-2.5 text-[13px]"
+					className="flex flex-wrap items-center gap-2 px-4 py-2.5 text-[13px] sm:px-6"
 				>
 					<FilterPill label="Class">
 						<SelectField
@@ -604,128 +626,73 @@ export function AttendancePage() {
 							/>
 						</FilterPill>
 					) : null}
-					<Button
-						type="submit"
-						size="sm"
-						variant="ghost"
-						className="h-7 rounded-full text-dashboard-text-dim"
-						disabled={loadSession.isPending || !sectionId}
-					>
-						{loadSession.isPending ? <Spinner className="size-4" /> : "Reload"}
-					</Button>
-					{sessionLoaded && rosterStudents.length > 0 ? (
+					{showRoster ? (
+						<SearchInput
+							className="h-7 w-full rounded-full sm:w-[200px]"
+							value={search}
+							onValueChange={setSearch}
+							placeholder="Search students"
+							aria-label="Search roster"
+						/>
+					) : null}
+					{showRoster && canMarkThisSection ? (
 						<div className="ms-auto flex flex-wrap items-center gap-2">
-							<SearchInput
-								className="h-7 w-full rounded-full sm:w-[200px]"
-								value={search}
-								onValueChange={setSearch}
-								placeholder="Search students"
-								aria-label="Search roster"
-							/>
-							{canMarkThisSection ? (
-								<>
-									<Button
-										type="button"
-										size="sm"
-										variant="ghost"
-										className="h-7 rounded-full"
-										onClick={handleMarkAllPresent}
-									>
-										All present
-									</Button>
-									<Button
-										type="button"
-										size="sm"
-										variant="ghost"
-										className="h-7 rounded-full"
-										onClick={handleMarkUnmarkedAbsent}
-									>
-										Unmarked → absent
-									</Button>
-								</>
-							) : null}
+							<Button
+								type="button"
+								size="sm"
+								variant="ghost"
+								className="h-7 rounded-full"
+								onClick={handleMarkAllPresent}
+							>
+								All present
+							</Button>
+							<Button
+								type="button"
+								size="sm"
+								variant="ghost"
+								className="h-7 rounded-full"
+								onClick={handleMarkUnmarkedAbsent}
+							>
+								Unmarked → absent
+							</Button>
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								className="h-7 rounded-full"
+								onClick={() => setScanMode(!scanMode)}
+							>
+								<HugeiconsIcon icon={QrCodeIcon} data-icon="inline-start" strokeWidth={1.8} />
+								{scanMode ? "Close scanner" : "Open scanner"}
+							</Button>
+							<Button
+								type="button"
+								size="sm"
+								className="h-7 rounded-full"
+								onClick={() => void handleSaveMarks()}
+								disabled={markAttendance.isPending}
+							>
+								{markAttendance.isPending ? (
+									<Spinner className="size-4" />
+								) : (
+									<HugeiconsIcon icon={Tick02Icon} data-icon="inline-start" strokeWidth={1.8} />
+								)}
+								Save roll call
+							</Button>
 						</div>
 					) : null}
 				</form>
-
-				<AnimatePresence initial={false}>
-					{sessionLoaded && scanMode && canMarkThisSection ? (
-						<motion.div
-							key="scanner-panel"
-							initial={false}
-							animate={reduce ? undefined : { opacity: 1, height: "auto" }}
-							exit={
-								reduce
-									? undefined
-									: { opacity: 0, height: 0, transition: { duration: 0.2, ease: EASE_OUT } }
-							}
-							className="overflow-hidden border-dashboard-border border-b"
-						>
-							<div className="p-4">
-								<AttendanceScannerPanel
-									onDecode={handleScanDecode}
-									lastResult={lastScanResult}
-									markedCount={liveSummary.present + liveSummary.late}
-									totalCount={rosterIds.length}
-								/>
-							</div>
-						</motion.div>
-					) : null}
-				</AnimatePresence>
-
-				{sessionLoaded ? (
-					<div
-						className={cn(
-							"relative min-h-[220px] transition-opacity duration-200",
-							isSwitchingSession && "opacity-50",
-						)}
-						aria-busy={isSwitchingSession}
-					>
-						{isSwitchingSession ? (
-							<div className="absolute inset-0 z-10 flex items-center justify-center" aria-hidden>
-								<Spinner className="size-5 text-dashboard-text-dim" />
-							</div>
-						) : null}
-						{rosterStudents.length === 0 ? (
-							isSwitchingSession ? null : (
-								<p className="py-10 text-center text-[13px] text-dashboard-text-dim">
-									No active enrollments in this section.
-								</p>
-							)
-						) : (
-							<AttendanceRollCallTable
-								roster={filteredRoster}
-								rollNumbers={rollNumbers}
-								markDraft={markDraft}
-								highlightStudentId={highlightStudentId}
-								canMark={canMarkThisSection}
-								onStatusChange={(studentId, status) =>
-									setMarkDraft((current) => ({ ...current, [studentId]: status }))
-								}
-							/>
-						)}
-					</div>
-				) : (
-					<div className="flex flex-col items-center gap-1 px-4 py-14 text-center">
-						<HugeiconsIcon
-							icon={selectableSections.length === 0 ? Calendar03Icon : ClipboardIcon}
-							size={20}
-							strokeWidth={1.8}
-							className="mb-2 text-dashboard-text-dim"
-						/>
-						<p className="font-medium text-[14px] text-dashboard-text-primary">
-							{selectableSections.length === 0 ? "No sections available" : "Pick a class to start"}
-						</p>
-						<p className="max-w-md text-[13px] text-dashboard-text-dim">
-							{selectableSections.length === 0
-								? "Once an administrator creates classes and sections, you can mark attendance here."
-								: "Choose a class and date above; the roster loads with smart defaults so you can mark everyone in under two minutes."}
-						</p>
-					</div>
-				)}
-
-				{sessionLoaded && rosterStudents.length > 0 ? (
-					<div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-dashboard-border border-t px-4 py-2.5 text-[13px] text-dashboard-text-dim tracking-[-0.15px]">
+			}
+			banner={
+				error || message ? (
+					<Alert variant={error ? "destructive" : "default"}>
+						<AlertDescription>{error ?? message}</AlertDescription>
+					</Alert>
+				) : undefined
+			}
+			footer={
+				showRoster ? (
+					<div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5 text-[13px] text-dashboard-text-dim tracking-[-0.15px] sm:px-6">
 						<span>
 							<span className="text-dashboard-text-primary">{filteredRoster.length}</span> of{" "}
 							{rosterStudents.length} students shown
@@ -742,6 +709,7 @@ export function AttendancePage() {
 						<span>
 							Unmarked <span className="text-dashboard-text-primary">{liveSummary.unknown}</span>
 						</span>
+						<span>Grace {graceMinutes} min after the bell</span>
 						{canMarkThisSection ? (
 							<div className="ms-auto flex items-center gap-3">
 								{unsavedCount > 0 ? (
@@ -766,8 +734,91 @@ export function AttendancePage() {
 							</div>
 						) : null}
 					</div>
+				) : undefined
+			}
+		>
+			<AnimatePresence initial={false}>
+				{sessionLoaded && scanMode && canMarkThisSection ? (
+					<motion.div
+						key="scanner-panel"
+						initial={false}
+						animate={reduce ? undefined : { opacity: 1, height: "auto" }}
+						exit={
+							reduce
+								? undefined
+								: { opacity: 0, height: 0, transition: { duration: 0.2, ease: EASE_OUT } }
+						}
+						className="overflow-hidden border-dashboard-border border-b"
+					>
+						<div className="p-4 sm:px-6">
+							<AttendanceScannerPanel
+								onDecode={handleScanDecode}
+								lastResult={lastScanResult}
+								markedCount={liveSummary.present + liveSummary.late}
+								totalCount={rosterIds.length}
+							/>
+						</div>
+					</motion.div>
 				) : null}
-			</div>
-		</div>
+			</AnimatePresence>
+
+			{sessionLoaded ? (
+				<div
+					className={cn(
+						"relative min-h-[220px] transition-opacity duration-200",
+						isSwitchingSession && "opacity-50",
+					)}
+					aria-busy={isSwitchingSession}
+				>
+					{isSwitchingSession ? (
+						<div className="absolute inset-0 z-10 flex items-center justify-center" aria-hidden>
+							<Spinner className="size-5 text-dashboard-text-dim" />
+						</div>
+					) : null}
+					{rosterStudents.length === 0 ? (
+						isSwitchingSession ? null : (
+							<p className="py-10 text-center text-[13px] text-dashboard-text-dim">
+								No active enrollments in this section.
+							</p>
+						)
+					) : (
+						<AttendanceRollCallTable
+							roster={filteredRoster}
+							rollNumbers={rollNumbers}
+							markDraft={markDraft}
+							context={studentContext}
+							markedAt={markedAt}
+							highlightStudentId={highlightStudentId}
+							canMark={canMarkThisSection}
+							profileHref={profileHref}
+							onStatusChange={(studentId, status) =>
+								setMarkDraft((current) => ({ ...current, [studentId]: status }))
+							}
+						/>
+					)}
+				</div>
+			) : (
+				<div className="flex flex-col items-center gap-1 px-4 py-14 text-center">
+					<HugeiconsIcon
+						icon={selectableSections.length === 0 ? Calendar03Icon : ClipboardIcon}
+						size={20}
+						strokeWidth={1.8}
+						className="mb-2 text-dashboard-text-dim"
+					/>
+					<p className="font-medium text-[14px] text-dashboard-text-primary">
+						{selectableSections.length === 0 ? "No classes available" : "Loading the class…"}
+					</p>
+					<p className="max-w-md text-[13px] text-dashboard-text-dim">
+						{selectableSections.length === 0 ? (
+							"Once an administrator creates classes, you can take roll call here."
+						) : (
+							<>
+								Or pick another class above. <Link href="/admin/my-classes">See your classes</Link>
+							</>
+						)}
+					</p>
+				</div>
+			)}
+		</ListPage>
 	);
 }

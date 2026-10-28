@@ -510,11 +510,17 @@ export class AttendanceService {
 		tenantId: string,
 		session: NonNullable<Awaited<ReturnType<AttendanceRepository['findSessionById']>>>,
 	) {
-		const marks = await this.attendance.listMarksForSession(tenantId, session.id);
+		const [marks, students] = await Promise.all([
+			this.attendance.listMarksForSession(tenantId, session.id),
+			session.sectionId
+				? this.attendance.listSessionStudentContext(tenantId, session.id, session.sectionId)
+				: Promise.resolve([]),
+		]);
 		return {
 			session: toPublicSession(session),
 			marks: marks.map(toPublicMark),
 			summary: countMarksByStatus(marks),
+			students,
 		};
 	}
 

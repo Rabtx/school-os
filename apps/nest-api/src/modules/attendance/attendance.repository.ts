@@ -11,6 +11,7 @@ import {
 	attendanceSessions,
 	auditLogs,
 	classes,
+	enrollments,
 	guardians,
 	outboxEvents,
 	sections,
@@ -439,5 +440,44 @@ export class AttendanceRepository {
 			)
 			.limit(1);
 		return row ?? null;
+	}
+	/**
+	 * Per active student in the section: their primary guardian and the source of their latest
+	 * attendance event in this session (roll call, gate scan), for the roll-call table.
+	 */
+	async listSessionStudentContext(tenantId: string, sessionId: string, sectionId: string) {
+		const guardianName = sql<string | null>`(
+			select ${guardians.firstName} || ' ' || ${guardians.lastName}
+			from ${studentGuardians}
+			join ${guardians} on ${guardians.id} = ${studentGuardians.guardianId}
+			where ${studentGuardians.studentId} = ${enrollments.studentId}
+				and ${studentGuardians.tenantId} = ${tenantId}
+			order by ${studentGuardians.isPrimary} desc
+			limit 1
+		)`;
+		const latestSource = sql<string | null>`(
+			select ${attendanceEvents.source}
+			from ${attendanceEvents}
+			where ${attendanceEvents.sessionId} = ${sessionId}
+				and ${attendanceEvents.studentId} = ${enrollments.studentId}
+			order by ${attendanceEvents.createdAt} desc
+			limit 1
+		)`;
+		return (
+			this.database.db
+				.select({ studentId: enrollments.studentId, guardianName, checkInSource: latestSource })
+				.from(enrollments)
+				// The join also makes Drizzle qualify every column inside the subqueries above.
+				.innerJoin(students, eq(students.id, enrollments.studentId))
+				.where(
+					and(
+						eq(enrollments.tenantId, tenantId),
+						eq(enrollments.sectionId, sectionId),
+						eq(enrollments.status, 'active'),
+						isNull(enrollments.deletedAt),
+						isNull(students.deletedAt),
+					),
+				)
+		);
 	}
 }
