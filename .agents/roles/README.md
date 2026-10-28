@@ -14,7 +14,7 @@ Each agent must load the universal contract and exactly one role charter before 
 ## Active roles
 
 - [Backend](backend.md) — the complete NestJS API and backend platform
-- [AI/Python](ai-python.md) — FastAPI AI service, Python tooling, and AI reliability
+- [AI](ai.md) — the TypeScript AI layer in the Nest API, Python tooling scripts, and AI reliability
 - [Rust](rust.md) — the Axum demo service and Rust tooling
 - [Web](web.md) — Next.js web application
 - [Mobile](mobile.md) — Expo Router mobile application

@@ -62,7 +62,7 @@ best initial production stack is:
 - Redis for cache, rate limits, short-lived locks, and lightweight queues.
 - A worker process for outbox delivery, scheduled jobs, reminders, and AI pipelines.
 - S3-compatible object storage for files, report cards, receipts, and media.
-- Optional FastAPI AI service once model workflows need Python ML libraries.
+- The AI layer stays in TypeScript inside the Nest API (tool registry, retrieval, memory, evals).
 - Kafka or Redpanda later, only after multiple independent consumers need durable event streams.
 
 ## Product Boundaries
@@ -115,7 +115,7 @@ Primary personas:
    +----------+  +-------------+  +-------------+  +----------------+
 
 Later:
-  apps/fastapi AI service, Kafka/Redpanda event bus, dedicated realtime gateway.
+  Kafka/Redpanda event bus, dedicated realtime gateway.
 ```
 
 ## Service Design
@@ -165,7 +165,7 @@ Use HTTP JSON for direct request/response flows:
 
 - Browser/mobile -> Nest API.
 - Nest API -> payment provider, WhatsApp provider, map provider, object storage.
-- Nest API -> FastAPI AI service later, only through a typed internal client.
+- AI tools call Nest services directly, through the same tenant and permission checks as the API.
 
 Rules:
 
@@ -935,7 +935,7 @@ Shared packages to add when implementation starts:
 ### Phase 0: Architecture Foundation
 
 - Pick one production API: NestJS (`apps/nest-api`).
-- Keep FastAPI/Rust/Nest as labs until a concrete service split is justified.
+- Keep Rust as a lab until a concrete service split is justified.
 - Add product schema plan and module boundaries.
 - Add shared contracts package.
 - Add tenant/membership/role model.
@@ -1003,7 +1003,7 @@ Shared packages to add when implementation starts:
 | Cache | Redis cache-aside plus rate limits, locks, and lightweight queues |
 | Kafka | Not MVP; add after outbox/worker is insufficient |
 | API framework | NestJS for primary product API |
-| Python/FastAPI | Use later for AI/ML service, not core CRUD |
+| AI layer | TypeScript in the Nest API, not a separate Python service |
 | Rust | Use later for high-throughput edge scanner/realtime/infra work if needed |
 | Vector search | pgvector first |
 | AI orchestration | Server-owned orchestration with typed tools, guardrails, approvals, evals |

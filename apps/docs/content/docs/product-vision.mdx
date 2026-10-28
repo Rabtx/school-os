@@ -152,11 +152,11 @@ product ship target.
 
 | Area | Portfolio spec | This monorepo |
 | --- | --- | --- |
-| Backend API | FastAPI or Hono | **NestJS** (`apps/nest-api`) |
+| Backend API | Hono | **NestJS** (`apps/nest-api`) |
 | Web | Next.js admin | **Next.js** (`apps/web`) |
 | Mobile | React Native | **Expo** (`apps/mobile`) |
 | Database | PostgreSQL | **PostgreSQL** (Neon in production) |
-| AI | OpenAI / Ollama | **FastAPI** proxied by Nest (`apps/ai-api`) |
+| AI | OpenAI / Ollama | **TypeScript** inside the Nest API (`apps/nest-api/src/modules/ai`) |
 | Payments | Stripe / Razorpay / local PSP | Providers wired in billing module |
 | Attendance / WhatsApp | Core MVP | **Planned** — Product Milestone 1 in production roadmap |
 

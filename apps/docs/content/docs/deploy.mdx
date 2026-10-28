@@ -36,7 +36,7 @@ Repo files: `apps/web/vercel.json`, `apps/docs/vercel.json`, root `render.yaml`.
 | `WEBAUTHN_RP_ID` | `your-web.vercel.app` (hostname only) |
 | `WEBAUTHN_ORIGIN` | `https://your-web.vercel.app` |
 
-Blueprint already sets `COOKIE_SAME_SITE=none`, `TRUST_PROXY=true`, and generates `JWT_SECRET`, `AUTH_TOKEN_SECRET`, and `AI_SERVICE_TOKEN`.
+Blueprint already sets `COOKIE_SAME_SITE=none`, `TRUST_PROXY=true`, and generates `JWT_SECRET` and `AUTH_TOKEN_SECRET`.
 
 4. Deploy and confirm health:
 
@@ -46,7 +46,7 @@ curl -sS https://<your-service>.onrender.com/api/v1/health
 
 Migrations run on container start when `RUN_MIGRATIONS=true` (default in the Blueprint).
 
-**Note:** Free Render services spin down when idle; the first request can take ~30s. AI assist still needs a hosted `apps/ai-api` (`AI_API_URL`) later — Nest will boot without it.
+**Note:** Free Render services spin down when idle; the first request can take ~30s. AI assistance reports itself as not set up until the TypeScript AI layer is built.
 
 ## 3) Web on Vercel
 

@@ -22,8 +22,6 @@ services:
       AUTH_EMAIL_FROM: ${AUTH_EMAIL_FROM:-School OS <auth@example.com>}
       RESEND_API_KEY: ${RESEND_API_KEY:?Set RESEND_API_KEY in .env}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
-      AI_API_URL: ${AI_API_URL:-http://ai-api:8000}
-      AI_SERVICE_TOKEN: ${AI_SERVICE_TOKEN:?Set AI_SERVICE_TOKEN in .env (must match ai-api)}
       TRUST_PROXY: ${TRUST_PROXY:-false}
     ports:
       - "${NEST_API_PORT:-4000}:4000"

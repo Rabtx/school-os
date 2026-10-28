@@ -50,8 +50,6 @@ export type AppConfig = {
 			enterprise: { monthly?: string; yearly?: string };
 		};
 	};
-	aiApiUrl: string;
-	aiServiceToken: string;
 	outboxWorkerEnabled: boolean;
 	outboxPollIntervalMs: number;
 	outboxBatchSize: number;
@@ -137,8 +135,6 @@ export function createAppConfig(env: Env = parseEnv()): AppConfig {
 				},
 			},
 		},
-		aiApiUrl: env.AI_API_URL.replace(/\/$/, ''),
-		aiServiceToken: env.AI_SERVICE_TOKEN,
 		outboxWorkerEnabled:
 			env.OUTBOX_WORKER_ENABLED !== undefined
 				? env.OUTBOX_WORKER_ENABLED === 'true'

@@ -2,8 +2,8 @@
 id: str-ai-memory-evals-controls
 title: School memory, evals, confidence and AI on/off controls
 type: feature
-from: ai-python
-to: ai-python
+from: ai
+to: ai
 priority: normal
 status: open
 assignee: none
@@ -12,7 +12,7 @@ parent: none
 depends_on: ["str-ai-tool-registry"]
 branch: none
 worktree: none
-scope: ["apps/ai-api/**", "apps/nest-api/src/modules/ai/**", "apps/web/src/modules/ai/**"]
+scope: ["apps/nest-api/src/modules/ai/**", "apps/web/src/modules/ai/**"]
 allowed_shared: []
 created: 2026-10-27
 updated: 2026-10-27

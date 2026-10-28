@@ -12,7 +12,7 @@ node_modules
 **/target
 **/.expo
 
-# Python: apps/ai-api ships a 74MB .venv that the docs build never touches
+# Python caches from scripts/python
 **/.venv
 **/__pycache__
 **/.ruff_cache

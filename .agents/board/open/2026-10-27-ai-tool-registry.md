@@ -2,8 +2,8 @@
 id: str-ai-tool-registry
 title: AI tool registry over the NestJS API
 type: feature
-from: ai-python
-to: ai-python
+from: ai
+to: ai
 priority: high
 status: open
 assignee: none
@@ -12,7 +12,7 @@ parent: none
 depends_on: ["str-approvals-engine"]
 branch: none
 worktree: none
-scope: ["apps/ai-api/**", "apps/nest-api/src/modules/ai/**"]
+scope: ["apps/nest-api/src/modules/ai/**"]
 allowed_shared: []
 created: 2026-10-27
 updated: 2026-10-27
@@ -42,7 +42,7 @@ Generate tool definitions from the API contracts; every write tool creates an ap
 
 ## Validation
 
-- ai-api ruff and tests; an eval proving a teacher cannot read another section through the AI.
+- nest-api tests; an eval proving a teacher cannot read another section through the AI.
 
 ## Resolution
 

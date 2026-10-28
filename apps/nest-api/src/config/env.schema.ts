@@ -69,8 +69,6 @@ export const envSchema = z
 		RAZORPAY_PLAN_TEAM_YEARLY: z.string().min(1).optional(),
 		RAZORPAY_PLAN_ENTERPRISE_MONTHLY: z.string().min(1).optional(),
 		RAZORPAY_PLAN_ENTERPRISE_YEARLY: z.string().min(1).optional(),
-		AI_API_URL: z.url().default('http://localhost:8000'),
-		AI_SERVICE_TOKEN: z.string().min(16).default('development-only-ai-service-token-change-me'),
 		OUTBOX_WORKER_ENABLED: z.enum(['true', 'false']).optional(),
 		OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().min(1000).max(300_000).default(5000),
 		OUTBOX_BATCH_SIZE: z.coerce.number().int().min(1).max(500).default(25),
@@ -101,13 +99,6 @@ export const envSchema = z
 				code: 'custom',
 				path: ['RESEND_API_KEY'],
 				message: 'RESEND_API_KEY is required in production',
-			});
-		}
-		if (env.AI_SERVICE_TOKEN.startsWith('development-only')) {
-			context.addIssue({
-				code: 'custom',
-				path: ['AI_SERVICE_TOKEN'],
-				message: 'AI_SERVICE_TOKEN must be changed in production',
 			});
 		}
 	});
