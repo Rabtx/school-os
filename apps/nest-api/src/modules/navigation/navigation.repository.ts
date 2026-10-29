@@ -9,6 +9,7 @@ import {
 	enrollments,
 	guardians,
 	homeworkAssignments,
+	messageThreads,
 	type NavigationItemRecord,
 	navigationItems,
 	sections,
@@ -29,47 +30,53 @@ export class NavigationRepository {
 
 	/** Counts shown next to sidebar items: active students, guardians, homework still due. */
 	async countSidebarBadges(tenantId: string, now: Date) {
-		const [[studentRow], [guardianRow], [homeworkRow], [approvalRow]] = await Promise.all([
-			this.database.db
-				.select({ count: sql<number>`count(*)::int` })
-				.from(students)
-				.where(
-					and(
-						eq(students.tenantId, tenantId),
-						eq(students.status, 'active'),
-						isNull(students.deletedAt),
+		const [[studentRow], [guardianRow], [homeworkRow], [approvalRow], [messageRow]] =
+			await Promise.all([
+				this.database.db
+					.select({ count: sql<number>`count(*)::int` })
+					.from(students)
+					.where(
+						and(
+							eq(students.tenantId, tenantId),
+							eq(students.status, 'active'),
+							isNull(students.deletedAt),
+						),
 					),
-				),
-			this.database.db
-				.select({ count: sql<number>`count(*)::int` })
-				.from(guardians)
-				.where(and(eq(guardians.tenantId, tenantId), isNull(guardians.deletedAt))),
-			this.database.db
-				.select({ count: sql<number>`count(*)::int` })
-				.from(homeworkAssignments)
-				.where(
-					and(
-						eq(homeworkAssignments.tenantId, tenantId),
-						eq(homeworkAssignments.status, 'published'),
-						gte(homeworkAssignments.dueAt, now),
+				this.database.db
+					.select({ count: sql<number>`count(*)::int` })
+					.from(guardians)
+					.where(and(eq(guardians.tenantId, tenantId), isNull(guardians.deletedAt))),
+				this.database.db
+					.select({ count: sql<number>`count(*)::int` })
+					.from(homeworkAssignments)
+					.where(
+						and(
+							eq(homeworkAssignments.tenantId, tenantId),
+							eq(homeworkAssignments.status, 'published'),
+							gte(homeworkAssignments.dueAt, now),
+						),
 					),
-				),
-			this.database.db
-				.select({ count: sql<number>`count(*)::int` })
-				.from(approvalRequests)
-				.where(
-					and(
-						eq(approvalRequests.tenantId, tenantId),
-						eq(approvalRequests.status, 'pending'),
-						or(isNull(approvalRequests.expiresAt), gt(approvalRequests.expiresAt, now)),
+				this.database.db
+					.select({ count: sql<number>`count(*)::int` })
+					.from(approvalRequests)
+					.where(
+						and(
+							eq(approvalRequests.tenantId, tenantId),
+							eq(approvalRequests.status, 'pending'),
+							or(isNull(approvalRequests.expiresAt), gt(approvalRequests.expiresAt, now)),
+						),
 					),
-				),
-		]);
+				this.database.db
+					.select({ count: sql<number>`count(*)::int` })
+					.from(messageThreads)
+					.where(and(eq(messageThreads.tenantId, tenantId), eq(messageThreads.needsReply, true))),
+			]);
 		return {
 			students: studentRow?.count ?? 0,
 			guardians: guardianRow?.count ?? 0,
 			homework: homeworkRow?.count ?? 0,
 			approvals: approvalRow?.count ?? 0,
+			messages: messageRow?.count ?? 0,
 		};
 	}
 

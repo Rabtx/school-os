@@ -290,7 +290,7 @@ function NavRow({
 }
 
 /** Counts that wait on the person read as a filled pill, as in the Figma sidebar. */
-const COUNT_TONE: Record<string, NavCountTone> = { approvals: "accent" };
+const COUNT_TONE: Record<string, NavCountTone> = { approvals: "accent", messages: "danger" };
 
 function CountBadge({ value, tone }: { value?: number; tone?: NavCountTone }) {
 	const label = navCountLabel(value);
