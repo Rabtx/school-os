@@ -148,4 +148,17 @@ export class AppConfigService {
 	get outboxMaxAttempts(): number {
 		return this.config.outboxMaxAttempts;
 	}
+
+	get whatsapp(): AppConfig['whatsapp'] {
+		return this.config.whatsapp;
+	}
+	get smsProvider(): AppConfig['smsProvider'] {
+		return this.config.smsProvider;
+	}
+	get deliveryWorkerEnabled(): boolean {
+		return this.config.deliveryWorkerEnabled;
+	}
+	get deliveryPollIntervalMs(): number {
+		return this.config.deliveryPollIntervalMs;
+	}
 }

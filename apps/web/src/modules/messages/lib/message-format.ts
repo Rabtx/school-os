@@ -64,7 +64,19 @@ export function guardianLine(thread: ThreadSummary): string {
 	return `${relation} of ${thread.student.name}${thread.student.sectionName ? ` · ${thread.student.sectionName}` : ""}`;
 }
 
-/** The line under a message: channel, time and, for what the viewer sent, whether it was read. */
+const DELIVERY_LABEL: Record<NonNullable<ThreadMessage["delivery"]>["status"], string> = {
+	queued: "waiting",
+	sent: "sent",
+	delivered: "delivered",
+	read: "read",
+	failed: "not delivered",
+	skipped: "not sent",
+};
+
+/**
+ * The line under a message: who, channel and time, and for what the viewer sent, whether it was
+ * read in the app and how WhatsApp or SMS delivery went.
+ */
 export function messageMeta(message: ThreadMessage, hasAppAccount: boolean): string {
 	const time = new Date(message.createdAt).toLocaleTimeString(undefined, {
 		hour: "numeric",
@@ -78,7 +90,10 @@ export function messageMeta(message: ThreadMessage, hasAppAccount: boolean): str
 	];
 	if (message.mine) {
 		if (message.status === "read") parts.push("Read");
-		else if (message.direction === "to_family" && !hasAppAccount)
+		else if (message.delivery) {
+			const via = message.delivery.channel === "sms" ? "SMS" : "WhatsApp";
+			parts.push(`${via} ${DELIVERY_LABEL[message.delivery.status]}`);
+		} else if (message.direction === "to_family" && !hasAppAccount)
 			parts.push("Waiting for WhatsApp");
 		else parts.push("Sent");
 	}

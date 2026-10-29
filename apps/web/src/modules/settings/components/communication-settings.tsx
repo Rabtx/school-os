@@ -1,9 +1,9 @@
 "use client";
 
-import { WhatsappIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { SelectField } from "@school-os/ui/components/select-field";
 import { Spinner } from "@school-os/ui/components/spinner";
+import { WhatsAppConnection } from "@/modules/delivery";
+import { useTenantContext } from "@/modules/tenants";
 import { useOrganizationSettings } from "../hooks/use-organization-settings";
 import {
 	SettingsHeader,
@@ -25,31 +25,16 @@ const HOURS = Array.from({ length: 24 }, (_, hour) => {
 /** Figma "Settings · Communication" (`77:89099`), on the tenant communication policy. */
 export function CommunicationSettings() {
 	const { config, loading, canRead, canWrite, save } = useOrganizationSettings();
+	const { activeTenant } = useTenantContext();
 
 	return (
 		<>
 			<SettingsHeader
 				title="Communication"
-				description="How School OS reaches guardians. Preferences save now and apply once parent messaging is live."
+				description="How School OS reaches guardians outside the app: WhatsApp first, then SMS."
 			/>
 
-			<div className="mb-8 flex flex-wrap items-center gap-3 rounded-[12px] border border-dashboard-border bg-dashboard-surface px-4 py-3.5">
-				<span className="flex size-9 shrink-0 items-center justify-center rounded-[8px] bg-[color-mix(in_oklab,var(--rx-success)_16%,transparent)] text-[var(--rx-success)]">
-					<HugeiconsIcon icon={WhatsappIcon} size={18} strokeWidth={1.8} />
-				</span>
-				<div className="min-w-0 flex-1">
-					<p className="font-medium text-[14px] text-dashboard-text-primary leading-5">
-						WhatsApp Business · Cloud API
-					</p>
-					<p className="text-[13px] text-dashboard-text-dim leading-5">
-						Connecting a verified business number arrives with parent messaging.
-					</p>
-				</div>
-				<span className="inline-flex h-6 items-center gap-1.5 rounded-[6px] bg-dashboard-hover px-2 text-[12px] text-dashboard-text-secondary">
-					<span aria-hidden className="size-1.5 rounded-full bg-dashboard-text-dim" />
-					Not connected
-				</span>
-			</div>
+			{activeTenant ? <WhatsAppConnection tenantId={activeTenant.id} canManage={canWrite} /> : null}
 
 			{loading ? (
 				<div className="flex h-40 items-center justify-center">

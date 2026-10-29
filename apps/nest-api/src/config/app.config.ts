@@ -55,6 +55,20 @@ export type AppConfig = {
 	outboxBatchSize: number;
 	outboxLeaseMs: number;
 	outboxMaxAttempts: number;
+	whatsapp: {
+		provider: 'sandbox' | 'meta';
+		meta: {
+			accessToken?: string;
+			phoneNumberId?: string;
+			appSecret?: string;
+			verifyToken?: string;
+			apiVersion: string;
+		};
+		senderDisplay?: string;
+	};
+	smsProvider: 'sandbox';
+	deliveryWorkerEnabled: boolean;
+	deliveryPollIntervalMs: number;
 };
 
 export function createAppConfig(env: Env = parseEnv()): AppConfig {
@@ -143,5 +157,22 @@ export function createAppConfig(env: Env = parseEnv()): AppConfig {
 		outboxBatchSize: env.OUTBOX_BATCH_SIZE,
 		outboxLeaseMs: env.OUTBOX_LEASE_MS,
 		outboxMaxAttempts: env.OUTBOX_MAX_ATTEMPTS,
+		whatsapp: {
+			provider: env.WHATSAPP_PROVIDER,
+			meta: {
+				accessToken: env.WHATSAPP_META_ACCESS_TOKEN,
+				phoneNumberId: env.WHATSAPP_META_PHONE_NUMBER_ID,
+				appSecret: env.WHATSAPP_META_APP_SECRET,
+				verifyToken: env.WHATSAPP_META_VERIFY_TOKEN,
+				apiVersion: env.WHATSAPP_META_API_VERSION,
+			},
+			senderDisplay: env.WHATSAPP_SENDER_DISPLAY,
+		},
+		smsProvider: env.SMS_PROVIDER,
+		deliveryWorkerEnabled:
+			env.DELIVERY_WORKER_ENABLED !== undefined
+				? env.DELIVERY_WORKER_ENABLED === 'true'
+				: env.NODE_ENV !== 'test',
+		deliveryPollIntervalMs: env.DELIVERY_POLL_INTERVAL_MS,
 	};
 }

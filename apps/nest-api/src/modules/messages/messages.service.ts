@@ -70,7 +70,7 @@ export class MessagesService {
 		return {
 			viewer: viewer.side,
 			thread: { ...toThreadView(row), unread: 0 },
-			messages: messageRows.map(({ message, senderName }) => ({
+			messages: messageRows.map(({ message, senderName, delivery }) => ({
 				id: message.id,
 				direction: message.direction,
 				body: message.body,
@@ -80,6 +80,8 @@ export class MessagesService {
 				createdAt: message.createdAt.toISOString(),
 				senderName,
 				mine: message.senderMembershipId === viewer.membership.id,
+				/** How it reached the family outside the app (WhatsApp or SMS), once delivery runs. */
+				delivery,
 			})),
 		};
 	}
@@ -148,6 +150,28 @@ export class MessagesService {
 				sectionName: row.sectionName,
 			})),
 		};
+	}
+
+	/**
+	 * A guardian replied on WhatsApp: it joins their thread about that child as a family message.
+	 * Called by delivery, which already matched the number to the guardian.
+	 */
+	async receiveFromFamily(input: {
+		tenantId: string;
+		guardianId: string;
+		studentId: string;
+		guardianMembershipId: string | null;
+		body: string;
+	}) {
+		return this.messages.send({
+			tenantId: input.tenantId,
+			guardianId: input.guardianId,
+			studentId: input.studentId,
+			direction: 'from_family',
+			senderMembershipId: input.guardianMembershipId,
+			body: input.body,
+			channel: 'whatsapp',
+		});
 	}
 
 	/** For the sidebar count; the caller scopes it to leadership. */
