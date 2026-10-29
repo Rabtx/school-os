@@ -29,6 +29,7 @@ const message = (overrides: Partial<ThreadMessage>): ThreadMessage => ({
 	createdAt: "2026-10-29T09:02:00Z",
 	senderName: "Sana Iqbal",
 	mine: true,
+	delivery: null,
 	...overrides,
 });
 
@@ -60,6 +61,12 @@ describe("message format", () => {
 		expect(messageMeta(message({ status: "read" }), true)).toMatch(/School OS · .* · Read$/);
 		expect(messageMeta(message({}), true)).toMatch(/Sent$/);
 		expect(messageMeta(message({}), false)).toMatch(/Waiting for WhatsApp$/);
+		expect(
+			messageMeta(message({ delivery: { channel: "whatsapp", status: "delivered" } }), false),
+		).toMatch(/WhatsApp delivered$/);
+		expect(messageMeta(message({ delivery: { channel: "sms", status: "sent" } }), false)).toMatch(
+			/SMS sent$/,
+		);
 		expect(
 			messageMeta(message({ mine: false, direction: "from_family", senderName: "Javed" }), true),
 		).toMatch(/^Javed · School OS/);

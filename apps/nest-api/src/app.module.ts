@@ -16,6 +16,7 @@ import { GradebookModule } from '@/modules/gradebook/gradebook.module';
 import { ApprovalsModule } from '@/modules/approvals/approvals.module';
 import { MessagesModule } from '@/modules/messages/messages.module';
 import { NoticesModule } from '@/modules/notices/notices.module';
+import { DeliveryModule } from '@/modules/delivery/delivery.module';
 import { RulesModule } from '@/modules/rules/rules.module';
 import { GuardiansModule } from '@/modules/guardians/guardians.module';
 import { HealthModule } from '@/modules/health/health.module';
@@ -56,6 +57,7 @@ import { UsersModule } from '@/modules/users/users.module';
 		ApprovalsModule,
 		MessagesModule,
 		NoticesModule,
+		DeliveryModule,
 		ReportsModule,
 		MembersModule,
 		NavigationModule,

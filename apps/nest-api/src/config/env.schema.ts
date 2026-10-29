@@ -74,6 +74,18 @@ export const envSchema = z
 		OUTBOX_BATCH_SIZE: z.coerce.number().int().min(1).max(500).default(25),
 		OUTBOX_LEASE_MS: z.coerce.number().int().min(5000).max(3_600_000).default(60_000),
 		OUTBOX_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(50).default(8),
+		/** `sandbox` records sends locally; `meta` uses the WhatsApp Cloud API with the keys below. */
+		WHATSAPP_PROVIDER: z.enum(['sandbox', 'meta']).default('sandbox'),
+		WHATSAPP_META_ACCESS_TOKEN: z.string().min(1).optional(),
+		WHATSAPP_META_PHONE_NUMBER_ID: z.string().min(1).optional(),
+		WHATSAPP_META_APP_SECRET: z.string().min(1).optional(),
+		WHATSAPP_META_VERIFY_TOKEN: z.string().min(1).optional(),
+		WHATSAPP_META_API_VERSION: z.string().min(1).default('v21.0'),
+		/** Shown in Settings as the number families see messages from. */
+		WHATSAPP_SENDER_DISPLAY: z.string().min(1).optional(),
+		SMS_PROVIDER: z.enum(['sandbox']).default('sandbox'),
+		DELIVERY_WORKER_ENABLED: z.enum(['true', 'false']).optional(),
+		DELIVERY_POLL_INTERVAL_MS: z.coerce.number().int().min(1000).max(300_000).default(5000),
 	})
 	.superRefine((env, context) => {
 		if (env.NODE_ENV !== 'production') {
@@ -92,6 +104,20 @@ export const envSchema = z
 				code: 'custom',
 				path: ['AUTH_TOKEN_SECRET'],
 				message: 'AUTH_TOKEN_SECRET must be changed in production',
+			});
+		}
+		if (
+			env.WHATSAPP_PROVIDER === 'meta' &&
+			(!env.WHATSAPP_META_ACCESS_TOKEN ||
+				!env.WHATSAPP_META_PHONE_NUMBER_ID ||
+				!env.WHATSAPP_META_APP_SECRET ||
+				!env.WHATSAPP_META_VERIFY_TOKEN)
+		) {
+			context.addIssue({
+				code: 'custom',
+				path: ['WHATSAPP_PROVIDER'],
+				message:
+					'The meta WhatsApp provider needs its access token, phone number id, app secret and verify token',
 			});
 		}
 		if (!env.RESEND_API_KEY) {

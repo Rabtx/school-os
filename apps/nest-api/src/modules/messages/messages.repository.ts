@@ -4,6 +4,7 @@ import { and, asc, desc, eq, ilike, inArray, isNull, or, sql, type SQL } from 'd
 import { DatabaseService } from '@/database/database.service';
 import {
 	guardians,
+	type MessageChannel,
 	type MessageDirection,
 	messages,
 	messageThreads,
@@ -28,6 +29,15 @@ const senderName = sql<string | null>`(
 	join users u on u.id = m.user_id
 	left join user_profiles up on up.user_id = u.id
 	where m.id = "messages"."sender_membership_id"
+)`;
+
+/** How a message to a family went out of the app: the newest WhatsApp or SMS attempt. */
+const latestDelivery = sql<{ channel: string; status: string } | null>`(
+	select json_build_object('channel', d.channel, 'status', d.status)
+	from message_deliveries d
+	where d.source_type = 'message' and d.source_id = "messages"."id"
+	order by d.created_at desc
+	limit 1
 )`;
 
 export type ThreadScope = {
@@ -124,7 +134,7 @@ export class MessagesRepository {
 
 	async listMessages(tenantId: string, threadId: string, limit: number) {
 		const rows = await this.database.db
-			.select({ message: messages, senderName })
+			.select({ message: messages, senderName, delivery: latestDelivery })
 			.from(messages)
 			.where(and(eq(messages.tenantId, tenantId), eq(messages.threadId, threadId)))
 			.orderBy(desc(messages.createdAt))
@@ -157,8 +167,10 @@ export class MessagesRepository {
 		guardianId: string;
 		studentId: string;
 		direction: MessageDirection;
-		senderMembershipId: string;
+		/** Null for a WhatsApp reply from a guardian without an app account. */
+		senderMembershipId: string | null;
 		body: string;
+		channel?: MessageChannel;
 	}) {
 		return this.database.db.transaction(async (transaction) => {
 			const now = new Date();
@@ -191,6 +203,7 @@ export class MessagesRepository {
 					direction: input.direction,
 					senderMembershipId: input.senderMembershipId,
 					body: input.body,
+					channel: input.channel ?? 'app',
 					createdAt: now,
 				})
 				.returning();

@@ -24,6 +24,11 @@ export type ThreadMessage = {
 	createdAt: string;
 	senderName: string | null;
 	mine: boolean;
+	/** How it reached the family outside the app, once WhatsApp delivery ran. */
+	delivery: {
+		channel: "whatsapp" | "sms";
+		status: "queued" | "sent" | "delivered" | "read" | "failed" | "skipped";
+	} | null;
 };
 
 export type ThreadDetail = { viewer: Viewer; thread: ThreadSummary; messages: ThreadMessage[] };

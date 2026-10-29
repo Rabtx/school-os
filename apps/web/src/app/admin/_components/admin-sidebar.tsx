@@ -12,7 +12,6 @@ import {
 	Sun03Icon,
 	Tick02Icon,
 	UnfoldMoreIcon,
-	WhatsappIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -27,6 +26,7 @@ import {
 import { useMotion } from "@school-os/ui/components/motion-provider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@school-os/ui/components/tooltip";
 import Link from "next/link";
+import { WhatsAppSidebarCard } from "@/modules/delivery";
 import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useThemeToggle } from "@/components/motion/theme-toggle";
@@ -346,16 +346,7 @@ export function AdminSidebar({ className, mobile = false, onNavigate }: AdminSid
 				) : null}
 
 				{!isCollapsed ? (
-					<div className="flex items-center gap-2 rounded-[8px] border border-dashboard-border bg-dashboard-surface px-3 py-2 text-[13px]">
-						<HugeiconsIcon
-							icon={WhatsappIcon}
-							size={16}
-							strokeWidth={1.8}
-							className="text-dashboard-text-dim"
-						/>
-						<span className="flex-1 text-dashboard-text-secondary">WhatsApp</span>
-						<span className="text-[12px] text-dashboard-text-dim">Not connected</span>
-					</div>
+					<WhatsAppSidebarCard tenantId={activeTenant?.id ?? null} onNavigate={onNavigate} />
 				) : null}
 
 				<DropdownMenu>

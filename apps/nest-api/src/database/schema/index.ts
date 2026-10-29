@@ -20,6 +20,7 @@ export * from './homework-recipients.schema';
 export * from './homework-submissions.schema';
 export * from './membership-invites.schema';
 export * from './membership-roles.schema';
+export * from './message-deliveries.schema';
 export * from './messages.schema';
 export * from './memberships.schema';
 export * from './navigation-items.schema';

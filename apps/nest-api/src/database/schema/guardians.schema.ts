@@ -51,6 +51,11 @@ export const guardians = pgTable(
 		country: varchar('country', { length: 100 }),
 		occupation: varchar('occupation', { length: 128 }),
 		preferredChannel: guardianPreferredChannel('preferred_channel').notNull().default('phone'),
+		/** Language for WhatsApp and SMS templates: English or Urdu. */
+		preferredLanguage: varchar('preferred_language', { length: 8 })
+			.$type<'en' | 'ur'>()
+			.notNull()
+			.default('en'),
 		deletedAt: timestamp('deleted_at', { withTimezone: true }),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
