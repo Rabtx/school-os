@@ -232,6 +232,13 @@
 			"when": 1787440000000,
 			"tag": "0032_messages",
 			"breakpoints": true
+		},
+		{
+			"idx": 35,
+			"version": "7",
+			"when": 1787450000000,
+			"tag": "0033_notices",
+			"breakpoints": true
 		}
 	]
 }

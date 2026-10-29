@@ -13,8 +13,9 @@ import type { CreateApprovalInput } from './approvals.dto';
 import { ApprovalsRegistry } from './approvals.registry';
 import { type ApprovalRow, ApprovalsRepository } from './approvals.repository';
 
-/** How long an approval can be taken back after it is applied (Figma `221:114293`). */
-export const UNDO_WINDOW_MS = 15_000;
+import { UNDO_WINDOW_MS } from './approval-constants';
+
+export { UNDO_WINDOW_MS };
 const QUEUE_LIMIT = 100;
 const MINE_LIMIT = 50;
 
@@ -195,6 +196,7 @@ export class ApprovalsService {
 			audit: { action: 'approvals.declined', actorMembershipId: approver.id, metadata: { reason } },
 		});
 		if (!declined) throw alreadyDecided();
+		await this.registry.get(row.type).release?.({ tenantId }, row.payload);
 		return this.toView(await this.requireRow(tenantId, id));
 	}
 
@@ -252,6 +254,7 @@ export class ApprovalsService {
 			audit: { action: 'approvals.cancelled', actorMembershipId: membership.id },
 		});
 		if (!cancelled) throw alreadyDecided();
+		await this.registry.get(row.type).release?.({ tenantId }, row.payload);
 		return this.toView(await this.requireRow(tenantId, id));
 	}
 

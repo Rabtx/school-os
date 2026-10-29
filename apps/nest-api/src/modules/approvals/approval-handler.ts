@@ -58,6 +58,8 @@ export interface ApprovalHandler<Input = unknown, Payload = unknown> {
 		payload: Payload,
 		undo: Record<string, unknown>,
 	): Promise<void>;
+	/** Optional: undo side effects of asking, when the request is declined or withdrawn. */
+	release?(context: { tenantId: string }, payload: Payload): Promise<void>;
 	/** What stays in place when nobody decided in time (Figma `221:117286`). */
 	expired(payload: Payload): { summary: string; facts: ApprovalFact[] };
 	/** One line for the Declined state and the requester. */

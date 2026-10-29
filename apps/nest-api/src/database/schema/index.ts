@@ -23,6 +23,7 @@ export * from './membership-roles.schema';
 export * from './messages.schema';
 export * from './memberships.schema';
 export * from './navigation-items.schema';
+export * from './notices.schema';
 export * from './outbox-events.schema';
 export * from './passkeys.schema';
 export * from './permissions.schema';

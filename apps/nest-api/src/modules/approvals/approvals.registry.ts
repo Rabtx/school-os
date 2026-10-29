@@ -4,6 +4,7 @@ import type { ApprovalHandler } from './approval-handler';
 import { AttendanceChangeHandler } from './handlers/attendance-change.handler';
 import { LeaveHandler } from './handlers/leave.handler';
 import { MarksChangeHandler } from './handlers/marks-change.handler';
+import { NoticeHandler } from './handlers/notice.handler';
 
 /** Every request type the engine knows, by `type`. New types register here. */
 @Injectable()
@@ -14,9 +15,10 @@ export class ApprovalsRegistry {
 		attendanceChange: AttendanceChangeHandler,
 		leave: LeaveHandler,
 		marksChange: MarksChangeHandler,
+		notice: NoticeHandler,
 	) {
 		this.handlers = new Map(
-			([attendanceChange, leave, marksChange] as ApprovalHandler[]).map((handler) => [
+			([attendanceChange, leave, marksChange, notice] as ApprovalHandler[]).map((handler) => [
 				handler.type,
 				handler,
 			]),

@@ -89,6 +89,7 @@ describe('ApprovalsService', () => {
 				undo: { status: 'absent' },
 			})),
 			undo: vi.fn(async () => undefined),
+			release: vi.fn(async () => undefined),
 			expired: vi.fn(() => ({ summary: 'Kept', facts: [] })),
 			declined: vi.fn((_payload, reason: string) => `Stays. Reason: ${reason}`),
 		} as unknown as typeof handler;
@@ -187,6 +188,7 @@ describe('ApprovalsService', () => {
 		const view = await service.decline('user', 'tenant-1', 'approval-1', 'Mark was right');
 		expect(view.status).toBe('declined');
 		expect(view.declined).toBe('Stays. Reason: Mark was right');
+		expect(handler.release).toHaveBeenCalledWith({ tenantId: 'tenant-1' }, current.payload);
 	});
 
 	it('undoes inside the window and reverses the effect', async () => {
