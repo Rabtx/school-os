@@ -2,15 +2,24 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import type { ApprovalHandler } from './approval-handler';
 import { AttendanceChangeHandler } from './handlers/attendance-change.handler';
+import { LeaveHandler } from './handlers/leave.handler';
+import { MarksChangeHandler } from './handlers/marks-change.handler';
 
 /** Every request type the engine knows, by `type`. New types register here. */
 @Injectable()
 export class ApprovalsRegistry {
 	private readonly handlers: Map<string, ApprovalHandler>;
 
-	constructor(attendanceChange: AttendanceChangeHandler) {
+	constructor(
+		attendanceChange: AttendanceChangeHandler,
+		leave: LeaveHandler,
+		marksChange: MarksChangeHandler,
+	) {
 		this.handlers = new Map(
-			[attendanceChange as ApprovalHandler].map((handler) => [handler.type, handler]),
+			([attendanceChange, leave, marksChange] as ApprovalHandler[]).map((handler) => [
+				handler.type,
+				handler,
+			]),
 		);
 	}
 

@@ -2,7 +2,7 @@ import * as z from 'zod';
 
 const assessmentTypeSchema = z.enum(['quiz', 'test', 'exam']);
 const assessmentStatusSchema = z.enum(['draft', 'published', 'closed']);
-const assessmentResultStatusSchema = z.enum(['pending', 'graded', 'absent']);
+export const assessmentResultStatusSchema = z.enum(['pending', 'graded', 'absent']);
 const assignModeSchema = z.enum(['whole_class', 'selected_students']);
 
 const dateSchema = z
@@ -139,3 +139,4 @@ export type UpdateAssessmentInput = z.infer<typeof updateAssessmentSchema>;
 export type UpsertAssessmentResultsInput = z.infer<typeof upsertAssessmentResultsSchema>;
 export type ListAssessmentsQuery = z.infer<typeof listAssessmentsQuerySchema>;
 export type PlannerAssessmentsQuery = z.infer<typeof plannerAssessmentsQuerySchema>;
+export type AssessmentResultStatus = z.infer<typeof assessmentResultStatusSchema>;

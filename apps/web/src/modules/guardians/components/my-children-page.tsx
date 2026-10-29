@@ -7,6 +7,7 @@ import { Badge } from "@school-os/ui/components/badge";
 import { Spinner } from "@school-os/ui/components/spinner";
 import { ToggleGroup, ToggleGroupItem } from "@school-os/ui/components/toggle-group";
 import { useMemo, useState } from "react";
+import { LeaveRequests } from "@/modules/approvals";
 import { StudentIdCard } from "@/modules/students/components/student-id-card";
 import { StudentRosterCards } from "@/modules/students/components/student-roster-cards";
 import { useTenantContext } from "@/modules/tenants";
@@ -59,7 +60,7 @@ export function MyChildrenPage() {
 						<div>
 							<h1 className="font-semibold text-[24px] text-dashboard-text-primary">My children</h1>
 							<p className="text-[13px] text-dashboard-text-muted">
-								ID cards, homework, and quick links for each linked student.
+								ID cards, homework and leave for each child.
 							</p>
 						</div>
 					</div>
@@ -87,6 +88,16 @@ export function MyChildrenPage() {
 					) : null}
 				</div>
 			</header>
+
+			{children.length > 0 ? (
+				<LeaveRequests
+					tenantId={tenantId}
+					childOptions={children.map((child) => ({
+						studentId: child.studentId,
+						name: `${child.firstName} ${child.lastName}`.trim(),
+					}))}
+				/>
+			) : null}
 
 			{children.length === 0 ? (
 				<Alert>

@@ -143,7 +143,7 @@ export class AttendanceChangeHandler implements ApprovalHandler<Input, Attendanc
 		payload: AttendanceChangePayload,
 		undo: Record<string, unknown>,
 	) {
-		const status = markStatusSchema.parse(undo.status);
+		const status = markStatusSchema.nullable().parse(undo.status ?? null);
 		await this.attendance.applyApprovedChange({
 			tenantId: context.tenantId,
 			sessionId: payload.sessionId,

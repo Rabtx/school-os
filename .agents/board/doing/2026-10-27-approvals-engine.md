@@ -57,7 +57,13 @@ Start with notices, leave and marks changes as approval types; audit every decis
 - Web `/admin/approvals` (Figma `82:37115`, states `221:114293`, `221:115806`, `221:118631`, `221:121411`): one card at a time, Up next, ⌘↵ approve, decline dialog with reasons, Approved with undo countdown, Declined, Nothing is waiting.
 - Sidebar Approvals item with the pending count as an accent pill (`NavItem` `countTone`).
 
-**PR B (next):** `leave` (guardian request from My children, applies excused for the days) and `marks_change` (closed assessments lock for teachers, who request a change). Notices land with messaging.
+**PR B (done):** leave and marks changes.
+
+- `leave`: a guardian asks from My children (child, dates, reason, message). Only a linked guardian can ask; school days only (Mon–Fri), up to 10 days, up to 7 days back. The card shows recent attendance, tests on those days and the reason; leave over a test or longer than 3 days is flagged. Approving marks each day excused on the class roll call (creating the day's session if needed); undo puts back each replaced mark or clears marks it created. Expires after the last day.
+- `marks_change`: closed tests lock for teachers (`ASSESSMENT_CLOSED`). Teachers edit marks as usual and "Send for approval" with one note; rows show "Asked to change to …". Approving sets the mark; undo restores it.
+- Requesters see their requests with status and the decline reason; guardians can withdraw a waiting leave request.
+
+**Left:** notices (with messaging), and telling the teacher and guardian by WhatsApp once delivery lands.
 
 ## Resolution
 

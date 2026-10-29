@@ -28,6 +28,7 @@ import type {
 	AssessmentDetail,
 	AssessmentResultStatus,
 } from "@/modules/assessments/types/assessments.types";
+import { type ApprovalView, useMyApprovalsQuery, useRequestMarksChange } from "@/modules/approvals";
 import { PermissionCodes, usePermissions } from "@/modules/tenants";
 
 const statusOptions: { label: string; value: AssessmentResultStatus }[] = [
@@ -121,12 +122,22 @@ export function AssessmentMarksPanel({ tenantId, assessment }: Props) {
 	const { can } = usePermissions();
 	const toast = useToast();
 	const canWrite = can(PermissionCodes.ASSESSMENTS_WRITE);
+	const isLeadership = can(PermissionCodes.TENANT_SETTINGS_WRITE);
 
 	const detailQuery = useAssessmentDetailQuery(tenantId, assessment.id);
 	const saveMutation = useUpsertAssessmentResultsMutation(tenantId, assessment.id);
 
 	const detail = detailQuery.data ?? assessment;
 	const maxScore = detail.maxScore;
+	// Closed marks feed report cards: teachers still edit, but changes go to the principal.
+	const locked = canWrite && detail.status === "closed" && !isLeadership;
+	const myApprovals = useMyApprovalsQuery(tenantId, locked);
+	const requestChange = useRequestMarksChange(tenantId);
+	const [changeNote, setChangeNote] = useState("");
+	const askedByStudentId = useMemo(
+		() => pendingMarkChanges(myApprovals.data, detail.id, maxScore),
+		[detail.id, maxScore, myApprovals.data],
+	);
 
 	const [draftRows, setDraftRows] = useState<DraftRow[]>(() => detail.results.map(toDraftRow));
 	const [savedRows, setSavedRows] = useState<DraftRow[]>(() => detail.results.map(toDraftRow));
@@ -156,6 +167,19 @@ export function AssessmentMarksPanel({ tenantId, assessment }: Props) {
 	);
 
 	const dirtyRows = useMemo(() => draftRows.filter(rowIsDirty), [draftRows, rowIsDirty]);
+	/** Rows whose mark (not just the remarks) changed: what a closed test sends for approval. */
+	const changedMarks = useMemo(
+		() =>
+			draftRows.filter((row) => {
+				const original = savedByStudentId.get(row.studentId);
+				return (
+					original &&
+					(row.status !== original.status ||
+						(row.status === "graded" && parseScore(row.score) !== parseScore(original.score)))
+				);
+			}),
+		[draftRows, savedByStudentId],
+	);
 	const hasChanges = dirtyRows.length > 0;
 
 	const scoreErrorsByStudentId = useMemo(() => {
@@ -209,6 +233,52 @@ export function AssessmentMarksPanel({ tenantId, assessment }: Props) {
 			toast.show({
 				title: "Could not save marks",
 				description: formatSaveError(error),
+				status: "error",
+			});
+		}
+	}
+
+	async function handleRequestChanges() {
+		if (hasScoreErrors) {
+			toast.show({
+				title: "Invalid marks",
+				description: `Marks must be between 0 and ${maxScore}.`,
+				status: "error",
+			});
+			return;
+		}
+		let sent = 0;
+		const failed: string[] = [];
+		for (const row of changedMarks) {
+			try {
+				// oxlint-disable-next-line no-await-in-loop -- one request per student, in order
+				await requestChange.mutateAsync({
+					input: {
+						assessmentId: detail.id,
+						studentId: row.studentId,
+						status: row.status,
+						score: row.status === "graded" ? parseScore(row.score) : null,
+					},
+					note: changeNote.trim(),
+				});
+				sent += 1;
+			} catch (error) {
+				failed.push(`${row.studentName}: ${formatSaveError(error)}`);
+			}
+		}
+		setDraftRows(savedRows);
+		setChangeNote("");
+		if (sent > 0) {
+			toast.show({
+				title: `Sent ${sent} ${sent === 1 ? "change" : "changes"} to the principal`,
+				description: "Marks stay as they are until it is approved.",
+				status: "success",
+			});
+		}
+		if (failed.length > 0) {
+			toast.show({
+				title: "Some changes were not sent",
+				description: failed.join(" · "),
 				status: "error",
 			});
 		}
@@ -345,6 +415,11 @@ export function AssessmentMarksPanel({ tenantId, assessment }: Props) {
 										{scoreError ? (
 											<p className="mt-1 text-[12px] text-destructive">{scoreError.message}</p>
 										) : null}
+										{askedByStudentId.get(row.studentId) ? (
+											<p className="mt-1 text-[12px] text-[var(--rx-accent)]">
+												Asked to change to {askedByStudentId.get(row.studentId)}
+											</p>
+										) : null}
 									</TableCell>
 									<TableCell>
 										{/* Remarks are a local drafting aid: the results upsert endpoint is strict and does not persist them yet. */}
@@ -366,7 +441,41 @@ export function AssessmentMarksPanel({ tenantId, assessment }: Props) {
 				</Table>
 			</div>
 
-			{canWrite ? (
+			{locked ? (
+				<div className="space-y-3 rounded-[10px] border border-dashboard-border bg-dashboard-surface p-3">
+					<p className="text-[13px] text-dashboard-text-secondary">
+						This test is closed, so its marks are on report cards. Change a mark above and send it
+						to the principal; it changes once they approve.
+					</p>
+					{changedMarks.length > 0 ? (
+						<Input
+							aria-label="Why the marks need changing"
+							value={changeNote}
+							onChange={(event) => setChangeNote(event.target.value)}
+							placeholder="Why (the principal sees this): rechecked the paper, totals were wrong"
+							maxLength={500}
+							className="h-8"
+						/>
+					) : null}
+					<div className="flex flex-wrap items-center justify-end gap-3">
+						<p className="me-auto text-dashboard-text-secondary text-[13px]">
+							{changedMarks.length > 0
+								? `${changedMarks.length} ${changedMarks.length === 1 ? "mark" : "marks"} to send`
+								: "No changes"}
+						</p>
+						<Button variant="outline" size="sm" onClick={handleDiscard} disabled={!hasChanges}>
+							Discard
+						</Button>
+						<Button
+							size="sm"
+							onClick={() => void handleRequestChanges()}
+							disabled={changedMarks.length === 0 || hasScoreErrors || requestChange.isPending}
+						>
+							{requestChange.isPending ? "Sending…" : "Send for approval"}
+						</Button>
+					</div>
+				</div>
+			) : canWrite ? (
 				<div className="flex flex-wrap items-center justify-end gap-3">
 					<p className="me-auto text-dashboard-text-secondary text-[13px]">
 						{hasChanges
@@ -387,4 +496,28 @@ export function AssessmentMarksPanel({ tenantId, assessment }: Props) {
 			) : null}
 		</div>
 	);
+}
+
+/** Marks this teacher already asked to change on this test, by student: "21 / 25". */
+function pendingMarkChanges(
+	requests: ApprovalView[] | undefined,
+	assessmentId: string,
+	maxScore: number,
+): Map<string, string> {
+	const asked = new Map<string, string>();
+	for (const request of requests ?? []) {
+		if (request.type !== "marks_change" || request.status !== "pending") continue;
+		if (request.payload.assessmentId !== assessmentId) continue;
+		const { studentId, status, score } = request.payload;
+		if (typeof studentId !== "string") continue;
+		asked.set(
+			studentId,
+			status === "absent"
+				? "absent"
+				: typeof score === "number"
+					? `${score} / ${maxScore}`
+					: "not marked",
+		);
+	}
+	return asked;
 }

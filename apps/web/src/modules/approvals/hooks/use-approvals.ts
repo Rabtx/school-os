@@ -6,7 +6,7 @@ import { useAuth } from "@/modules/auth/context/auth-context";
 import { navigationQueryKeys } from "@/modules/navigation/queries/navigation-query-keys";
 import { approvalsQueryKeys } from "../queries/approvals-query-keys";
 import { approvalsService } from "../services/approvals.service";
-import type { AttendanceChangeInput } from "../types/approvals.types";
+import type { AttendanceChangeInput, LeaveInput, MarksChangeInput } from "../types/approvals.types";
 
 export function useApprovalQueueQuery(tenantId: string | null, enabled = true) {
 	const { token } = useAuth();
@@ -57,18 +57,23 @@ export function useApprovalDecisions(tenantId: string | null) {
 	return { approve, decline, undo };
 }
 
-export function useRequestAttendanceChange(tenantId: string | null) {
+/** Asks leadership to decide something; the request type's handler checks who may ask. */
+export function useCreateApproval<Input extends object>(tenantId: string | null, type: string) {
 	const { token } = useAuth();
 	const refresh = useRefreshAfterDecision();
 	return useMutation({
-		mutationFn: ({ input, note }: { input: AttendanceChangeInput; note?: string }) =>
+		mutationFn: ({ input, note }: { input: Input; note?: string }) =>
 			approvalsService.create(requireToken(token), tenantId ?? "", {
-				type: "attendance_change",
+				type,
 				input,
 				note: note || undefined,
 			}),
 		onSuccess: refresh,
 	});
+}
+
+export function useRequestAttendanceChange(tenantId: string | null) {
+	return useCreateApproval<AttendanceChangeInput>(tenantId, "attendance_change");
 }
 
 export function useCancelApproval(tenantId: string | null) {
@@ -79,4 +84,12 @@ export function useCancelApproval(tenantId: string | null) {
 			approvalsService.cancel(requireToken(token), tenantId ?? "", approvalId),
 		onSuccess: refresh,
 	});
+}
+
+export function useRequestLeave(tenantId: string | null) {
+	return useCreateApproval<LeaveInput>(tenantId, "leave");
+}
+
+export function useRequestMarksChange(tenantId: string | null) {
+	return useCreateApproval<MarksChangeInput>(tenantId, "marks_change");
 }
