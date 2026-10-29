@@ -5,6 +5,7 @@ export { RequestChangeDialog, type ChangeRequestDraft } from "./components/reque
 export {
 	useApprovalQueueQuery,
 	useCancelApproval,
+	useCreateApproval,
 	useMyApprovalsQuery,
 	useRequestAttendanceChange,
 	useRequestLeave,

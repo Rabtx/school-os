@@ -4,6 +4,7 @@ import { AssessmentsModule } from '@/modules/assessments/assessments.module';
 import { AttendanceModule } from '@/modules/attendance/attendance.module';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { MembershipsModule } from '@/modules/memberships/memberships.module';
+import { NoticesModule } from '@/modules/notices/notices.module';
 import { TenantsModule } from '@/modules/tenants/tenants.module';
 import { ApprovalsController } from './approvals.controller';
 import { ApprovalsRegistry } from './approvals.registry';
@@ -13,9 +14,17 @@ import { AttendanceChangeHandler } from './handlers/attendance-change.handler';
 import { LeaveContextRepository } from './handlers/leave-context.repository';
 import { LeaveHandler } from './handlers/leave.handler';
 import { MarksChangeHandler } from './handlers/marks-change.handler';
+import { NoticeHandler } from './handlers/notice.handler';
 
 @Module({
-	imports: [AuthModule, MembershipsModule, TenantsModule, AttendanceModule, AssessmentsModule],
+	imports: [
+		AuthModule,
+		MembershipsModule,
+		TenantsModule,
+		AttendanceModule,
+		AssessmentsModule,
+		NoticesModule,
+	],
 	controllers: [ApprovalsController],
 	providers: [
 		ApprovalsRepository,
@@ -25,6 +34,7 @@ import { MarksChangeHandler } from './handlers/marks-change.handler';
 		LeaveContextRepository,
 		LeaveHandler,
 		MarksChangeHandler,
+		NoticeHandler,
 	],
 	exports: [ApprovalsService],
 })

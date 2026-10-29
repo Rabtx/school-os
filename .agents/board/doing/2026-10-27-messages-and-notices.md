@@ -56,7 +56,14 @@ Notices go through approvals; delivery goes through the outbox; parents only see
 - Web `/admin/messages` (Figma `77:66449`): conversations with need-reply chip, search and New; the thread with day headings, bubbles, sender, channel and read state; reply with Enter. Parents get the same screen from their side. Polls every 15 seconds.
 - Sidebar Messages for staff and parents, with the needs-reply count as a red pill for leadership.
 
-**PR B (next): notices** with audiences, sent through approvals, and read state.
+**PR B (done): notices.**
+
+- `notices` and `notice_recipients` (migration `0033`): title, message, audience (all parents, some classes, staff, everyone), status (draft, waiting for approval, sent), and one recipient row per guardian or staff member with its read time.
+- Leadership writes to anyone and sends directly; a teacher writes to the parents of their own classes and sends through approvals (`notice` type). Approving sends to the audience as it is then; undo takes it back (delivery waits out the window via `deliverAfter`); declining or withdrawing returns it to a draft.
+- Sending queues `notices.sent.v1` for WhatsApp; recipients read in the app and the author sees how many read it.
+- Web `/admin/notices` (Figma `185:56501`): Notices and Drafts tables with audience, sent, sent to and read; side panel with status, actions, message, reach and timing; composer with audience chips, class picker by campus and a live count; "For you" inbox, and the parent's notices.
+
+**Left:** announcement banners (`295:158046`), templates and scheduled notices; delivery by WhatsApp (see `str-whatsapp-delivery`).
 
 ## Resolution
 
