@@ -6,7 +6,11 @@ import { ProviderError } from './providers/delivery-provider';
 import { MetaWhatsAppProvider } from './providers/meta-whatsapp.provider';
 import { afterQuietHours } from './quiet-hours';
 import { renderTemplate, smsText, templateParams } from './templates';
-import { hasValidSignature } from './whatsapp-webhook.controller';
+import type { Response } from 'express';
+
+import type { AppConfigService } from '@/config/app-config.service';
+import type { DeliveryService } from './delivery.service';
+import { hasValidSignature, WhatsAppWebhookController } from './whatsapp-webhook.controller';
 
 const quiet = { start: '21:00', end: '07:00' };
 
@@ -98,5 +102,43 @@ describe('Meta WhatsApp provider', () => {
 		await expect(refused.sendText({ to: '1', body: 'x' })).rejects.toEqual(
 			new ProviderError('Invalid number', false),
 		);
+	});
+});
+
+const fakeResponse = () => {
+	const response = {
+		body: '',
+		status: vi.fn(() => response),
+		type: vi.fn(() => response),
+		setHeader: vi.fn(() => response),
+		send: vi.fn((value: string) => {
+			response.body = value;
+			return response;
+		}),
+	};
+	return response;
+};
+
+describe('webhook verify handshake', () => {
+	const controller = new WhatsAppWebhookController(
+		{ whatsapp: { meta: { verifyToken: 'token' } } } as unknown as AppConfigService,
+		{} as unknown as DeliveryService,
+	);
+	it('echoes a numeric challenge only, with the right token', () => {
+		const response = fakeResponse();
+		controller.verify('subscribe', 'token', '1158201444', response as unknown as Response);
+		expect(response.body).toBe('1158201444');
+		expect(response.setHeader).toHaveBeenCalledWith('X-Content-Type-Options', 'nosniff');
+		expect(() =>
+			controller.verify(
+				'subscribe',
+				'token',
+				'<script>alert(1)</script>',
+				fakeResponse() as unknown as Response,
+			),
+		).toThrow();
+		expect(() =>
+			controller.verify('subscribe', 'wrong', '1', fakeResponse() as unknown as Response),
+		).toThrow();
 	});
 });

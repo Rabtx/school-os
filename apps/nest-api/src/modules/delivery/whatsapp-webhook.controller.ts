@@ -73,7 +73,18 @@ export class WhatsAppWebhookController {
 				message: 'Verification failed',
 			});
 		}
-		response.type('text/plain').send(challenge);
+		// Meta's challenge is a number. Echo only digits, rebuilt as a number, never the raw input.
+		if (!/^\d{1,32}$/.test(challenge ?? '')) {
+			throw new ForbiddenException({
+				code: 'WEBHOOK_VERIFY_FAILED',
+				message: 'Verification failed',
+			});
+		}
+		response
+			.status(200)
+			.type('text/plain')
+			.setHeader('X-Content-Type-Options', 'nosniff')
+			.send(BigInt(challenge).toString());
 	}
 
 	@Post()
