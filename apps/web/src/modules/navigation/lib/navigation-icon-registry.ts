@@ -31,6 +31,7 @@ const NAVIGATION_ICON_REGISTRY: Record<string, IconType> = {
 	dashboard: DashboardSquare01Icon,
 	approvals: CheckmarkCircle02Icon,
 	"ai-assist": BubbleChatIcon,
+	messages: BubbleChatIcon,
 	attendance: ClipboardIcon,
 	calendar: Calendar03Icon,
 	file: File01Icon,
