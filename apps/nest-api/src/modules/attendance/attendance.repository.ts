@@ -78,6 +78,38 @@ export class AttendanceRepository {
 			.limit(limit);
 	}
 
+	/** Removes a student's mark on a session, e.g. when undoing an approval that created it. */
+	async clearMark(input: {
+		tenantId: string;
+		sessionId: string;
+		studentId: string;
+		actorMembershipId: string;
+	}) {
+		return this.database.db.transaction(async (transaction) => {
+			const [removed] = await transaction
+				.delete(attendanceMarks)
+				.where(
+					and(
+						eq(attendanceMarks.tenantId, input.tenantId),
+						eq(attendanceMarks.sessionId, input.sessionId),
+						eq(attendanceMarks.studentId, input.studentId),
+					),
+				)
+				.returning();
+			if (removed) {
+				await transaction.insert(auditLogs).values({
+					tenantId: input.tenantId,
+					actorMembershipId: input.actorMembershipId,
+					action: 'attendance.mark_cleared',
+					resourceType: 'attendance_mark',
+					resourceId: removed.id,
+					metadata: { previousStatus: removed.status },
+				});
+			}
+			return removed ?? null;
+		});
+	}
+
 	async markStudents(input: {
 		tenantId: string;
 		session: AttendanceSessionRecord;

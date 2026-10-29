@@ -50,6 +50,7 @@ export function ApprovalRequestCard({
 				<blockquote className="mt-5 rounded-[12px] bg-dashboard-bg px-4 py-3.5">
 					<p className="text-[12px] text-dashboard-text-dim">
 						{card.quote?.label ??
+							card.noteLabel ??
 							(request.requester.name ? `Note from ${request.requester.name}` : "Note")}
 					</p>
 					<p className="mt-1 whitespace-pre-line text-[14px] text-dashboard-text-primary leading-5">

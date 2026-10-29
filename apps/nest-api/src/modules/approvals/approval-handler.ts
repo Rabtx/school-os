@@ -10,6 +10,8 @@ export type ApprovalCard = {
 	subtitle: string;
 	/** The requester's own words, e.g. "Message from parent". */
 	quote: { label: string; text: string } | null;
+	/** Heading over the requester's note, e.g. "Message from the guardian". */
+	noteLabel?: string;
 	facts: ApprovalFact[];
 	/** "If you approve: …", told before the decision. */
 	outcome: string;

@@ -13,6 +13,7 @@ import { MembershipsService } from '@/modules/memberships/memberships.service';
 import { StaffRepository } from '@/modules/staff/staff.repository';
 import { StudentsRepository } from '@/modules/students/students.repository';
 import type {
+	AssessmentResultStatus as ResultStatus,
 	CreateAssessmentInput,
 	ListAssessmentsQuery,
 	PlannerAssessmentsQuery,
@@ -264,6 +265,13 @@ export class AssessmentsService {
 			roles,
 			existing.assessment.sectionSubjectId,
 		);
+		// A closed test's marks feed report cards; after closing, teachers ask leadership instead.
+		if (existing.assessment.status === 'closed' && !hasManagementRole(roles)) {
+			throw new ForbiddenException({
+				code: 'ASSESSMENT_CLOSED',
+				message: 'This test is closed. Ask the principal to change a mark.',
+			});
+		}
 
 		const maxScore = Number(existing.assessment.maxScore);
 		const sectionId = existing.section.id;
@@ -450,6 +458,80 @@ export class AssessmentsService {
 				});
 			}
 		}
+	}
+
+	/**
+	 * Checks a teacher may ask leadership to change one mark on a test, and returns what the
+	 * approval card shows. Used by the approvals engine.
+	 */
+	async prepareMarkChange(
+		userId: string,
+		tenantId: string,
+		input: { assessmentId: string; studentId: string; status: ResultStatus; score: number | null },
+	) {
+		const membership = await this.requireWrite(userId, tenantId);
+		const roles = await this.membershipAccess.listRoleCodes(membership.id, membership.role);
+		const existing = await this.requireAssessment(tenantId, input.assessmentId);
+		await this.requireSectionSubjectWriteAccess(
+			tenantId,
+			membership,
+			roles,
+			existing.assessment.sectionSubjectId,
+		);
+		const maxScore = Number(existing.assessment.maxScore);
+		if (input.status === 'graded' && (input.score === null || input.score > maxScore)) {
+			throw new BadRequestException({
+				code: 'ASSESSMENT_SCORE_EXCEEDS_MAX',
+				message: `Give a mark between 0 and ${maxScore}`,
+			});
+		}
+		const results = await this.assessments.listResults(tenantId, input.assessmentId);
+		const current = results.find((row) => row.result.studentId === input.studentId);
+		if (!current) {
+			throw new BadRequestException({
+				code: 'ASSESSMENT_STUDENT_NOT_ASSIGNED',
+				message: 'Student is not assigned to this assessment',
+			});
+		}
+		return {
+			assessmentTitle: existing.assessment.title,
+			sectionName: existing.section.name,
+			subjectName: existing.subject.name,
+			maxScore,
+			studentName: `${current.student.firstName} ${current.student.lastName}`.trim(),
+			previous: {
+				status: current.result.status,
+				score: current.result.score === null ? null : Number(current.result.score),
+			},
+			canEditNow: existing.assessment.status !== 'closed' || hasManagementRole(roles),
+		};
+	}
+
+	/** Sets one mark for the leader who approved it, on a closed test. Returns the mark replaced. */
+	async applyMarkChange(input: {
+		tenantId: string;
+		assessmentId: string;
+		studentId: string;
+		status: ResultStatus;
+		score: number | null;
+	}): Promise<{ status: ResultStatus; score: number | null }> {
+		const results = await this.assessments.listResults(input.tenantId, input.assessmentId);
+		const current = results.find((row) => row.result.studentId === input.studentId);
+		await this.assessments.upsertResults({
+			tenantId: input.tenantId,
+			assessmentId: input.assessmentId,
+			results: [
+				{
+					studentId: input.studentId,
+					status: input.status,
+					score: input.status === 'graded' && input.score !== null ? String(input.score) : null,
+				},
+			],
+		});
+		return {
+			status: current?.result.status ?? 'pending',
+			score: current?.result.score == null ? null : Number(current.result.score),
+		};
 	}
 
 	private async requireAssessment(tenantId: string, assessmentId: string) {

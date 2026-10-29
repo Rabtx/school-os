@@ -326,18 +326,28 @@ export class AttendanceService {
 
 	/**
 	 * Sets one student's mark on behalf of the leader who approved the change, past the teacher edit
-	 * window. Returns the status it replaced so the approval can be undone.
+	 * window, or removes it when `status` is null (undoing a mark an approval created). Returns the
+	 * mark it replaced, null when there was none, so the approval can be undone.
 	 */
 	async applyApprovedChange(input: {
 		tenantId: string;
 		sessionId: string;
 		studentId: string;
-		status: MarkStatus;
+		status: MarkStatus | null;
 		approverMembershipId: string;
-	}): Promise<MarkStatus> {
+	}): Promise<MarkStatus | null> {
 		const session = await this.requireSession(input.tenantId, input.sessionId);
 		const marks = await this.attendance.listMarksForSession(input.tenantId, session.id);
-		const previous = marks.find((mark) => mark.studentId === input.studentId)?.status ?? 'unknown';
+		const previous = marks.find((mark) => mark.studentId === input.studentId)?.status ?? null;
+		if (input.status === null) {
+			await this.attendance.clearMark({
+				tenantId: input.tenantId,
+				sessionId: session.id,
+				studentId: input.studentId,
+				actorMembershipId: input.approverMembershipId,
+			});
+			return previous;
+		}
 		await this.attendance.markStudents({
 			tenantId: input.tenantId,
 			session,
@@ -345,6 +355,59 @@ export class AttendanceService {
 			markedByMembershipId: input.approverMembershipId,
 		});
 		return previous;
+	}
+
+	/** The class a student is in now, for leave requests. Null when not actively enrolled. */
+	async findStudentClass(tenantId: string, studentId: string) {
+		const [student] = await this.students.findStudentsByIds(tenantId, [studentId]);
+		const enrollment = (await this.students.listEnrollments(tenantId, { studentId })).findLast(
+			(row) => row.status === 'active',
+		);
+		if (!student || !enrollment) return null;
+		const section = await this.academic.findSectionById(tenantId, enrollment.sectionId);
+		if (!section) return null;
+		return {
+			studentName: `${student.firstName} ${student.lastName}`.trim(),
+			sectionId: section.id,
+			sectionName: section.name,
+			campusId: section.campusId,
+		};
+	}
+
+	/**
+	 * Sets one student's mark on one day of their class roll call, creating the day's session if
+	 * nobody has opened it yet, on behalf of the leader who approved it. Returns the mark replaced.
+	 */
+	async setMarkOnDay(input: {
+		tenantId: string;
+		sectionId: string;
+		campusId: string;
+		studentId: string;
+		sessionDate: string;
+		status: MarkStatus | null;
+		approverMembershipId: string;
+	}): Promise<MarkStatus | null> {
+		const session =
+			(await this.attendance.findSessionBySectionAndDate(
+				input.tenantId,
+				input.sectionId,
+				input.sessionDate,
+			)) ??
+			(await this.attendance.createSession({
+				tenantId: input.tenantId,
+				campusId: input.campusId,
+				sectionId: input.sectionId,
+				sessionType: 'class',
+				sessionDate: input.sessionDate,
+			}));
+		if (!session) throw new Error('Attendance session create returned no row');
+		return this.applyApprovedChange({
+			tenantId: input.tenantId,
+			sessionId: session.id,
+			studentId: input.studentId,
+			status: input.status,
+			approverMembershipId: input.approverMembershipId,
+		});
 	}
 
 	private async requireLeadershipRead(userId: string, tenantId: string) {

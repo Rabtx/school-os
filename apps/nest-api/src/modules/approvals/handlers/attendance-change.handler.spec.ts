@@ -65,4 +65,15 @@ describe('AttendanceChangeHandler', () => {
 			expect.objectContaining({ status: 'absent' }),
 		);
 	});
+
+	it('clears the mark on undo when there was none before', async () => {
+		attendance.applyApprovedChange.mockResolvedValue(null);
+		const prepared = await handler.prepare({ userId: 'u', tenantId: 't' }, input);
+		const effect = await handler.apply({ tenantId: 't', approver: { id: 'p' } }, prepared.payload);
+		expect(effect.facts[0]?.value).toBe('Not marked → Present');
+		await handler.undo({ tenantId: 't', approver: { id: 'p' } }, prepared.payload, effect.undo);
+		expect(attendance.applyApprovedChange).toHaveBeenLastCalledWith(
+			expect.objectContaining({ status: null }),
+		);
+	});
 });

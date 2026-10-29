@@ -7,6 +7,7 @@ export type ApprovalCard = {
 	title: string;
 	subtitle: string;
 	quote: { label: string; text: string } | null;
+	noteLabel?: string;
 	facts: ApprovalFact[];
 	outcome: string;
 	approveLabel: string;
@@ -43,4 +44,20 @@ export type AttendanceChangeInput = {
 	sessionId: string;
 	studentId: string;
 	status: "present" | "late" | "absent" | "excused" | "left_early";
+};
+
+export type LeaveReason = "sick" | "family" | "travel" | "other";
+
+export type LeaveInput = {
+	studentId: string;
+	fromDate: string;
+	toDate: string;
+	reason: LeaveReason;
+};
+
+export type MarksChangeInput = {
+	assessmentId: string;
+	studentId: string;
+	status: "pending" | "graded" | "absent";
+	score: number | null;
 };

@@ -11,7 +11,7 @@ export const approvalsService = {
 	create: (
 		accessToken: string,
 		tenantId: string,
-		body: { type: string; input: Record<string, unknown>; note?: string },
+		body: { type: string; input: object; note?: string },
 	) => apiClient.post<ApprovalView>(base(tenantId), body, { accessToken }),
 	approve: (accessToken: string, tenantId: string, id: string) =>
 		apiClient.post<ApprovalView>(`${base(tenantId)}/${id}/approve`, {}, { accessToken }),
