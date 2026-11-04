@@ -109,7 +109,7 @@ export function ClassDetailPage({ sectionId }: Props) {
 			profileQuery.data?.subjectAssignments.find((assignment) => assignment.sectionId === sectionId)
 				?.id ?? null
 		);
-	}, [profileQuery.data?.subjectAssignments, section, sectionId]);
+	}, [profileQuery.data, section, sectionId]);
 
 	useEffect(() => {
 		if (!wantAssignHomework || !canWriteHomework || !section || assignHomeworkOpened.current) {

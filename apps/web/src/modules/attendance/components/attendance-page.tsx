@@ -185,13 +185,7 @@ export function AttendancePage() {
 		return (sectionsQuery.data ?? []).filter(
 			(section) => !campusId || section.campusId === campusId,
 		);
-	}, [
-		campusId,
-		isTeacherScoped,
-		myProfileQuery.data?.accessibleSections,
-		myProfileQuery.data?.homeroomSections,
-		sectionsQuery.data,
-	]);
+	}, [campusId, isTeacherScoped, myProfileQuery.data, sectionsQuery.data]);
 
 	const sectionSelectItems = useMemo(
 		() =>
