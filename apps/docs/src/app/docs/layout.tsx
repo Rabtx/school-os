@@ -1,6 +1,7 @@
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import { MessageCircleIcon } from "lucide-react";
+import { MessageCircleIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { AISearch, AISearchPanel, AISearchTrigger } from "@/components/ai/search";
 import { cn } from "@/lib/cn";
 import { baseOptions } from "@/lib/layout.shared";
@@ -20,7 +21,7 @@ export default function Layout({ children }: LayoutProps<"/docs">) {
 						}),
 					)}
 				>
-					<MessageCircleIcon className="size-4.5" />
+					<HugeiconsIcon icon={MessageCircleIcon} className="size-4.5" />
 					Ask AI
 				</AISearchTrigger>
 			</AISearch>
