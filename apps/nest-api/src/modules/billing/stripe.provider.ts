@@ -26,7 +26,7 @@ export class StripePaymentProvider extends PaymentProvider {
 		super();
 		this.client = config.stripeSecretKey
 			? new Stripe(config.stripeSecretKey, {
-					apiVersion: '2026-09-30.endive',
+					apiVersion: '2026-10-28.endive',
 				})
 			: null;
 	}

@@ -54,11 +54,11 @@
 	},
 	"devDependencies": {
 		"@school-os/typescript-config": "workspace:*",
-		"@types/node": "^26.6.3",
+		"@types/node": "^26.6.6",
 		"@types/react": "^19.3.0",
 		"react": "^19.3.0",
 		"typescript": "^7.0.2",
-		"vitest": "^5.0.3"
+		"vitest": "^5.1.0"
 	},
 	"peerDependencies": {
 		"react": ">=19"
