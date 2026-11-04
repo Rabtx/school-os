@@ -26,5 +26,3 @@ export function AgentHome() {
 		</AgentShell>
 	);
 }
-
-export const LandingPage = AgentHome;

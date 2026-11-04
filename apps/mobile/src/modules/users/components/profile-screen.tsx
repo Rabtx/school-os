@@ -1,4 +1,12 @@
-import { Calendar, CheckCircle2, LogOut, Mail, ShieldOff, UserRound } from "lucide-react-native";
+import {
+	CalendarIcon,
+	CheckmarkCircle02Icon,
+	Logout03Icon,
+	Mail01Icon,
+	ShieldOffIcon,
+	UserRoundIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useEffect } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -110,9 +118,19 @@ export function ProfileScreen() {
 										}`}
 									>
 										{user.emailVerified ? (
-											<CheckCircle2 size={12} color={NeonColors.accent.green} strokeWidth={2.5} />
+											<HugeiconsIcon
+												icon={CheckmarkCircle02Icon}
+												size={12}
+												color={NeonColors.accent.green}
+												strokeWidth={2.5}
+											/>
 										) : (
-											<Mail size={12} color={NeonColors.accent.orange} strokeWidth={2} />
+											<HugeiconsIcon
+												icon={Mail01Icon}
+												size={12}
+												color={NeonColors.accent.orange}
+												strokeWidth={2}
+											/>
 										)}
 										<Text
 											className={`text-xs font-semibold ${
@@ -123,7 +141,12 @@ export function ProfileScreen() {
 										</Text>
 									</View>
 									<View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border border-zinc-800 bg-zinc-900/40">
-										<UserRound size={12} color={NeonColors.text.secondary} strokeWidth={2} />
+										<HugeiconsIcon
+											icon={UserRoundIcon}
+											size={12}
+											color={NeonColors.text.secondary}
+											strokeWidth={2}
+										/>
 										<Text className="text-zinc-400 text-xs font-semibold">
 											{user.isActive ? "Active" : "Inactive"}
 										</Text>
@@ -147,14 +170,14 @@ export function ProfileScreen() {
 							</Text>
 							<NeonCard>
 								<View className="gap-1">
-									<IdentityRow icon={Mail} label="Email" value={user.email} />
+									<IdentityRow icon={Mail01Icon} label="Email" value={user.email} />
 									<IdentityRow
-										icon={CheckCircle2}
+										icon={CheckmarkCircle02Icon}
 										label="Email status"
 										value={user.emailVerified ? "Verified" : "Verification required"}
 										accent={user.emailVerified ? NeonColors.accent.green : NeonColors.accent.orange}
 									/>
-									<IdentityRow icon={Calendar} label="Member since" value={memberSince} last />
+									<IdentityRow icon={CalendarIcon} label="Member since" value={memberSince} last />
 								</View>
 							</NeonCard>
 						</View>
@@ -168,11 +191,21 @@ export function ProfileScreen() {
 										className="flex-row items-center justify-center gap-2 min-h-[48px] rounded-xl border border-red-500/35 bg-red-500/10 active:opacity-80"
 										onPress={confirmLogoutAll}
 									>
-										<ShieldOff size={16} color={NeonColors.accent.red} strokeWidth={1.8} />
+										<HugeiconsIcon
+											icon={ShieldOffIcon}
+											size={16}
+											color={NeonColors.accent.red}
+											strokeWidth={1.8}
+										/>
 										<Text className="text-red-500 text-[15px] font-bold">Sign out everywhere</Text>
 									</Pressable>
 									<View className="flex-row items-center justify-center gap-1.5 pt-1">
-										<LogOut size={14} color={NeonColors.text.muted} strokeWidth={1.8} />
+										<HugeiconsIcon
+											icon={Logout03Icon}
+											size={14}
+											color={NeonColors.text.muted}
+											strokeWidth={1.8}
+										/>
 										<Text className="text-zinc-500 text-xs">
 											Sign out ends only this device session
 										</Text>
@@ -194,7 +227,7 @@ function IdentityRow({
 	accent,
 	last = false,
 }: {
-	icon: typeof Mail;
+	icon: typeof Mail01Icon;
 	label: string;
 	value: string;
 	accent?: string;
@@ -205,7 +238,12 @@ function IdentityRow({
 			className={`flex-row items-center gap-3 py-3 ${last ? "" : "border-b border-zinc-800/60"}`}
 		>
 			<View className="w-9 h-9 rounded-xl items-center justify-center bg-zinc-900/40 border border-zinc-800">
-				<Icon size={16} color={accent ?? NeonColors.text.secondary} strokeWidth={1.8} />
+				<HugeiconsIcon
+					icon={Icon}
+					size={16}
+					color={accent ?? NeonColors.text.secondary}
+					strokeWidth={1.8}
+				/>
 			</View>
 			<View className="flex-1 gap-0.5">
 				<Text className="text-zinc-500 text-xs font-semibold tracking-wider uppercase">

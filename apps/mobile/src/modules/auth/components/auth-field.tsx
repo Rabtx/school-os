@@ -1,4 +1,5 @@
-import { Eye, EyeOff } from "lucide-react-native";
+import { EyeIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { Pressable, Text, TextInput, type TextInputProps, View } from "react-native";
 
 interface AuthFieldProps {
@@ -72,9 +73,9 @@ export function AuthField({
 				{showPasswordToggle ? (
 					<Pressable onPress={onTogglePassword} hitSlop={8} className="pl-2">
 						{secureTextEntry ? (
-							<Eye size={18} color="#a1a1aa" />
+							<HugeiconsIcon icon={EyeIcon} size={18} color="#a1a1aa" />
 						) : (
-							<EyeOff size={18} color="#a1a1aa" />
+							<HugeiconsIcon icon={ViewOffSlashIcon} size={18} color="#a1a1aa" />
 						)}
 					</Pressable>
 				) : null}

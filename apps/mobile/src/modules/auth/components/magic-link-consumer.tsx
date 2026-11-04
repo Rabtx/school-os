@@ -16,7 +16,7 @@ export function MagicLinkConsumer() {
 		if (!token || started.current) return;
 		started.current = true;
 		consume.mutate(token, {
-			onSuccess: () => router.replace("/(modules)/(dashboard)"),
+			onSuccess: () => router.replace("/(modules)/(profile)"),
 		});
 	}, [consume, token]);
 

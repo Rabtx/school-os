@@ -45,8 +45,6 @@ function RootNavigator() {
 	return (
 		<Stack screenOptions={{ headerShown: false }}>
 			{/* <Stack.Protected guard={signedIn}> */}
-			<Stack.Screen name="ui" />
-
 			<Stack.Screen name="(modules)" />
 			{/* </Stack.Protected> */}
 			{/* <Stack.Protected guard={!signedIn}>

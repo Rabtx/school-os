@@ -1,4 +1,5 @@
-import { Check, ImagePlus } from "lucide-react-native";
+import { ImagePlusIcon, Tick01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, Text, View } from "react-native";
 import { NeonColors } from "@/constants/design-system";
@@ -55,7 +56,12 @@ export function AvatarPicker({
 						<ActivityIndicator color={NeonColors.accent.green} />
 					) : (
 						<>
-							<ImagePlus size={16} color={NeonColors.text.primary} strokeWidth={1.8} />
+							<HugeiconsIcon
+								icon={ImagePlusIcon}
+								size={16}
+								color={NeonColors.text.primary}
+								strokeWidth={1.8}
+							/>
 							<Text className="text-white text-sm font-semibold">Upload photo</Text>
 						</>
 					)}
@@ -78,7 +84,12 @@ export function AvatarPicker({
 							<Image source={{ uri: template.url }} style={{ width: "100%", height: "100%" }} />
 							{selected ? (
 								<View className="absolute right-1 bottom-1 w-4.5 h-4.5 rounded-full bg-emerald-500 items-center justify-center">
-									<Check size={12} color={NeonColors.background} strokeWidth={3} />
+									<HugeiconsIcon
+										icon={Tick01Icon}
+										size={12}
+										color={NeonColors.background}
+										strokeWidth={3}
+									/>
 								</View>
 							) : null}
 						</Pressable>

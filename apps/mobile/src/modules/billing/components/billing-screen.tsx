@@ -1,5 +1,6 @@
 import { router } from "expo-router";
-import { CheckCircle2, CreditCard, XCircle } from "lucide-react-native";
+import { CheckmarkCircle02Icon, CircleXIcon, CreditCardIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -260,7 +261,8 @@ export function BillingScreen() {
 													</Text>
 													{plan.features.map((feature) => (
 														<View key={feature} className="flex-row items-center gap-2">
-															<CheckCircle2
+															<HugeiconsIcon
+																icon={CheckmarkCircle02Icon}
 																size={14}
 																color={NeonColors.accent.green}
 																strokeWidth={2}
@@ -310,7 +312,8 @@ export function BillingScreen() {
 																: "border-zinc-800 bg-zinc-900/40"
 														}`}
 													>
-														<CreditCard
+														<HugeiconsIcon
+															icon={CreditCardIcon}
 															size={18}
 															color={selected ? NeonColors.accent.green : NeonColors.text.secondary}
 														/>
@@ -440,9 +443,19 @@ export function BillingResultScreen({ variant }: { variant: "success" | "cancel"
 				<View className="flex-1 px-5 justify-center">
 					<NeonCard className="items-center gap-2">
 						{success ? (
-							<CheckCircle2 size={40} color={NeonColors.accent.green} strokeWidth={2} />
+							<HugeiconsIcon
+								icon={CheckmarkCircle02Icon}
+								size={40}
+								color={NeonColors.accent.green}
+								strokeWidth={2}
+							/>
 						) : (
-							<XCircle size={40} color={NeonColors.accent.orange} strokeWidth={2} />
+							<HugeiconsIcon
+								icon={CircleXIcon}
+								size={40}
+								color={NeonColors.accent.orange}
+								strokeWidth={2}
+							/>
 						)}
 						<Text className="text-zinc-500 text-[11px] font-bold tracking-[1.2px]">BILLING</Text>
 						<Text className="text-white text-[28px] font-bold tracking-tight text-center">

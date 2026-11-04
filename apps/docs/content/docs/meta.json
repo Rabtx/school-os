@@ -24,7 +24,6 @@
 		"overrides",
 		"docker",
 		"deploy",
-		"qol",
-		"dependency-upgrade-report"
+		"qol"
 	]
 }

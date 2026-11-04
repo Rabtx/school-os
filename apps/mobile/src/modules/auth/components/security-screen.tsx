@@ -1,13 +1,14 @@
 import {
-	CheckCircle2,
-	Fingerprint,
-	KeyRound,
-	Lock,
-	Monitor,
-	Shield,
-	ShieldOff,
-	Smartphone,
-} from "lucide-react-native";
+	CheckmarkCircle02Icon,
+	FingerprintScanIcon,
+	Key01Icon,
+	LockIcon,
+	MonitorIcon,
+	ShieldIcon,
+	ShieldOffIcon,
+	SmartPhone01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react-native";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -191,7 +192,12 @@ export function SecurityScreen() {
 									) : totpEnabled ? (
 										<>
 											<View className="flex-row items-center gap-2">
-												<CheckCircle2 size={16} color="#14b8a6" strokeWidth={2} />
+												<HugeiconsIcon
+													icon={CheckmarkCircle02Icon}
+													size={16}
+													color="#14b8a6"
+													strokeWidth={2}
+												/>
 												<Text className="flex-1 text-zinc-100 text-[13px] font-medium">
 													Authenticator active · {security.data?.mfa.recoveryCodesRemaining ?? 0}{" "}
 													recovery codes left
@@ -297,7 +303,12 @@ export function SecurityScreen() {
 												className="flex-row items-center gap-2.5 py-2.5 border-b border-white/5"
 											>
 												<View className="w-8 h-8 rounded-xl items-center justify-center bg-white/5">
-													<KeyRound size={16} color="#a1a1aa" strokeWidth={1.8} />
+													<HugeiconsIcon
+														icon={Key01Icon}
+														size={16}
+														color="#a1a1aa"
+														strokeWidth={1.8}
+													/>
 												</View>
 												<View className="flex-1 gap-0.5">
 													<Text className="text-zinc-100 text-[13px] font-semibold">
@@ -406,7 +417,12 @@ export function SecurityScreen() {
 												className="flex-row items-center gap-2.5 py-2.5 border-b border-white/5"
 											>
 												<View className="w-8 h-8 rounded-xl items-center justify-center bg-white/5">
-													<Monitor size={16} color="#a1a1aa" strokeWidth={1.8} />
+													<HugeiconsIcon
+														icon={MonitorIcon}
+														size={16}
+														color="#a1a1aa"
+														strokeWidth={1.8}
+													/>
 												</View>
 												<View className="flex-1 gap-0.5">
 													<Text
@@ -438,7 +454,12 @@ export function SecurityScreen() {
 										className="flex-row items-center justify-center gap-2 min-h-[48px] rounded-2xl border border-red-500/35 bg-red-500/10 mt-1 active:opacity-85"
 										onPress={confirmLogoutAll}
 									>
-										<ShieldOff size={16} color="#ef4444" strokeWidth={1.8} />
+										<HugeiconsIcon
+											icon={ShieldOffIcon}
+											size={16}
+											color="#ef4444"
+											strokeWidth={1.8}
+										/>
 										<Text className="text-red-500 text-[15px] font-bold">Sign out everywhere</Text>
 									</Pressable>
 								</View>
@@ -446,7 +467,7 @@ export function SecurityScreen() {
 						</View>
 
 						<View className="flex-row items-start gap-2 px-1">
-							<Smartphone size={14} color="#a1a1aa" strokeWidth={1.8} />
+							<HugeiconsIcon icon={SmartPhone01Icon} size={14} color="#a1a1aa" strokeWidth={1.8} />
 							<Text className="flex-1 text-zinc-500 text-xs leading-4">
 								Google account linking is available on the web account settings for now.
 							</Text>
@@ -463,11 +484,11 @@ function OverviewChip({ label, value, active }: { label: string; value: string; 
 		<View className="w-[48%] flex-grow gap-1.5 p-3 rounded-2xl border border-zinc-800 bg-white/5">
 			<View className="w-7 h-7 rounded-lg items-center justify-center bg-white/5">
 				{label === "Two-factor" ? (
-					<Shield size={14} color="#a1a1aa" strokeWidth={1.8} />
+					<HugeiconsIcon icon={ShieldIcon} size={14} color="#a1a1aa" strokeWidth={1.8} />
 				) : label === "Passkeys" ? (
-					<Fingerprint size={14} color="#a1a1aa" strokeWidth={1.8} />
+					<HugeiconsIcon icon={FingerprintScanIcon} size={14} color="#a1a1aa" strokeWidth={1.8} />
 				) : (
-					<Lock size={14} color="#a1a1aa" strokeWidth={1.8} />
+					<HugeiconsIcon icon={LockIcon} size={14} color="#a1a1aa" strokeWidth={1.8} />
 				)}
 			</View>
 			<Text className="text-zinc-500 text-[11px] font-semibold uppercase tracking-[0.4px]">
