@@ -1,4 +1,5 @@
-import { closeSync, openSync, readSync } from 'node:fs';
+import { closeSync, openSync, readSync, realpathSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { BadRequestException } from '@nestjs/common';
 
@@ -52,6 +53,27 @@ export function assertImageMagic(file: Express.Multer.File, allowed: Set<string>
 	}
 }
 
+const UPLOADS_ROOT = resolve(process.cwd(), 'uploads');
+const UPLOADS_ROOT_WITH_SEPARATOR = `${UPLOADS_ROOT}${process.platform === 'win32' ? '\\' : '/'}`;
+
+function resolveSafeUploadPath(uploadPath: string): string {
+	const resolvedPath = resolve(uploadPath);
+	let canonicalPath: string;
+	let canonicalRoot: string;
+	try {
+		canonicalPath = realpathSync(resolvedPath);
+		canonicalRoot = realpathSync(UPLOADS_ROOT);
+	} catch {
+		throw new BadRequestException('Invalid upload path');
+	}
+
+	const canonicalRootWithSeparator = `${canonicalRoot}${process.platform === 'win32' ? '\\' : '/'}`;
+	if (canonicalPath !== canonicalRoot && !canonicalPath.startsWith(canonicalRootWithSeparator)) {
+		throw new BadRequestException('Invalid upload path');
+	}
+	return canonicalPath;
+}
+
 function readUploadHeader(file: Express.Multer.File): Buffer | null {
 	if (file.buffer && file.buffer.length > 0) {
 		return file.buffer.subarray(0, 12);
@@ -59,7 +81,8 @@ function readUploadHeader(file: Express.Multer.File): Buffer | null {
 	if (!file.path) {
 		return null;
 	}
-	const descriptor = openSync(file.path, 'r');
+	const safePath = resolveSafeUploadPath(file.path);
+	const descriptor = openSync(safePath, 'r');
 	try {
 		const header = Buffer.alloc(12);
 		const bytesRead = readSync(descriptor, header, 0, header.length, 0);
