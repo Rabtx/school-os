@@ -15,6 +15,7 @@ struct UserRow {
     email: String,
     password_hash: Option<String>,
     email_verified_at: Option<DateTime<Utc>>,
+    is_active: bool,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -37,7 +38,7 @@ impl AuthService {
             r#"
 			INSERT INTO users (id, username, email, password_hash, is_active, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, true, NOW(), NOW())
-			RETURNING id, username, email, password_hash, email_verified_at, created_at, updated_at
+			RETURNING id, username, email, password_hash, email_verified_at, is_active, created_at, updated_at
 			"#,
         )
         .bind(user_id)
@@ -67,7 +68,7 @@ impl AuthService {
     ) -> Result<(SafeUser, String, String), String> {
         let row: Option<UserRow> = sqlx::query_as(
             r#"
-			SELECT id, username, email, password_hash, email_verified_at, created_at, updated_at
+			SELECT id, username, email, password_hash, email_verified_at, is_active, created_at, updated_at
 			FROM users WHERE email = $1
 			"#,
         )
@@ -77,6 +78,12 @@ impl AuthService {
         .map_err(|e| e.to_string())?;
 
         let user = row.ok_or_else(|| "Invalid email or password".to_string())?;
+
+        // Deactivated and unverified accounts must not sign in. The generic
+        // message avoids revealing which check failed.
+        if !user.is_active || user.email_verified_at.is_none() {
+            return Err("Invalid email or password".to_string());
+        }
 
         let password_hash = user
             .password_hash
@@ -134,7 +141,7 @@ impl AuthService {
 
         let row: Option<UserRow> = sqlx::query_as(
             r#"
-			SELECT id, username, email, password_hash, email_verified_at, created_at, updated_at
+			SELECT id, username, email, password_hash, email_verified_at, is_active, created_at, updated_at
 			FROM users WHERE id = $1
 			"#,
         )

@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+import { httpUrlSchema } from '@/common/validation/http-url.schema';
+
 const timeSchema = z
 	.string()
 	.trim()
@@ -25,7 +27,7 @@ export const updateOrganizationConfigSchema = z
 			.object({
 				displayNameEn: z.string().trim().min(1).max(200).nullable().optional(),
 				displayNameUr: z.string().trim().max(200).nullable().optional(),
-				logoUrl: z.string().trim().url().max(2048).nullable().optional(),
+				logoUrl: httpUrlSchema.nullable().optional(),
 				primaryColor: hexColorSchema.nullable().optional(),
 				accentColor: hexColorSchema.nullable().optional(),
 			})

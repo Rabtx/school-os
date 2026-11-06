@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+import { httpUrlSchema } from '@/common/validation/http-url.schema';
+
 const optionalText = (maximum: number) => z.string().trim().max(maximum).nullable().optional();
 
 export const updateProfileSchema = z
@@ -13,7 +15,7 @@ export const updateProfileSchema = z
 			.regex(/^[a-z0-9._-]+$/)
 			.optional(),
 		displayName: optionalText(100),
-		avatarUrl: z.url().max(2048).nullable().optional(),
+		avatarUrl: httpUrlSchema.nullable().optional(),
 		bio: optionalText(280),
 		timezone: optionalText(64),
 		locale: optionalText(16),

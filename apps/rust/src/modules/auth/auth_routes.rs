@@ -17,7 +17,7 @@ pub fn routes(pool: PgPool) -> Router {
         .route("/me", get(me))
         .route("/logout", post(logout))
         .route("/sessions", get(get_sessions))
-        .route_layer(middleware::from_fn(require_jwt))
+        .route_layer(middleware::from_fn_with_state(pool.clone(), require_jwt))
         .with_state(pool);
 
     Router::new().merge(public_routes).merge(protected_routes)
