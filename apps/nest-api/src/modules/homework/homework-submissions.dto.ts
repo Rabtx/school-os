@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+import { httpUrlSchema } from '@/common/validation/http-url.schema';
+
 export const homeworkSubmissionStatusSchema = z.enum([
 	'pending',
 	'submitted',
@@ -61,7 +63,9 @@ export class BulkUpdateSubmissionsDto {
 export const submitHomeworkSchema = z
 	.object({
 		submittedAt: z.string().datetime().optional(),
-		attachmentUrl: z.string().trim().max(2000).optional(),
+		// Rendered as a clickable "Open their work" link: http(s) only, never a
+		// script-capable `javascript:`/`data:` URL (stored XSS).
+		attachmentUrl: httpUrlSchema.optional(),
 	})
 	.strict();
 

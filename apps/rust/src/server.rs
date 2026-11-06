@@ -5,6 +5,10 @@ use std::env;
 pub async fn start_server() {
     dotenvy::dotenv().ok();
 
+    // Refuse to boot with missing/weak JWT secrets instead of forging a
+    // predictable signing key for every deployment.
+    crate::shared::utils::jwt::validate_jwt_secrets();
+
     let pool = connect_db().await.expect("Failed to connect to DB");
     let app = app::create_app(pool);
 

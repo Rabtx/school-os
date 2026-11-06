@@ -8,6 +8,8 @@ import {
 	PayloadTooLargeException,
 } from '@nestjs/common';
 
+import { assertImageMagic } from '@/common/validation/image-upload';
+
 export const AVATAR_UPLOAD_DIR = join(process.cwd(), 'uploads', 'avatars');
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 export const AVATAR_ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -30,6 +32,8 @@ export class AvatarStorageService implements OnModuleInit {
 		if (file.size > AVATAR_MAX_BYTES) {
 			throw new PayloadTooLargeException('Avatar must be 2 MB or smaller');
 		}
+		// The client-supplied mimetype above is not enough: verify the bytes too.
+		assertImageMagic(file, AVATAR_ALLOWED_MIME);
 		return file;
 	}
 

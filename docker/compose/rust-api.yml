@@ -12,6 +12,8 @@ services:
       APP_NAME: school-os-rust
       APP_VERSION: 0.1.0
       NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (min 32 chars)}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET in .env (min 32 chars)}
     ports:
       - "${RUST_API_PORT:-3002}:3002"
     depends_on:

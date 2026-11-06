@@ -1,12 +1,14 @@
 import * as z from 'zod';
 
+import { billingUrlSchema } from '@/common/validation/http-url.schema';
+
 export const createCheckoutSchema = z
 	.object({
 		provider: z.enum(['stripe', 'razorpay']).optional(),
 		planCode: z.enum(['team', 'enterprise']),
 		billingInterval: z.enum(['monthly', 'yearly']).default('monthly'),
-		successUrl: z.url().optional(),
-		cancelUrl: z.url().optional(),
+		successUrl: billingUrlSchema.optional(),
+		cancelUrl: billingUrlSchema.optional(),
 	})
 	.strict();
 
@@ -22,7 +24,7 @@ export class CreateCheckoutDto {
 export const createPortalSchema = z
 	.object({
 		provider: z.enum(['stripe', 'razorpay']).optional(),
-		returnUrl: z.url().optional(),
+		returnUrl: billingUrlSchema.optional(),
 	})
 	.strict();
 
