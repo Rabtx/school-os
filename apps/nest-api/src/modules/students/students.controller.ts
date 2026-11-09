@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
+import type { AppConfigService } from '@/config/app-config.service';
 import type { StudentRecord } from '@/database/schema';
 import type { AccessTokenPayload } from '@/modules/auth/auth.types';
 import { CurrentUser } from '@/modules/auth/current-user.decorator';
@@ -38,7 +39,10 @@ import { StudentsService } from './students.service';
 @UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
 @Controller({ path: 'tenants/:tenantId', version: '1' })
 export class StudentsController {
-	constructor(private readonly students: StudentsService) {}
+	constructor(
+		private readonly students: StudentsService,
+		private readonly config: AppConfigService,
+	) {}
 
 	@Get('students')
 	@RequirePermissions(PermissionCodes.STUDENTS_READ)
@@ -80,7 +84,7 @@ export class StudentsController {
 			tenantId,
 			studentId,
 			file,
-			resolveRequestOrigin(req),
+			resolveRequestOrigin(req, this.config.trustProxy),
 		);
 	}
 

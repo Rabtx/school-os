@@ -17,8 +17,15 @@ pub struct RefreshPayload {
     pub iat: usize,
 }
 
+fn required_secret(env_name: &str) -> String {
+    match env::var(env_name) {
+        Ok(secret) if !secret.trim().is_empty() => secret,
+        _ => panic!("{env_name} must be set"),
+    }
+}
+
 pub fn sign_access_token(user_id: &str, session_id: &str) -> Result<String, Error> {
-    let secret = env::var("JWT_SECRET").unwrap_or_else(|_| "secret".to_string());
+    let secret = required_secret("JWT_SECRET");
     let exp = chrono::Utc::now().timestamp() as usize + 3600; // 1 hour
     let iat = chrono::Utc::now().timestamp() as usize;
 
@@ -37,7 +44,7 @@ pub fn sign_access_token(user_id: &str, session_id: &str) -> Result<String, Erro
 }
 
 pub fn sign_refresh_token(session_id: &str) -> Result<String, Error> {
-    let secret = env::var("JWT_REFRESH_SECRET").unwrap_or_else(|_| "refresh-secret".to_string());
+    let secret = required_secret("JWT_REFRESH_SECRET");
     let exp = chrono::Utc::now().timestamp() as usize + 2592000; // 30 days
     let iat = chrono::Utc::now().timestamp() as usize;
 
@@ -55,7 +62,7 @@ pub fn sign_refresh_token(session_id: &str) -> Result<String, Error> {
 }
 
 pub fn verify_access_token(token: &str) -> Result<AccessPayload, Error> {
-    let secret = env::var("JWT_SECRET").unwrap_or_else(|_| "secret".to_string());
+    let secret = required_secret("JWT_SECRET");
     let mut validation = Validation::default();
     validation.validate_exp = true;
 
@@ -69,7 +76,7 @@ pub fn verify_access_token(token: &str) -> Result<AccessPayload, Error> {
 }
 
 pub fn verify_refresh_token(token: &str) -> Result<RefreshPayload, Error> {
-    let secret = env::var("JWT_REFRESH_SECRET").unwrap_or_else(|_| "refresh-secret".to_string());
+    let secret = required_secret("JWT_REFRESH_SECRET");
     let mut validation = Validation::default();
     validation.validate_exp = true;
 

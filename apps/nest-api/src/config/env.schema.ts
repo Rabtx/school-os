@@ -3,6 +3,10 @@ import * as z from 'zod';
 const developmentJwtSecret = 'development-only-jwt-secret-change-me';
 const developmentTokenSecret = 'development-only-auth-token-secret-change-me';
 
+function isDevelopmentSecret(value: string): boolean {
+	return value.startsWith('development-only-');
+}
+
 const booleanFromString = z
 	.enum(['true', 'false'])
 	.default('false')
@@ -92,18 +96,28 @@ export const envSchema = z
 			return;
 		}
 
-		if (env.JWT_SECRET === developmentJwtSecret) {
+		if (isDevelopmentSecret(env.JWT_SECRET)) {
 			context.addIssue({
 				code: 'custom',
 				path: ['JWT_SECRET'],
 				message: 'JWT_SECRET must be changed in production',
 			});
 		}
-		if (env.AUTH_TOKEN_SECRET === developmentTokenSecret) {
+		if (isDevelopmentSecret(env.AUTH_TOKEN_SECRET)) {
 			context.addIssue({
 				code: 'custom',
 				path: ['AUTH_TOKEN_SECRET'],
 				message: 'AUTH_TOKEN_SECRET must be changed in production',
+			});
+		}
+		const corsOrigins = env.CORS_ORIGIN.split(',')
+			.map((origin) => origin.trim())
+			.filter(Boolean);
+		if (corsOrigins.some((origin) => origin === '*' || origin.endsWith('/*'))) {
+			context.addIssue({
+				code: 'custom',
+				path: ['CORS_ORIGIN'],
+				message: 'CORS_ORIGIN cannot use a wildcard when credentials are enabled',
 			});
 		}
 		if (

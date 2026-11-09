@@ -115,12 +115,21 @@ export class RazorpayPaymentProvider extends PaymentProvider {
 			});
 		}
 
-		const payload = JSON.parse(rawBody.toString('utf8')) as {
+		let payload: {
 			event?: string;
 			payload?: {
 				subscription?: { entity?: RazorpaySubscription };
 			};
 		};
+		try {
+			payload = JSON.parse(rawBody.toString('utf8')) as typeof payload;
+		} catch {
+			this.logger.warn('Razorpay webhook body is not valid JSON');
+			throw new BadRequestException({
+				code: 'BILLING_WEBHOOK_INVALID',
+				message: 'Invalid Razorpay webhook payload',
+			});
+		}
 
 		const subscription = payload.payload?.subscription?.entity;
 		if (!subscription || !payload.event) {

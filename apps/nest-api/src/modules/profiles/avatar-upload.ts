@@ -35,9 +35,9 @@ export function createAvatarMulterOptions() {
 	};
 }
 
-export function resolveRequestOrigin(req: Request): string {
-	const forwardedProto = headerFirst(req.headers['x-forwarded-proto']);
-	const forwardedHost = headerFirst(req.headers['x-forwarded-host']);
+export function resolveRequestOrigin(req: Request, trustProxy = false): string {
+	const forwardedProto = trustProxy ? headerFirst(req.headers['x-forwarded-proto']) : undefined;
+	const forwardedHost = trustProxy ? headerFirst(req.headers['x-forwarded-host']) : undefined;
 	const protocol = forwardedProto ?? req.protocol;
 	const host = forwardedHost ?? req.get('host');
 	if (!host) {

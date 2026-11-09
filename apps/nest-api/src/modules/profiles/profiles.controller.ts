@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 
+import type { AppConfigService } from '@/config/app-config.service';
 import type { AccessTokenPayload } from '@/modules/auth/auth.types';
 import { CurrentUser } from '@/modules/auth/current-user.decorator';
 import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
@@ -27,7 +28,10 @@ import { ProfilesService } from './profiles.service';
 @UseGuards(JwtAuthGuard)
 @Controller({ path: 'users/me', version: '1' })
 export class ProfilesController {
-	constructor(private readonly profiles: ProfilesService) {}
+	constructor(
+		private readonly profiles: ProfilesService,
+		private readonly config: AppConfigService,
+	) {}
 
 	@Get()
 	@ApiOperation({ summary: 'Get the authenticated user and profile' })
@@ -61,6 +65,10 @@ export class ProfilesController {
 		@UploadedFile() file: Express.Multer.File,
 		@Req() req: Request,
 	) {
-		return this.profiles.uploadAvatar(user.sub, file, resolveRequestOrigin(req));
+		return this.profiles.uploadAvatar(
+			user.sub,
+			file,
+			resolveRequestOrigin(req, this.config.trustProxy),
+		);
 	}
 }
