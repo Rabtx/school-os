@@ -38,6 +38,10 @@ type SectionRow = typeof schema.sections.$inferSelect;
 type SubjectRow = typeof schema.subjects.$inferSelect;
 
 async function main(): Promise<void> {
+	if (process.env.NODE_ENV === 'production') {
+		throw new Error('seed must not run in production.');
+	}
+
 	const databaseUrl = process.env.DATABASE_URL;
 	if (!databaseUrl) {
 		throw new Error(

@@ -10,7 +10,7 @@ import * as schema from '../schema';
 import type { MembershipRecord } from '../schema/memberships.schema';
 import { SEED_STUDENT_CODE_PREFIX } from './fixtures';
 
-/** Shared dev password (min 12 chars for registration rules). */
+/** Shared dev-only password (never run this seed in production). Min 12 chars. */
 export const DEMO_ROLE_PASSWORD = 'NorthwoodDemo1';
 
 const BCRYPT_ROUNDS = 10;
@@ -198,6 +198,10 @@ async function linkStudentRecord(db: Db, tenantId: string, membershipId: string)
 }
 
 async function main(): Promise<void> {
+	if (process.env.NODE_ENV === 'production') {
+		throw new Error('seed-demo-logins must not run in production.');
+	}
+
 	const databaseUrl = process.env.DATABASE_URL;
 	if (!databaseUrl) {
 		throw new Error('DATABASE_URL is required.');
@@ -228,7 +232,7 @@ async function main(): Promise<void> {
 
 		const ownerEmail = await resetOwnerPassword(db, tenantId, passwordHash);
 		if (ownerEmail) {
-			console.log(`owner     | ${ownerEmail} | ${DEMO_ROLE_PASSWORD}`);
+			console.log(`owner     | ${ownerEmail}`);
 		}
 
 		for (const account of DEMO_ACCOUNTS) {
@@ -246,10 +250,10 @@ async function main(): Promise<void> {
 			if (account.role === 'student') {
 				await linkStudentRecord(db, tenantId, membership.id);
 			}
-			console.log(`${account.role.padEnd(9)} | ${account.email} | ${DEMO_ROLE_PASSWORD}`);
+			console.log(`${account.role.padEnd(9)} | ${account.email}`);
 		}
 
-		console.log('\nteacher    | seed.teacher.1@northwood.demo | Teacher@123');
+		console.log('\nteacher    | seed.teacher.1@northwood.demo');
 		console.log(
 			'\nWeb: http://localhost:3000 — pick organization "AKES Network" (or your tenant name).',
 		);
