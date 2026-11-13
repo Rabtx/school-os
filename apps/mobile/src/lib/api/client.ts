@@ -123,8 +123,14 @@ async function request<T>(
 /**
  * Prefer Metro's host so Expo Go on a real phone hits the same machine as the bundler.
  * Android emulator → 10.0.2.2; iOS simulator → localhost.
+ *
+ * Dev-only: production builds have no safe default origin (plaintext would carry
+ * passwords and tokens), so they must set EXPO_PUBLIC_NEST_API_URL explicitly.
  */
 function defaultApiOrigin(): string {
+	if (!__DEV__) {
+		throw new Error("EXPO_PUBLIC_NEST_API_URL is required in production builds");
+	}
 	const metroHost = getExpoMetroHost();
 	if (metroHost && metroHost !== "localhost" && metroHost !== "127.0.0.1") {
 		return `http://${metroHost}:4000`;
@@ -144,12 +150,25 @@ function getExpoMetroHost(): string | null {
 	return host || null;
 }
 
+/**
+ * Passwords, bearer tokens, and refresh tokens travel to this origin, so
+ * plaintext http is allowed only in development builds (Metro host / emulator).
+ */
 function resolveApiOrigin(value: string): string {
+	let url: URL;
 	try {
-		return new URL(value).origin;
+		url = new URL(value);
 	} catch {
 		throw new Error(`Invalid EXPO_PUBLIC_NEST_API_URL: ${value}`);
 	}
+	if (url.protocol === "http:") {
+		if (!__DEV__) {
+			throw new Error(`EXPO_PUBLIC_NEST_API_URL must use https in production builds: ${value}`);
+		}
+	} else if (url.protocol !== "https:") {
+		throw new Error(`Invalid EXPO_PUBLIC_NEST_API_URL (expected an http(s) origin): ${value}`);
+	}
+	return url.origin;
 }
 
 function normalizePath(path: string): string {

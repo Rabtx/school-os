@@ -1,7 +1,8 @@
 import * as z from 'zod';
 
-const developmentJwtSecret = 'development-only-jwt-secret-change-me';
-const developmentTokenSecret = 'development-only-auth-token-secret-change-me';
+// Committed here only so production can refuse them explicitly; nothing defaults to them.
+export const developmentJwtSecret = 'development-only-jwt-secret-change-me';
+export const developmentTokenSecret = 'development-only-auth-token-secret-change-me';
 
 const booleanFromString = z
 	.enum(['true', 'false'])
@@ -20,12 +21,14 @@ export const envSchema = z
 		DATABASE_URL: z.url().default('postgresql://school-os:school-os@localhost:5433/school-os'),
 		DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(50).default(10),
 		DATABASE_SSL: z.enum(['true', 'false']).optional(),
-		JWT_SECRET: z.string().min(32).default(developmentJwtSecret),
+		// No defaults: a deployment that forgets these must fail to boot, not sign
+		// tokens with a secret that is readable in the repository.
+		JWT_SECRET: z.string().min(32),
 		JWT_ACCESS_EXPIRES_IN: z
 			.string()
 			.regex(/^\d+[smhd]$/)
 			.default('15m'),
-		AUTH_TOKEN_SECRET: z.string().min(32).default(developmentTokenSecret),
+		AUTH_TOKEN_SECRET: z.string().min(32),
 		SESSION_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
 		OTP_TTL_MINUTES: z.coerce.number().int().min(5).max(60).default(10),
 		OTP_MAX_ATTEMPTS: z.coerce.number().int().min(3).max(10).default(5),
@@ -104,6 +107,13 @@ export const envSchema = z
 				code: 'custom',
 				path: ['AUTH_TOKEN_SECRET'],
 				message: 'AUTH_TOKEN_SECRET must be changed in production',
+			});
+		}
+		if (env.AUTH_DEV_EXPOSE_CODES) {
+			context.addIssue({
+				code: 'custom',
+				path: ['AUTH_DEV_EXPOSE_CODES'],
+				message: 'AUTH_DEV_EXPOSE_CODES must not be enabled in production',
 			});
 		}
 		if (

@@ -35,21 +35,19 @@ export function createAvatarMulterOptions() {
 	};
 }
 
+/**
+ * Derives the public origin for stored upload URLs. Forwarded headers are
+ * client-controlled, so they are honored only when the app itself trusts the
+ * proxy hop — Express already applies `X-Forwarded-Proto` to `req.protocol`
+ * and hop-checks `X-Forwarded-Host` for `req.hostname` under `trust proxy`.
+ */
 export function resolveRequestOrigin(req: Request): string {
-	const forwardedProto = headerFirst(req.headers['x-forwarded-proto']);
-	const forwardedHost = headerFirst(req.headers['x-forwarded-host']);
-	const protocol = forwardedProto ?? req.protocol;
-	const host = forwardedHost ?? req.get('host');
+	const trustProxy = Boolean(req.app?.get('trust proxy'));
+	const host = trustProxy ? req.hostname : req.get('host');
 	if (!host) {
 		throw new BadRequestException('Unable to resolve public host for avatar URL');
 	}
-	return `${protocol}://${host}`;
-}
-
-function headerFirst(value: string | string[] | undefined): string | undefined {
-	if (!value) return undefined;
-	const raw = Array.isArray(value) ? value[0] : value;
-	return raw.split(',')[0]?.trim() || undefined;
+	return `${req.protocol}://${host}`;
 }
 
 function extensionForMime(mime: string): string | null {

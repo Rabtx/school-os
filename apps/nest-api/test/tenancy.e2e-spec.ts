@@ -15,9 +15,16 @@ describe('Tenancy (e2e)', () => {
 	let app: INestApplication<App>;
 	let accessToken = '';
 	let tenantId = '';
+	/** Only one active academic year is allowed per organization, so tests share it. */
+	let academicYearId = '';
 	const email = `tenancy-e2e-${randomUUID()}@example.com`;
 	const username = `e2e_${randomUUID().replaceAll('-', '').slice(0, 10)}`;
 	const password = 'TenancyE2ePass1';
+	/** Auth and tenant write routes sit behind the CSRF origin check. */
+	const browserHeaders = Object.freeze({
+		Origin: 'http://localhost:3000',
+		'X-Requested-With': 'XMLHttpRequest',
+	});
 
 	beforeAll(async () => {
 		const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -30,6 +37,7 @@ describe('Tenancy (e2e)', () => {
 
 		const register = await request(app.getHttpServer())
 			.post('/api/v1/auth/register')
+			.set(browserHeaders)
 			.send({ email, username, password })
 			.expect(201);
 
@@ -38,11 +46,13 @@ describe('Tenancy (e2e)', () => {
 
 		await request(app.getHttpServer())
 			.post('/api/v1/auth/verify-email')
+			.set(browserHeaders)
 			.send({ email, code: verificationCode })
 			.expect(200);
 
 		const login = await request(app.getHttpServer())
 			.post('/api/v1/auth/login')
+			.set(browserHeaders)
 			.send({ email, password })
 			.expect(200);
 
@@ -54,6 +64,7 @@ describe('Tenancy (e2e)', () => {
 		await request(app.getHttpServer()).get('/api/v1/tenants').expect(401);
 		await request(app.getHttpServer())
 			.post('/api/v1/tenants')
+			.set(browserHeaders)
 			.send({ name: 'Unauthorized Tenant' })
 			.expect(401);
 	});
@@ -64,6 +75,7 @@ describe('Tenancy (e2e)', () => {
 		const create = await request(app.getHttpServer())
 			.post('/api/v1/tenants')
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				name: tenantName,
 				mission: 'End-to-end tenancy test',
@@ -90,6 +102,7 @@ describe('Tenancy (e2e)', () => {
 		const create = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/campuses`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				name: 'E2E Campus',
 				code: campusCode,
@@ -144,6 +157,7 @@ describe('Tenancy (e2e)', () => {
 		const response = await request(app.getHttpServer())
 			.post('/api/v1/auth/switch-tenant')
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ tenantId })
 			.expect(200);
 
@@ -165,6 +179,7 @@ describe('Tenancy (e2e)', () => {
 		const patchConfig = await request(app.getHttpServer())
 			.patch(`/api/v1/tenants/${tenantId}/organization-config`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				settings: { attendanceGraceMinutes: 20 },
 				branding: { displayNameUr: 'AKES' },
@@ -188,6 +203,7 @@ describe('Tenancy (e2e)', () => {
 		const createYear = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/academic-years`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				name: '2026–27',
 				startsOn: '2026-04-01',
@@ -196,20 +212,21 @@ describe('Tenancy (e2e)', () => {
 			})
 			.expect(201);
 
-		const academicYearId = createYear.body.data.academicYear.id as string;
+		academicYearId = createYear.body.data.academicYear.id as string;
 		expect(createYear.body.data.academicYear.status).toBe('active');
 
 		const createClass = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/classes`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ name: 'Grade 7', sortOrder: 7 })
 			.expect(201);
-
 		const classId = createClass.body.data.class.id as string;
 
 		const createSection = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/sections`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				campusId,
 				classId,
@@ -237,22 +254,10 @@ describe('Tenancy (e2e)', () => {
 
 		const campusId = campuses.body.data.campuses[0].id as string;
 
-		const createYear = await request(app.getHttpServer())
-			.post(`/api/v1/tenants/${tenantId}/academic-years`)
-			.set('Authorization', `Bearer ${accessToken}`)
-			.send({
-				name: '2026–27 Students',
-				startsOn: '2026-04-01',
-				endsOn: '2027-03-31',
-				status: 'active',
-			})
-			.expect(201);
-
-		const academicYearId = createYear.body.data.academicYear.id as string;
-
 		const createClass = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/classes`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ name: 'Grade 8', sortOrder: 8 })
 			.expect(201);
 
@@ -261,6 +266,7 @@ describe('Tenancy (e2e)', () => {
 		const createSection = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/sections`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				campusId,
 				classId,
@@ -274,6 +280,7 @@ describe('Tenancy (e2e)', () => {
 		const createStudent = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/students`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				campusId,
 				studentCode: 'E2E-2026-001',
@@ -288,6 +295,7 @@ describe('Tenancy (e2e)', () => {
 		const createEnrollment = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/students/${studentId}/enrollments`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ sectionId, academicYearId })
 			.expect(201);
 
@@ -312,22 +320,10 @@ describe('Tenancy (e2e)', () => {
 
 		const campusId = campuses.body.data.campuses[0].id as string;
 
-		const createYear = await request(app.getHttpServer())
-			.post(`/api/v1/tenants/${tenantId}/academic-years`)
-			.set('Authorization', `Bearer ${accessToken}`)
-			.send({
-				name: '2026–27 Attendance',
-				startsOn: '2026-04-01',
-				endsOn: '2027-03-31',
-				status: 'active',
-			})
-			.expect(201);
-
-		const academicYearId = createYear.body.data.academicYear.id as string;
-
 		const createClass = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/classes`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ name: 'Grade 9', sortOrder: 9 })
 			.expect(201);
 
@@ -336,6 +332,7 @@ describe('Tenancy (e2e)', () => {
 		const createSection = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/sections`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				campusId,
 				classId,
@@ -349,6 +346,7 @@ describe('Tenancy (e2e)', () => {
 		const createStudent = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/students`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({
 				campusId,
 				studentCode: 'E2E-ATT-001',
@@ -362,12 +360,14 @@ describe('Tenancy (e2e)', () => {
 		await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/students/${studentId}/enrollments`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ sectionId, academicYearId })
 			.expect(201);
 
 		const sessionResponse = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/attendance/sessions`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ sectionId, sessionDate: '2026-07-23' })
 			.expect(201);
 
@@ -376,6 +376,7 @@ describe('Tenancy (e2e)', () => {
 		const markResponse = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/attendance/sessions/${sessionId}/marks`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ marks: [{ studentId, status: 'present' }] })
 			.expect(201);
 
@@ -396,17 +397,20 @@ describe('Tenancy (e2e)', () => {
 
 		const inviteeRegister = await request(app.getHttpServer())
 			.post('/api/v1/auth/register')
+			.set(browserHeaders)
 			.send({ email: inviteeEmail, username: inviteeUsername, password: inviteePassword })
 			.expect(201);
 
 		const inviteeCode = inviteeRegister.body.data.developmentCode as string;
 		await request(app.getHttpServer())
 			.post('/api/v1/auth/verify-email')
+			.set(browserHeaders)
 			.send({ email: inviteeEmail, code: inviteeCode })
 			.expect(200);
 
 		const inviteeLogin = await request(app.getHttpServer())
 			.post('/api/v1/auth/login')
+			.set(browserHeaders)
 			.send({ email: inviteeEmail, password: inviteePassword })
 			.expect(200);
 
@@ -415,6 +419,7 @@ describe('Tenancy (e2e)', () => {
 		const inviteResponse = await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/members/invite`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ email: inviteeEmail, role: 'teacher' })
 			.expect(201);
 
@@ -440,11 +445,13 @@ describe('Tenancy (e2e)', () => {
 		await request(app.getHttpServer())
 			.post(`/api/v1/tenants/${tenantId}/members/invites/${inviteId}/resend`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.expect(200);
 
 		const acceptResponse = await request(app.getHttpServer())
 			.post('/api/v1/auth/accept-invite')
 			.set('Authorization', `Bearer ${inviteeToken}`)
+			.set(browserHeaders)
 			.send({ inviteId })
 			.expect(200);
 
@@ -465,6 +472,7 @@ describe('Tenancy (e2e)', () => {
 		const updateResponse = await request(app.getHttpServer())
 			.patch(`/api/v1/tenants/${tenantId}/members/${acceptedMember.id}`)
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ role: 'admin', status: 'active' })
 			.expect(200);
 
@@ -475,6 +483,7 @@ describe('Tenancy (e2e)', () => {
 		const response = await request(app.getHttpServer())
 			.post('/api/v1/tenants')
 			.set('Authorization', `Bearer ${accessToken}`)
+			.set(browserHeaders)
 			.send({ name: 'A' })
 			.expect(400);
 

@@ -215,9 +215,10 @@ export const useSessionStore = create<SessionState>()(
 		{
 			name: SESSION_PERSIST_KEY,
 			storage: createJSONStorage(() => sessionStorage),
+			// Access tokens are memory-only: they must never reach web storage where any
+			// injected script could read them. The httpOnly refresh cookie re-establishes
+			// the token via the silent refresh on every load (see session-provider).
 			partialize: (state) => ({
-				token: state.token,
-				tokenExpiresAt: state.tokenExpiresAt,
 				user: state.user,
 				tenantContext: state.tenantContext,
 				membership: state.membership,
@@ -225,12 +226,15 @@ export const useSessionStore = create<SessionState>()(
 				activeCampusId: state.activeCampusId,
 			}),
 			merge: (persistedState, currentState) => {
-				const persisted = persistedState as Partial<SessionState> | undefined;
+				const persisted = { ...(persistedState as Partial<SessionState> | undefined) };
+				// Drop token copies persisted by older versions of the store.
+				delete persisted.token;
+				delete persisted.tokenExpiresAt;
 				const merged = { ...currentState, ...persisted };
 				return {
 					...merged,
-					// Session restored from sessionStorage — skip the loading flash.
-					// The background refresh will silently validate/rotate the token.
+					// Non-token state was restored, but the token itself only comes from the
+					// silent refresh, which runs while `authLoading` is true.
 					hydrated: true,
 					authLoading: merged.token ? false : currentState.authLoading,
 				};
