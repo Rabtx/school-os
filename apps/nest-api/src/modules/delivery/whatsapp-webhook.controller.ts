@@ -35,6 +35,13 @@ type WebhookPayload = {
 
 const RECEIPTS = new Set(['sent', 'delivered', 'read', 'failed']);
 
+/** Timing-safe compare for Meta's subscription verify token. */
+function verifyTokenMatches(expected: string, given: string): boolean {
+	const expectedBytes = Buffer.from(expected, 'utf8');
+	const givenBytes = Buffer.from(given, 'utf8');
+	return expectedBytes.length === givenBytes.length && timingSafeEqual(expectedBytes, givenBytes);
+}
+
 /** True when the body was signed with the app secret (Meta's `X-Hub-Signature-256`). */
 export function hasValidSignature(
 	rawBody: Buffer,
@@ -67,7 +74,7 @@ export class WhatsAppWebhookController {
 		@Res() response: Response,
 	) {
 		const expected = this.config.whatsapp.meta.verifyToken;
-		if (mode !== 'subscribe' || !expected || token !== expected) {
+		if (mode !== 'subscribe' || !expected || !token || !verifyTokenMatches(expected, token)) {
 			throw new ForbiddenException({
 				code: 'WEBHOOK_VERIFY_FAILED',
 				message: 'Verification failed',

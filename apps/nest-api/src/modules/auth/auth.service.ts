@@ -89,10 +89,8 @@ export class AuthService {
 		if (!user) {
 			throw invalidOtpException();
 		}
-		if (user.emailVerifiedAt) {
-			return toPublicUser(user);
-		}
-
+		// Validate the code before touching account state or returning user data:
+		// an already-verified account must not confirm it exists to any code.
 		const challenge = await this.validateChallenge(body.email, 'email_verification', body.code);
 		await this.authRepository.completeEmailVerification(challenge.id, user.id);
 		const verifiedUser = await this.usersService.findById(user.id);

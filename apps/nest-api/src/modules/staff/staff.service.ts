@@ -404,6 +404,23 @@ export class StaffService {
 				message: 'Subject teacher must be an active teacher membership',
 			});
 		}
+		// The FKs on section_subjects are plain id references, so a cross-tenant
+		// section or subject would be accepted by the database. Resolve both
+		// parents in-tenant before writing.
+		const section = await this.staff.findSectionById(tenantId, input.sectionId);
+		if (!section) {
+			throw new NotFoundException({
+				code: 'SECTION_NOT_FOUND',
+				message: 'Section not found',
+			});
+		}
+		const subject = await this.staff.findSubjectById(tenantId, input.subjectId);
+		if (!subject) {
+			throw new NotFoundException({
+				code: 'SUBJECT_NOT_FOUND',
+				message: 'Subject not found',
+			});
+		}
 		try {
 			const assignment = await this.staff.assignSectionSubject({
 				tenantId,

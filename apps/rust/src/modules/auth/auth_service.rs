@@ -30,7 +30,10 @@ struct SessionRow {
 
 impl AuthService {
     pub async fn register(pool: &PgPool, input: RegisterInput) -> Result<SafeUser, String> {
-        let hashed = hash_password(&input.password).map_err(|e| e.to_string())?;
+        let hashed = hash_password(&input.password).map_err(|e| {
+            eprintln!("register: password hashing failed: {e}");
+            "Registration failed".to_string()
+        })?;
         let user_id = Uuid::new_v4();
 
         let row: UserRow = sqlx::query_as(
@@ -46,7 +49,10 @@ impl AuthService {
         .bind(&hashed)
         .fetch_one(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("register: user insert failed: {e}");
+            "Registration failed".to_string()
+        })?;
 
         Ok(SafeUser {
             id: row.id.to_string(),
@@ -74,7 +80,10 @@ impl AuthService {
         .bind(input.email.trim())
         .fetch_optional(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("login: user lookup failed: {e}");
+            "Invalid email or password".to_string()
+        })?;
 
         let user = row.ok_or_else(|| "Invalid email or password".to_string())?;
 
@@ -113,7 +122,10 @@ impl AuthService {
         .bind(user_agent)
         .execute(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("login: session insert failed: {e}");
+            "Login failed".to_string()
+        })?;
 
         let safe_user = SafeUser {
             id: user.id.to_string(),

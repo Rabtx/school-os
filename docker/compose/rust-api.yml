@@ -12,6 +12,9 @@ services:
       APP_NAME: school-os-rust
       APP_VERSION: 0.1.0
       NODE_ENV: production
+      # The Rust API refuses the development fallback secrets when NODE_ENV=production.
+      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-}
     ports:
       - "${RUST_API_PORT:-3002}:3002"
     depends_on:

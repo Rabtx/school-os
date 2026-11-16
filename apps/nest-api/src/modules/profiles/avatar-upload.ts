@@ -36,20 +36,14 @@ export function createAvatarMulterOptions() {
 }
 
 export function resolveRequestOrigin(req: Request): string {
-	const forwardedProto = headerFirst(req.headers['x-forwarded-proto']);
-	const forwardedHost = headerFirst(req.headers['x-forwarded-host']);
-	const protocol = forwardedProto ?? req.protocol;
-	const host = forwardedHost ?? req.get('host');
+	// Express applies the configured `trust proxy` setting itself, so req.protocol
+	// and the Host header only reflect X-Forwarded-* on deployments that opted in.
+	// Reading the forwarded headers directly would persist client-chosen URLs.
+	const host = req.get('host');
 	if (!host) {
 		throw new BadRequestException('Unable to resolve public host for avatar URL');
 	}
-	return `${protocol}://${host}`;
-}
-
-function headerFirst(value: string | string[] | undefined): string | undefined {
-	if (!value) return undefined;
-	const raw = Array.isArray(value) ? value[0] : value;
-	return raw.split(',')[0]?.trim() || undefined;
+	return `${req.protocol}://${host}`;
 }
 
 function extensionForMime(mime: string): string | null {
