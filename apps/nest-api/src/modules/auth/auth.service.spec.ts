@@ -34,11 +34,15 @@ describe('AuthService', () => {
 	beforeEach(() => {
 		authRepository = {
 			createChallenge: vi.fn(),
+			findLatestChallenge: vi.fn(),
+			completeEmailVerification: vi.fn().mockResolvedValue(undefined),
+			recordChallengeAttempt: vi.fn().mockResolvedValue(undefined),
 		} as unknown as Mocked<AuthRepository>;
 		crypto = {
 			hashPassword: vi.fn().mockResolvedValue('password-hash'),
 			generateOtp: vi.fn().mockReturnValue('123456'),
 			hashOtp: vi.fn().mockReturnValue('otp-hash'),
+			verifyOtp: vi.fn(),
 		} as unknown as Mocked<AuthCryptoService>;
 		email = {
 			sendVerificationCode: vi.fn().mockResolvedValue(undefined),
@@ -46,6 +50,8 @@ describe('AuthService', () => {
 		} as unknown as Mocked<EmailService>;
 		usersService = {
 			createUser: vi.fn().mockResolvedValue(user),
+			findByEmail: vi.fn(),
+			findById: vi.fn(),
 		} as unknown as Mocked<UsersService>;
 		vi.stubEnv('AUTH_DEV_EXPOSE_CODES', 'true');
 		service = new AuthService(
@@ -241,6 +247,57 @@ describe('AuthService', () => {
 			).rejects.toBeDefined();
 
 			expect(warn).toHaveBeenCalledWith(expect.stringContaining('different user agent'));
+		});
+	});
+
+	describe('verifyEmail', () => {
+		const challenge = {
+			id: '84c5bd4b-2a8f-4a89-85db-c22f45dc2ab9',
+			userId: user.id,
+			email: user.email,
+			purpose: 'email_verification',
+			codeHash: 'otp-hash',
+			attempts: 0,
+			expiresAt: new Date(Date.now() + 600_000),
+			consumedAt: null,
+			createdAt: new Date(),
+		} satisfies AuthChallengeRecord;
+
+		it('verifies the email with a valid code and applies pending invites', async () => {
+			usersService.findByEmail.mockResolvedValue(user);
+			authRepository.findLatestChallenge.mockResolvedValue(challenge);
+			crypto.verifyOtp.mockReturnValue(true);
+			const verifiedUser = {
+				...user,
+				emailVerifiedAt: new Date('2026-11-01T00:00:00.000Z'),
+			} satisfies UserRecord;
+			usersService.findById.mockResolvedValue(verifiedUser);
+
+			const result = await service.verifyEmail({
+				email: user.email,
+				code: '123456',
+			});
+
+			expect(authRepository.completeEmailVerification).toHaveBeenCalledWith(challenge.id, user.id);
+			expect(result.emailVerified).toBe(true);
+			expect(result).not.toHaveProperty('passwordHash');
+		});
+
+		it('rejects a wrong code for an already-verified account without returning user data', async () => {
+			const verifiedUser = {
+				...user,
+				emailVerifiedAt: new Date('2026-11-01T00:00:00.000Z'),
+			} satisfies UserRecord;
+			usersService.findByEmail.mockResolvedValue(verifiedUser);
+			// No pending challenge: any code must fail instead of confirming the account.
+			authRepository.findLatestChallenge.mockResolvedValue(null);
+
+			await expect(
+				service.verifyEmail({ email: verifiedUser.email, code: '999999' }),
+			).rejects.toMatchObject({ response: { code: 'AUTH_OTP_INVALID' } });
+
+			expect(authRepository.completeEmailVerification).not.toHaveBeenCalled();
+			expect(usersService.findById).not.toHaveBeenCalled();
 		});
 	});
 });
