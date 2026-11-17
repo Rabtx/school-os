@@ -261,6 +261,10 @@ export function AttendancePage() {
 		Boolean(sectionId) && isTeacherScoped,
 	);
 	const loadSession = useGetOrCreateSessionMutation(tenantId ?? "");
+	// Stable across renders (react-query binds it to the observer once). Using the object
+	// itself would make loadSessionForSelection — and the auto-load effect below — re-run
+	// on every render and retry failed loads in a loop.
+	const loadSessionMutateAsync = loadSession.mutateAsync;
 	const markAttendance = useMarkAttendanceMutation(tenantId ?? "", sessionId ?? "");
 	const confirmAllPresent = useConfirmAllPresentMutation(tenantId ?? "");
 
@@ -380,31 +384,36 @@ export function AttendancePage() {
 		}).length;
 	}, [rosterIds, markDraft, savedMarks]);
 
-	const loadSessionForSelection = useCallback(async () => {
+	const loadSessionForSelection = useCallback(async (): Promise<boolean> => {
 		if (!sectionId) {
 			setError("Select a section");
-			return;
+			return false;
 		}
 		setError(null);
 		setMessage(null);
 		try {
-			const result = await loadSession.mutateAsync({ sectionId, sessionDate });
+			const result = await loadSessionMutateAsync({ sectionId, sessionDate });
 			applySessionView(result);
 			setStatusFilter(statusFromParam(statusParam));
+			return true;
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Could not load attendance session");
+			return false;
 		}
-	}, [applySessionView, loadSession, sectionId, sessionDate, statusParam]);
+	}, [applySessionView, loadSessionMutateAsync, sectionId, sessionDate, statusParam]);
 
 	useEffect(() => {
 		if (!sectionId || !sessionDate || !tenantId) return;
 		const key = `${sectionId}:${sessionDate}`;
 		if (autoLoadedKey.current === key) return;
-		autoLoadedKey.current = key;
 		// Don't clear sessionId/savedMarks/markDraft here — keepPreviousData on the
 		// roster queries and the mutation's onSuccess (applySessionView) handle the
 		// transition so the UI never collapses mid-switch.
-		void loadSessionForSelection();
+		// Latch only on success so a failed auto-load stays retryable instead of leaving
+		// the page stuck on its error until the teacher resubmits the toolbar form.
+		void loadSessionForSelection().then((loaded) => {
+			if (loaded) autoLoadedKey.current = key;
+		});
 	}, [sectionId, sessionDate, tenantId, loadSessionForSelection]);
 
 	useEffect(() => {
