@@ -82,7 +82,11 @@ pub async fn logout(
     jar: CookieJar,
     Extension(auth): Extension<AuthContext>,
 ) -> (CookieJar, Json<Value>) {
-    let _ = AuthService::logout(&pool, &auth.session_id).await;
+    if let Err(error) = AuthService::logout(&pool, &auth.session_id).await {
+        // Cookies are cleared either way; a failed delete only leaves the session row
+        // until expiry. Record it instead of failing the client's logout.
+        eprintln!("logout failed for session {}: {error}", auth.session_id);
+    }
 
     let access_cookie = Cookie::build(("accessToken", ""))
         .path("/")

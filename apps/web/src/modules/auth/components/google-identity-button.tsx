@@ -30,11 +30,19 @@ export function GoogleIdentityButton({
 	const element = useRef<HTMLDivElement>(null);
 	const [loaded, setLoaded] = useState(false);
 
+	// Keep the latest callback without depending on it: `onCredential` changes on every parent
+	// render (e.g. while typing), and re-initializing the Google button per keystroke would
+	// tear the rendered button down and rebuild it each time.
+	const onCredentialRef = useRef(onCredential);
+	useEffect(() => {
+		onCredentialRef.current = onCredential;
+	}, [onCredential]);
+
 	useEffect(() => {
 		if (!loaded || !clientId || !element.current || !window.google) return;
 		window.google.accounts.id.initialize({
 			client_id: clientId,
-			callback: ({ credential }) => onCredential(credential),
+			callback: ({ credential }) => onCredentialRef.current(credential),
 		});
 		element.current.replaceChildren();
 		window.google.accounts.id.renderButton(element.current, {
@@ -44,7 +52,7 @@ export function GoogleIdentityButton({
 			text: "continue_with",
 			shape: "rectangular",
 		});
-	}, [clientId, loaded, onCredential]);
+	}, [clientId, loaded]);
 
 	if (!clientId) return null;
 	return (
