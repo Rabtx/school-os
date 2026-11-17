@@ -1,9 +1,11 @@
 use crate::app;
 use crate::shared::lib::db::connect_db;
+use crate::shared::utils::jwt::ensure_jwt_secrets_configured;
 use std::env;
 
 pub async fn start_server() {
     dotenvy::dotenv().ok();
+    ensure_jwt_secrets_configured();
 
     let pool = connect_db().await.expect("Failed to connect to DB");
     let app = app::create_app(pool);

@@ -29,6 +29,33 @@ pub struct RegisterInput {
     pub password: String,
 }
 
+impl RegisterInput {
+    /// Boundary validation so this API cannot create accounts the rest of the system
+    /// would reject (the Nest API enforces the same password rule on its DTOs).
+    pub fn validate(&self) -> Result<(), String> {
+        if self.name.trim().is_empty() {
+            return Err("Name is required".to_string());
+        }
+
+        let email = self.email.trim();
+        let looks_like_email = match email.split_once('@') {
+            Some((local, domain)) => {
+                !local.is_empty() && !domain.is_empty() && !domain.contains([' ', '@'])
+            }
+            None => false,
+        };
+        if !looks_like_email {
+            return Err("A valid email is required".to_string());
+        }
+
+        if self.password.chars().count() < 12 {
+            return Err("Password must be at least 12 characters".to_string());
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct LoginInput {
     pub email: String,
