@@ -77,3 +77,43 @@ explicitly accounted for.
 
 ## Resolution
 
+Fixed and pushed (commit `3525d9c`, PR #133):
+
+- **S-14** `MembershipsRepository.acceptInviteAtomically` claims the invite conditionally on
+  `status = 'pending'` + not expired, then activates (or creates) the membership in the same
+  transaction, keeping `membership_roles` in sync. Service (`acceptInviteRecord`,
+  `applyPendingInvitesForUser`) treats a lost claim as `INVITE_NOT_FOUND` / skip. Tests in the new
+  `membership-invites.service.spec.ts` (7 cases incl. concurrent-consumed path).
+- **S-52** `TenantsService.createWithSlugRetry` retries on the `tenants_slug_unique` violation with
+  the next `-N` suffix (max 5 retries, then `TENANT_SLUG_CONFLICT`); non-unique errors rethrow.
+  Tests in `tenants.service.spec.ts`.
+- **S-58** `assertUnderOwnedTenantCap` rejects creation with 403 `TENANT_CREATION_LIMIT` at 5
+  active owned tenants (`MAX_OWNED_ACTIVE_TENANTS`); `countActiveOwnedTenantsForUser` added.
+- **S-38** `GET /permissions` gated on `hasActiveManagementRoleForUser` (reads `membership_roles`,
+  so dual-role members count); `AuthorizationModule` imports `MembershipsModule`. No web/mobile
+  consumer exists; permissions come from the tenant context.
+
+Verified as-designed, no change:
+
+- **S-20** suspended members in `listMembersForTenant` are a deliberate admin-UI state — the
+  members page has a Suspended filter, badge icon and excludes suspended from role/summary math.
+  Recommend closing with this reason on the `2026-10-27-api-validation.md` card.
+- Already fixed in passing since the audit: S-08, S-29, S-31, S-33, S-34, S-36 (throttle), S-60,
+  S-62, S-17/S-56 (triage), S-10/S-11/S-12 (schema drift), W-01, W-03.
+
+Validation:
+
+- `bun run lint`: pass (nest-api 0 warnings; shellcheck/shfmt unavailable in this environment)
+- `bun run format`: pass
+- `bun run typecheck`: pass (7/7 tasks)
+- `bun run test` (nest-api): 37 files / 209 tests pass
+- `bun run architecture:check`: pass (boundary + kebab-case)
+- lefthook pre-commit: architecture/format/large-files/lint/secrets/typecheck all green
+
+Contract impact: `GET /permissions` now requires a management role; not documented as an endpoint
+contract anywhere (docs list the catalog as global *data*), so no doc change was needed.
+
+Review: pending — requested on PR #133 (https://github.com/Rabtx/school-os/pull/133). Card stays
+in doing/ until the review outcome is recorded.
+
+Commit: `3525d9c`
