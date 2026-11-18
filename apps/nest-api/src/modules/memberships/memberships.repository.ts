@@ -10,6 +10,8 @@ import {
 	users,
 } from '@/database/schema';
 
+import { managementRoles } from './membership-roles';
+
 @Injectable()
 export class MembershipsRepository {
 	constructor(private readonly database: DatabaseService) {}
@@ -58,6 +60,20 @@ export class MembershipsRepository {
 
 	async countActiveForUser(userId: string) {
 		const rows = await this.listActiveTenantIdsForUser(userId);
+		return rows.length;
+	}
+
+	async countActiveOwnedTenantsForUser(userId: string) {
+		const rows = await this.database.db
+			.select({ id: memberships.id })
+			.from(memberships)
+			.where(
+				and(
+					eq(memberships.userId, userId),
+					eq(memberships.role, 'owner'),
+					eq(memberships.status, 'active'),
+				),
+			);
 		return rows.length;
 	}
 
@@ -134,6 +150,26 @@ export class MembershipsRepository {
 			.select()
 			.from(membershipRoles)
 			.where(eq(membershipRoles.membershipId, membershipId));
+	}
+
+	/**
+	 * Whether the user holds a management role in at least one active membership. Reads
+	 * `membership_roles` (not `memberships.role`) so dual-role members are not missed.
+	 */
+	async hasActiveManagementRoleForUser(userId: string) {
+		const [row] = await this.database.db
+			.select({ id: memberships.id })
+			.from(memberships)
+			.innerJoin(membershipRoles, eq(membershipRoles.membershipId, memberships.id))
+			.where(
+				and(
+					eq(memberships.userId, userId),
+					eq(memberships.status, 'active'),
+					inArray(membershipRoles.role, [...managementRoles]),
+				),
+			)
+			.limit(1);
+		return row !== undefined;
 	}
 
 	async listRolesForMembershipIds(membershipIds: string[]) {
@@ -223,6 +259,96 @@ export class MembershipsRepository {
 		return invite ?? null;
 	}
 
+	/**
+	 * Accepts an invite atomically: the claim updates the invite only while it is still pending and
+	 * unexpired, so exactly one concurrent accept wins; the membership is activated (or created) in
+	 * the same transaction. Returns `null` when the invite was already consumed or has expired.
+	 */
+	async acceptInviteAtomically(input: {
+		inviteId: string;
+		userId: string;
+	}): Promise<AcceptedInvite | null> {
+		return this.database.db.transaction(async (transaction) => {
+			const [invite] = await transaction
+				.update(membershipInvites)
+				.set({ status: 'accepted', acceptedAt: new Date(), updatedAt: new Date() })
+				.where(
+					and(
+						eq(membershipInvites.id, input.inviteId),
+						eq(membershipInvites.status, 'pending'),
+						sql`${membershipInvites.expiresAt} > now()`,
+					),
+				)
+				.returning();
+			if (!invite) return null;
+
+			let [membership] = invite.membershipId
+				? await transaction
+						.select()
+						.from(memberships)
+						.where(
+							and(
+								eq(memberships.id, invite.membershipId),
+								eq(memberships.tenantId, invite.tenantId),
+							),
+						)
+						.limit(1)
+				: [];
+			if (!membership) {
+				[membership] = await transaction
+					.select()
+					.from(memberships)
+					.where(
+						and(eq(memberships.tenantId, invite.tenantId), eq(memberships.userId, input.userId)),
+					)
+					.limit(1);
+			}
+
+			if (membership) {
+				[membership] = await transaction
+					.update(memberships)
+					.set({
+						status: 'active',
+						role: invite.role,
+						campusId: invite.campusId,
+						updatedAt: new Date(),
+					})
+					.where(eq(memberships.id, membership.id))
+					.returning();
+				// Keep `membership_roles` in sync with the activated role (as memberships.update does).
+				await transaction
+					.insert(membershipRoles)
+					.values({ membershipId: membership.id, role: membership.role })
+					.onConflictDoNothing();
+			} else {
+				[membership] = await transaction
+					.insert(memberships)
+					.values({
+						tenantId: invite.tenantId,
+						userId: input.userId,
+						role: invite.role,
+						campusId: invite.campusId,
+						status: 'active',
+					})
+					.returning();
+				await transaction
+					.insert(membershipRoles)
+					.values({ membershipId: membership.id, role: membership.role })
+					.onConflictDoNothing();
+			}
+			if (!membership) {
+				throw new Error('Membership activation for invite did not return a record');
+			}
+
+			await transaction
+				.update(membershipInvites)
+				.set({ membershipId: membership.id, updatedAt: new Date() })
+				.where(eq(membershipInvites.id, invite.id));
+
+			return { invite, membership };
+		});
+	}
+
 	async listPendingInvitesForEmail(email: string) {
 		return this.database.db
 			.select()
@@ -252,4 +378,9 @@ export class MembershipsRepository {
 
 export type TenantMemberRow = MembershipRecord & {
 	user: { id: string; email: string; username: string; emailVerified: Date | null };
+};
+
+export type AcceptedInvite = {
+	invite: typeof membershipInvites.$inferSelect;
+	membership: MembershipRecord;
 };
