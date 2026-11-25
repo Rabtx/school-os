@@ -91,14 +91,26 @@ export class MembershipInvitesService {
 			});
 		}
 
-		const membership = await this.activateInviteForUser(user, invite);
-		const tenant = await this.requireTenant(invite.tenantId);
+		const claimed = await this.memberships.acceptInviteAtomically({
+			inviteId: invite.id,
+			userId: user.id,
+		});
+		// `null` means another request consumed the invite (or it expired) between the read and the
+		// claim; the caller sees the same answer as any other unusable invite.
+		if (!claimed) {
+			throw new NotFoundException({
+				code: 'INVITE_NOT_FOUND',
+				message: 'Invite not found or expired',
+			});
+		}
+
+		const tenant = await this.requireTenant(claimed.invite.tenantId);
 		return {
 			membership: {
-				id: membership.id,
-				tenantId: membership.tenantId,
-				role: membership.role,
-				status: membership.status,
+				id: claimed.membership.id,
+				tenantId: claimed.membership.tenantId,
+				role: claimed.membership.role,
+				status: claimed.membership.status,
 			},
 			tenant: { id: tenant.id, name: tenant.name },
 		};
@@ -110,57 +122,25 @@ export class MembershipInvitesService {
 		const activated = [];
 		for (const invite of invites) {
 			if (invite.expiresAt <= new Date()) continue;
+			// oxlint-disable-next-line no-await-in-loop -- a user has few invites; each is claimed in order
+			const claimed = await this.memberships.acceptInviteAtomically({
+				inviteId: invite.id,
+				userId: user.id,
+			});
+			// Consumed concurrently or expired since the read; nothing to apply.
+			if (!claimed) continue;
 			// oxlint-disable-next-line no-await-in-loop -- a user has few invites; each is activated in order
-			const membership = await this.activateInviteForUser(user, invite);
-			// oxlint-disable-next-line no-await-in-loop -- a user has few invites; each is activated in order
-			const tenant = await this.tenants.findById(invite.tenantId);
+			const tenant = await this.tenants.findById(claimed.invite.tenantId);
 			if (tenant) {
 				activated.push({
-					membershipId: membership.id,
+					membershipId: claimed.membership.id,
 					tenantId: tenant.id,
 					tenantName: tenant.name,
-					role: membership.role,
+					role: claimed.membership.role,
 				});
 			}
 		}
 		return activated;
-	}
-
-	private async activateInviteForUser(
-		user: UserRecord,
-		invite: NonNullable<Awaited<ReturnType<MembershipsRepository['findPendingInviteByTokenHash']>>>,
-	) {
-		let membership = invite.membershipId
-			? await this.memberships.findById(invite.tenantId, invite.membershipId)
-			: await this.memberships.findByTenantAndUser(invite.tenantId, user.id);
-
-		if (membership) {
-			membership = await this.memberships.update(invite.tenantId, membership.id, {
-				status: 'active',
-				role: invite.role,
-				campusId: invite.campusId,
-			});
-		} else {
-			membership = await this.memberships.create({
-				tenantId: invite.tenantId,
-				userId: user.id,
-				role: invite.role,
-				campusId: invite.campusId,
-				status: 'active',
-			});
-		}
-
-		if (!membership) {
-			throw new Error('Failed to activate membership for invite');
-		}
-
-		await this.memberships.updateInvite(invite.id, {
-			status: 'accepted',
-			acceptedAt: new Date(),
-			membershipId: membership.id,
-		});
-
-		return membership;
 	}
 
 	private async requireTenant(tenantId: string) {

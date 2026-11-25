@@ -17,6 +17,7 @@ describe('TenantsService', () => {
 		update: ReturnType<typeof vi.fn>;
 	};
 	let membershipsRepository: {
+		countActiveOwnedTenantsForUser: ReturnType<typeof vi.fn>;
 		listActiveTenantIdsForUser: ReturnType<typeof vi.fn>;
 		findActiveByTenantAndUser: ReturnType<typeof vi.fn>;
 		listRolesForMembership: ReturnType<typeof vi.fn>;
@@ -31,6 +32,7 @@ describe('TenantsService', () => {
 			update: vi.fn(),
 		};
 		membershipsRepository = {
+			countActiveOwnedTenantsForUser: vi.fn().mockResolvedValue(0),
 			listActiveTenantIdsForUser: vi.fn(),
 			findActiveByTenantAndUser: vi.fn(),
 			listRolesForMembership: vi.fn().mockResolvedValue([]),
@@ -107,6 +109,49 @@ describe('TenantsService', () => {
 	it('rejects invalid slug derivation', async () => {
 		await expect(service.create('user-1', { name: '!!!' })).rejects.toBeInstanceOf(
 			ConflictException,
+		);
+	});
+
+	it('rejects tenant creation at the owned-tenant cap', async () => {
+		membershipsRepository.countActiveOwnedTenantsForUser.mockResolvedValue(5);
+		tenantsRepository.slugExists.mockResolvedValue(false);
+
+		await expect(service.create('user-1', { name: 'One More School' })).rejects.toBeInstanceOf(
+			ForbiddenException,
+		);
+		expect(tenantsRepository.createWithOwnerMembership).not.toHaveBeenCalled();
+	});
+
+	it('retries with the next slug suffix when a concurrent create wins the slug', async () => {
+		tenantsRepository.slugExists.mockResolvedValue(false);
+		const uniqueViolation = Object.assign(new Error('duplicate key'), { code: '23505' });
+		tenantsRepository.createWithOwnerMembership
+			.mockRejectedValueOnce(uniqueViolation)
+			.mockResolvedValueOnce({
+				id: 'tenant-3',
+				name: 'Demo School',
+				slug: 'demo-school-2',
+				mission: null,
+				status: 'active',
+				timezone: 'Asia/Karachi',
+				defaultLocale: 'en',
+				deletedAt: null,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			});
+
+		const result = await service.create('user-1', { name: 'Demo School' });
+
+		expect(result.tenant.slug).toBe('demo-school-2');
+		expect(tenantsRepository.createWithOwnerMembership).toHaveBeenCalledTimes(2);
+	});
+
+	it('rethrows errors that are not slug unique violations', async () => {
+		tenantsRepository.slugExists.mockResolvedValue(false);
+		tenantsRepository.createWithOwnerMembership.mockRejectedValue(new Error('connection lost'));
+
+		await expect(service.create('user-1', { name: 'Demo School' })).rejects.toThrow(
+			'connection lost',
 		);
 	});
 
