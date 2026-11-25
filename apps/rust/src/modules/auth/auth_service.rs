@@ -30,7 +30,12 @@ struct SessionRow {
 
 impl AuthService {
     pub async fn register(pool: &PgPool, input: RegisterInput) -> Result<SafeUser, String> {
-        let hashed = hash_password(&input.password).map_err(|e| e.to_string())?;
+        input.validate()?;
+
+        let hashed = hash_password(&input.password).map_err(|e| {
+            eprintln!("password hashing failed: {e}");
+            "Could not register user".to_string()
+        })?;
         let user_id = Uuid::new_v4();
 
         let row: UserRow = sqlx::query_as(
@@ -46,7 +51,16 @@ impl AuthService {
         .bind(&hashed)
         .fetch_one(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            // Keep driver details out of the API response; log them instead.
+            if e.as_database_error()
+                .is_some_and(|db| db.is_unique_violation())
+            {
+                return "Email already registered".to_string();
+            }
+            eprintln!("register failed: {e}");
+            "Could not register user".to_string()
+        })?;
 
         Ok(SafeUser {
             id: row.id.to_string(),
@@ -74,7 +88,10 @@ impl AuthService {
         .bind(input.email.trim())
         .fetch_optional(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("login lookup failed: {e}");
+            "Could not sign in".to_string()
+        })?;
 
         let user = row.ok_or_else(|| "Invalid email or password".to_string())?;
 
@@ -113,7 +130,10 @@ impl AuthService {
         .bind(user_agent)
         .execute(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("session persistence failed: {e}");
+            "Could not sign in".to_string()
+        })?;
 
         let safe_user = SafeUser {
             id: user.id.to_string(),

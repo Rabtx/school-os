@@ -14,7 +14,9 @@ export const messagesService = {
 		return apiClient.get<ThreadList>(`${base(tenantId)}/threads?${query}`, { accessToken });
 	},
 	thread: (accessToken: string, tenantId: string, threadId: string) =>
-		apiClient.get<ThreadDetail>(`${base(tenantId)}/threads/${threadId}`, { accessToken }),
+		apiClient.get<ThreadDetail>(`${base(tenantId)}/threads/${encodeURIComponent(threadId)}`, {
+			accessToken,
+		}),
 	start: (
 		accessToken: string,
 		tenantId: string,
@@ -22,7 +24,7 @@ export const messagesService = {
 	) => apiClient.post<ThreadDetail>(`${base(tenantId)}/threads`, body, { accessToken }),
 	reply: (accessToken: string, tenantId: string, threadId: string, body: string) =>
 		apiClient.post<ThreadDetail>(
-			`${base(tenantId)}/threads/${threadId}/messages`,
+			`${base(tenantId)}/threads/${encodeURIComponent(threadId)}/messages`,
 			{ body },
 			{ accessToken },
 		),

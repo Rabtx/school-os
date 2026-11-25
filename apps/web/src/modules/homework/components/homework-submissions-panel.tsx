@@ -16,7 +16,7 @@ import {
 	TableRow,
 } from "@school-os/ui/components/table";
 import { useToast } from "@school-os/ui/components/toaster";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError } from "@/lib/api/client";
 import {
 	useBulkUpdateSubmissionsMutation,
@@ -128,13 +128,6 @@ export function HomeworkSubmissionsPanel({ homeworkId }: Props) {
 	const [draftRows, setDraftRows] = useState<DraftRow[]>([]);
 	const [savedRows, setSavedRows] = useState<DraftRow[]>([]);
 
-	useEffect(() => {
-		if (!submissionsQuery.data) return;
-		const mapped = submissionsQuery.data.submissions.map(toDraftRow);
-		setDraftRows(mapped);
-		setSavedRows(mapped);
-	}, [submissionsQuery.data]);
-
 	const savedByStudentId = useMemo(
 		() => new Map(savedRows.map((row) => [row.studentId, row])),
 		[savedRows],
@@ -157,6 +150,19 @@ export function HomeworkSubmissionsPanel({ homeworkId }: Props) {
 
 	const dirtyRows = useMemo(() => draftRows.filter(rowIsDirty), [draftRows, rowIsDirty]);
 	const hasChanges = dirtyRows.length > 0;
+
+	// Adopt server rows unless the teacher has unsaved edits for this assignment: background
+	// refetches (window focus, staleTime, post-save invalidation) must not wipe in-progress
+	// marks. A different homeworkId always resyncs so stale rows never leak across panels.
+	const syncedHomeworkId = useRef<string | null>(null);
+	useEffect(() => {
+		if (!submissionsQuery.data) return;
+		const mapped = submissionsQuery.data.submissions.map(toDraftRow);
+		if (syncedHomeworkId.current === homeworkId && hasChanges) return;
+		syncedHomeworkId.current = homeworkId;
+		setDraftRows(mapped);
+		setSavedRows(mapped);
+	}, [submissionsQuery.data, homeworkId, hasChanges]);
 
 	const stats = useMemo(() => {
 		const counts = { pending: 0, submitted: 0, late: 0, graded: 0, excused: 0 };
@@ -220,6 +226,10 @@ export function HomeworkSubmissionsPanel({ homeworkId }: Props) {
 
 		try {
 			await saveMutation.mutateAsync({ submissions: updates });
+			// Treat the sent rows as the new baseline now, so `hasChanges` clears before the
+			// query resync lands — otherwise the sync effect would see the just-saved rows
+			// as unsaved edits and stop adopting server data.
+			setSavedRows(draftRows);
 			toast.show({
 				title: "Submissions saved",
 				description: `${updates.length} ${updates.length === 1 ? "entry" : "entries"} updated.`,

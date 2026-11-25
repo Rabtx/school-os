@@ -133,6 +133,9 @@ export function HomeworkCheckAnswers({
 	const toMark = submissions.filter(needsMarking).length;
 	const marked = submissions.filter((row) => row.status === "graded").length;
 	const handedIn = submissions.filter((row) => row.submittedAt).length;
+	// Matches the "missing" filter below (pending status), so the badge count always
+	// equals the rows the filter shows — excused students are neither handed in nor missing.
+	const notHandedIn = submissions.filter((row) => row.status === "pending").length;
 
 	const columns: DataTableColumn<HomeworkSubmission>[] = [
 		{
@@ -180,7 +183,7 @@ export function HomeworkCheckAnswers({
 	const statusItems = [
 		{ label: `Needs marking · ${toMark}`, value: "to_mark" },
 		{ label: `Marked · ${marked}`, value: "marked" },
-		{ label: `Not handed in · ${submissions.length - handedIn}`, value: "missing" },
+		{ label: `Not handed in · ${notHandedIn}`, value: "missing" },
 	];
 
 	return (
