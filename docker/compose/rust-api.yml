@@ -8,12 +8,12 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-school-os}:${POSTGRES_PASSWORD:-school-os}@postgres:5432/${POSTGRES_DB:-school-os}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET in .env}
       PORT: 3002
       APP_NAME: school-os-rust
       APP_VERSION: 0.1.0
       NODE_ENV: production
-      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (min 32 chars)}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET in .env (min 32 chars)}
     ports:
       - "${RUST_API_PORT:-3002}:3002"
     depends_on:

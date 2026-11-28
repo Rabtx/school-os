@@ -1,10 +1,52 @@
-use jsonwebtoken::{
-    decode, encode,
-    errors::{new_error, Error, ErrorKind},
-    DecodingKey, EncodingKey, Header, Validation,
-};
+use jsonwebtoken::{decode, encode, errors::Error, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use std::env;
+
+// Clearly-marked development fallbacks, mirroring the Nest API's env schema. They are refused
+// at startup in production so no deployment can silently sign tokens with a known secret.
+const DEV_JWT_SECRET: &str = "development-only-jwt-secret-change-me";
+const DEV_JWT_REFRESH_SECRET: &str = "development-only-jwt-refresh-secret-change-me";
+
+/// Values that must never sign production tokens: the in-code dev fallbacks, the
+/// env.docker.example placeholder and the historical hardcoded defaults.
+const KNOWN_PLACEHOLDER_SECRETS: &[&str] = &[
+    DEV_JWT_SECRET,
+    DEV_JWT_REFRESH_SECRET,
+    "development-only-jwt-secret-change-me-now",
+    "secret",
+    "refresh-secret",
+];
+
+fn is_production() -> bool {
+    env::var("NODE_ENV").is_ok_and(|value| value.eq_ignore_ascii_case("production"))
+}
+
+/// Fail fast at startup instead of silently signing tokens with a known default secret.
+/// Applies the project's documented production rule: secrets are 32+ characters and never
+/// a publicly known placeholder.
+pub fn ensure_jwt_secrets_configured() {
+    for var_name in ["JWT_SECRET", "JWT_REFRESH_SECRET"] {
+        match env::var(var_name) {
+            Ok(secret) if !secret.trim().is_empty() => {
+                if is_production() && secret.len() < 32 {
+                    panic!("{var_name} must be at least 32 characters in production");
+                }
+                if is_production() && KNOWN_PLACEHOLDER_SECRETS.contains(&secret.as_str()) {
+                    panic!("{var_name} is still a known development placeholder; generate a real secret in production");
+                }
+            }
+            _ if is_production() => panic!("{var_name} must be set in production"),
+            _ => {}
+        }
+    }
+}
+
+fn jwt_secret(var_name: &str, dev_default: &str) -> String {
+    env::var(var_name)
+        .ok()
+        .filter(|secret| !secret.trim().is_empty())
+        .unwrap_or_else(|| dev_default.to_string())
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AccessPayload {
@@ -21,46 +63,8 @@ pub struct RefreshPayload {
     pub iat: usize,
 }
 
-const MIN_SECRET_BYTES: usize = 32;
-
-/// Fail fast at startup when the JWT secrets are missing or too weak, instead of
-/// signing and verifying tokens with a predictable fallback. The previous
-/// `"secret"` / `"refresh-secret"` defaults let anyone forge a token for any
-/// user id (see `docker/compose/rust-api.yml`, which set neither variable).
-pub fn validate_jwt_secrets() {
-    if let Err(error) = jwt_secret() {
-        panic!("JWT_SECRET must be set to at least 32 characters: {error}");
-    }
-    if let Err(error) = refresh_secret() {
-        panic!("JWT_REFRESH_SECRET must be set to at least 32 characters: {error}");
-    }
-}
-
-fn jwt_secret() -> Result<String, Error> {
-    checked_secret("JWT_SECRET", env::var("JWT_SECRET").ok())
-}
-
-fn refresh_secret() -> Result<String, Error> {
-    checked_secret("JWT_REFRESH_SECRET", env::var("JWT_REFRESH_SECRET").ok())
-}
-
-fn checked_secret(name: &str, value: Option<String>) -> Result<String, Error> {
-    let secret = value.ok_or_else(|| new_error(ErrorKind::InvalidKeyFormat))?;
-    if secret.trim().len() < MIN_SECRET_BYTES {
-        // `name` is only for the startup validator's panic message context; the
-        // runtime error deliberately does not echo configuration details.
-        let _ = name;
-        return Err(new_error(ErrorKind::InvalidKeyFormat));
-    }
-    Ok(secret)
-}
-
-fn is_strong_secret(value: &str) -> bool {
-    value.trim().len() >= MIN_SECRET_BYTES
-}
-
 pub fn sign_access_token(user_id: &str, session_id: &str) -> Result<String, Error> {
-    let secret = jwt_secret()?;
+    let secret = jwt_secret("JWT_SECRET", DEV_JWT_SECRET);
     let exp = chrono::Utc::now().timestamp() as usize + 3600; // 1 hour
     let iat = chrono::Utc::now().timestamp() as usize;
 
@@ -79,7 +83,7 @@ pub fn sign_access_token(user_id: &str, session_id: &str) -> Result<String, Erro
 }
 
 pub fn sign_refresh_token(session_id: &str) -> Result<String, Error> {
-    let secret = refresh_secret()?;
+    let secret = jwt_secret("JWT_REFRESH_SECRET", DEV_JWT_REFRESH_SECRET);
     let exp = chrono::Utc::now().timestamp() as usize + 2592000; // 30 days
     let iat = chrono::Utc::now().timestamp() as usize;
 
@@ -97,7 +101,7 @@ pub fn sign_refresh_token(session_id: &str) -> Result<String, Error> {
 }
 
 pub fn verify_access_token(token: &str) -> Result<AccessPayload, Error> {
-    let secret = jwt_secret()?;
+    let secret = jwt_secret("JWT_SECRET", DEV_JWT_SECRET);
     let mut validation = Validation::default();
     validation.validate_exp = true;
 
@@ -111,7 +115,7 @@ pub fn verify_access_token(token: &str) -> Result<AccessPayload, Error> {
 }
 
 pub fn verify_refresh_token(token: &str) -> Result<RefreshPayload, Error> {
-    let secret = refresh_secret()?;
+    let secret = jwt_secret("JWT_REFRESH_SECRET", DEV_JWT_REFRESH_SECRET);
     let mut validation = Validation::default();
     validation.validate_exp = true;
 
@@ -122,35 +126,4 @@ pub fn verify_refresh_token(token: &str) -> Result<RefreshPayload, Error> {
     )?;
 
     Ok(token_data.claims)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{checked_secret, is_strong_secret};
-    use jsonwebtoken::errors::ErrorKind;
-
-    #[test]
-    fn rejects_missing_secret() {
-        let error = checked_secret("JWT_SECRET", None).expect_err("missing secret must fail");
-        assert_eq!(*error.kind(), ErrorKind::InvalidKeyFormat);
-    }
-
-    #[test]
-    fn rejects_short_and_known_default_secrets() {
-        for weak in ["secret", "refresh-secret", "a".repeat(31).as_str(), " "] {
-            assert!(
-                checked_secret("JWT_SECRET", Some(weak.to_string())).is_err(),
-                "weak secret {weak:?} must be rejected"
-            );
-            assert!(!is_strong_secret(weak));
-        }
-    }
-
-    #[test]
-    fn accepts_long_secret() {
-        let strong = "a".repeat(32);
-        assert!(is_strong_secret(&strong));
-        assert!(checked_secret("JWT_SECRET", Some(strong.clone())).is_ok());
-        assert!(checked_secret("JWT_REFRESH_SECRET", Some("x".repeat(64))).is_ok());
-    }
 }

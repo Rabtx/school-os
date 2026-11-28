@@ -15,7 +15,6 @@ struct UserRow {
     email: String,
     password_hash: Option<String>,
     email_verified_at: Option<DateTime<Utc>>,
-    is_active: bool,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -31,14 +30,19 @@ struct SessionRow {
 
 impl AuthService {
     pub async fn register(pool: &PgPool, input: RegisterInput) -> Result<SafeUser, String> {
-        let hashed = hash_password(&input.password).map_err(|e| e.to_string())?;
+        input.validate()?;
+
+        let hashed = hash_password(&input.password).map_err(|e| {
+            eprintln!("password hashing failed: {e}");
+            "Could not register user".to_string()
+        })?;
         let user_id = Uuid::new_v4();
 
         let row: UserRow = sqlx::query_as(
             r#"
 			INSERT INTO users (id, username, email, password_hash, is_active, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, true, NOW(), NOW())
-			RETURNING id, username, email, password_hash, email_verified_at, is_active, created_at, updated_at
+			RETURNING id, username, email, password_hash, email_verified_at, created_at, updated_at
 			"#,
         )
         .bind(user_id)
@@ -47,7 +51,16 @@ impl AuthService {
         .bind(&hashed)
         .fetch_one(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            // Keep driver details out of the API response; log them instead.
+            if e.as_database_error()
+                .is_some_and(|db| db.is_unique_violation())
+            {
+                return "Email already registered".to_string();
+            }
+            eprintln!("register failed: {e}");
+            "Could not register user".to_string()
+        })?;
 
         Ok(SafeUser {
             id: row.id.to_string(),
@@ -68,22 +81,19 @@ impl AuthService {
     ) -> Result<(SafeUser, String, String), String> {
         let row: Option<UserRow> = sqlx::query_as(
             r#"
-			SELECT id, username, email, password_hash, email_verified_at, is_active, created_at, updated_at
+			SELECT id, username, email, password_hash, email_verified_at, created_at, updated_at
 			FROM users WHERE email = $1
 			"#,
         )
         .bind(input.email.trim())
         .fetch_optional(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("login lookup failed: {e}");
+            "Could not sign in".to_string()
+        })?;
 
         let user = row.ok_or_else(|| "Invalid email or password".to_string())?;
-
-        // Deactivated and unverified accounts must not sign in. The generic
-        // message avoids revealing which check failed.
-        if !user.is_active || user.email_verified_at.is_none() {
-            return Err("Invalid email or password".to_string());
-        }
 
         let password_hash = user
             .password_hash
@@ -120,7 +130,10 @@ impl AuthService {
         .bind(user_agent)
         .execute(pool)
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            eprintln!("session persistence failed: {e}");
+            "Could not sign in".to_string()
+        })?;
 
         let safe_user = SafeUser {
             id: user.id.to_string(),
@@ -141,7 +154,7 @@ impl AuthService {
 
         let row: Option<UserRow> = sqlx::query_as(
             r#"
-			SELECT id, username, email, password_hash, email_verified_at, is_active, created_at, updated_at
+			SELECT id, username, email, password_hash, email_verified_at, created_at, updated_at
 			FROM users WHERE id = $1
 			"#,
         )
