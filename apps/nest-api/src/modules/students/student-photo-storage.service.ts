@@ -8,6 +8,8 @@ import {
 	PayloadTooLargeException,
 } from '@nestjs/common';
 
+import { assertImageMagic } from '@/common/validation/image-upload';
+
 export const STUDENT_PHOTO_UPLOAD_DIR = join(process.cwd(), 'uploads', 'student-photos');
 export const STUDENT_PHOTO_MAX_BYTES = 2 * 1024 * 1024;
 export const STUDENT_PHOTO_ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -30,6 +32,8 @@ export class StudentPhotoStorageService implements OnModuleInit {
 		if (file.size > STUDENT_PHOTO_MAX_BYTES) {
 			throw new PayloadTooLargeException('Photo must be 2 MB or smaller');
 		}
+		// The client-supplied mimetype above is not enough: verify the bytes too.
+		assertImageMagic(file, STUDENT_PHOTO_ALLOWED_MIME);
 		return file;
 	}
 

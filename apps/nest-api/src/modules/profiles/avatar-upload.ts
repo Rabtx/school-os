@@ -35,21 +35,29 @@ export function createAvatarMulterOptions() {
 	};
 }
 
+/**
+ * Builds the public origin stored in the avatar/photo URL. The previous
+ * implementation trusted the `X-Forwarded-Host`/`X-Forwarded-Proto` headers on
+ * every upload, so any caller could poison the stored URL (tracking pixel,
+ * userinfo phishing like `trusted@evil`) even when `TRUST_PROXY` was off.
+ * Express already honors forwarded headers only when `trust proxy` is set
+ * (see `setupApp`), so use its `protocol`/`host` and validate them instead.
+ */
 export function resolveRequestOrigin(req: Request): string {
-	const forwardedProto = headerFirst(req.headers['x-forwarded-proto']);
-	const forwardedHost = headerFirst(req.headers['x-forwarded-host']);
-	const protocol = forwardedProto ?? req.protocol;
-	const host = forwardedHost ?? req.get('host');
-	if (!host) {
+	const protocol = req.protocol?.toLowerCase();
+	const host = req.get('host')?.trim();
+	if ((protocol !== 'http' && protocol !== 'https') || !host || !isValidHost(host)) {
 		throw new BadRequestException('Unable to resolve public host for avatar URL');
 	}
 	return `${protocol}://${host}`;
 }
 
-function headerFirst(value: string | string[] | undefined): string | undefined {
-	if (!value) return undefined;
-	const raw = Array.isArray(value) ? value[0] : value;
-	return raw.split(',')[0]?.trim() || undefined;
+function isValidHost(host: string): boolean {
+	// IPv6 literal: [::1] or [::1]:3000
+	if (/^\[[0-9a-fA-F:]+\](:\d{1,5})?$/.test(host)) {
+		return true;
+	}
+	return /^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:\d{1,5})?$/.test(host);
 }
 
 function extensionForMime(mime: string): string | null {
