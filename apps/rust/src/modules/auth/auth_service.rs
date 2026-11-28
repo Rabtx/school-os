@@ -30,9 +30,11 @@ struct SessionRow {
 
 impl AuthService {
     pub async fn register(pool: &PgPool, input: RegisterInput) -> Result<SafeUser, String> {
+        input.validate()?;
+
         let hashed = hash_password(&input.password).map_err(|e| {
-            eprintln!("register: password hashing failed: {e}");
-            "Registration failed".to_string()
+            eprintln!("password hashing failed: {e}");
+            "Could not register user".to_string()
         })?;
         let user_id = Uuid::new_v4();
 
@@ -50,8 +52,14 @@ impl AuthService {
         .fetch_one(pool)
         .await
         .map_err(|e| {
-            eprintln!("register: user insert failed: {e}");
-            "Registration failed".to_string()
+            // Keep driver details out of the API response; log them instead.
+            if e.as_database_error()
+                .is_some_and(|db| db.is_unique_violation())
+            {
+                return "Email already registered".to_string();
+            }
+            eprintln!("register failed: {e}");
+            "Could not register user".to_string()
         })?;
 
         Ok(SafeUser {
@@ -81,8 +89,8 @@ impl AuthService {
         .fetch_optional(pool)
         .await
         .map_err(|e| {
-            eprintln!("login: user lookup failed: {e}");
-            "Invalid email or password".to_string()
+            eprintln!("login lookup failed: {e}");
+            "Could not sign in".to_string()
         })?;
 
         let user = row.ok_or_else(|| "Invalid email or password".to_string())?;
@@ -123,8 +131,8 @@ impl AuthService {
         .execute(pool)
         .await
         .map_err(|e| {
-            eprintln!("login: session insert failed: {e}");
-            "Login failed".to_string()
+            eprintln!("session persistence failed: {e}");
+            "Could not sign in".to_string()
         })?;
 
         let safe_user = SafeUser {
