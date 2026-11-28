@@ -35,15 +35,29 @@ export function createAvatarMulterOptions() {
 	};
 }
 
-export function resolveRequestOrigin(req: Request): string {
-	// Express applies the configured `trust proxy` setting itself, so req.protocol
-	// and the Host header only reflect X-Forwarded-* on deployments that opted in.
-	// Reading the forwarded headers directly would persist client-chosen URLs.
-	const host = req.get('host');
-	if (!host) {
+export function resolveRequestOrigin(req: Request, trustProxy = false): string {
+	const forwardedProto = trustProxy ? headerFirst(req.headers['x-forwarded-proto']) : undefined;
+	const forwardedHost = trustProxy ? headerFirst(req.headers['x-forwarded-host']) : undefined;
+	const protocol = (forwardedProto ?? req.protocol)?.toLowerCase();
+	const host = (forwardedHost ?? req.get('host'))?.trim();
+	if ((protocol !== 'http' && protocol !== 'https') || !host || !isValidHost(host)) {
 		throw new BadRequestException('Unable to resolve public host for avatar URL');
 	}
-	return `${req.protocol}://${host}`;
+	return `${protocol}://${host}`;
+}
+
+function isValidHost(host: string): boolean {
+	// IPv6 literal: [::1] or [::1]:3000
+	if (/^\[[0-9a-fA-F:]+\](:\d{1,5})?$/.test(host)) {
+		return true;
+	}
+	return /^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:\d{1,5})?$/.test(host);
+}
+
+function headerFirst(value: string | string[] | undefined): string | undefined {
+	if (!value) return undefined;
+	const raw = Array.isArray(value) ? value[0] : value;
+	return raw.split(',')[0]?.trim() || undefined;
 }
 
 function extensionForMime(mime: string): string | null {
