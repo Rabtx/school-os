@@ -188,6 +188,21 @@ export class StaffRepository {
 		return subject;
 	}
 
+	async findSubjectById(tenantId: string, subjectId: string) {
+		const [subject] = await this.database.db
+			.select()
+			.from(subjects)
+			.where(
+				and(
+					eq(subjects.id, subjectId),
+					eq(subjects.tenantId, tenantId),
+					isNull(subjects.deletedAt),
+				),
+			)
+			.limit(1);
+		return subject ?? null;
+	}
+
 	async assignSectionSubject(input: typeof sectionSubjects.$inferInsert) {
 		const [row] = await this.database.db.insert(sectionSubjects).values(input).returning();
 		return row;

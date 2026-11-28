@@ -35,15 +35,23 @@ export function createAvatarMulterOptions() {
 	};
 }
 
-export function resolveRequestOrigin(req: Request): string {
-	const forwardedProto = headerFirst(req.headers['x-forwarded-proto']);
-	const forwardedHost = headerFirst(req.headers['x-forwarded-host']);
-	const protocol = forwardedProto ?? req.protocol;
-	const host = forwardedHost ?? req.get('host');
-	if (!host) {
+export function resolveRequestOrigin(req: Request, trustProxy = false): string {
+	const forwardedProto = trustProxy ? headerFirst(req.headers['x-forwarded-proto']) : undefined;
+	const forwardedHost = trustProxy ? headerFirst(req.headers['x-forwarded-host']) : undefined;
+	const protocol = (forwardedProto ?? req.protocol)?.toLowerCase();
+	const host = (forwardedHost ?? req.get('host'))?.trim();
+	if ((protocol !== 'http' && protocol !== 'https') || !host || !isValidHost(host)) {
 		throw new BadRequestException('Unable to resolve public host for avatar URL');
 	}
 	return `${protocol}://${host}`;
+}
+
+function isValidHost(host: string): boolean {
+	// IPv6 literal: [::1] or [::1]:3000
+	if (/^\[[0-9a-fA-F:]+\](:\d{1,5})?$/.test(host)) {
+		return true;
+	}
+	return /^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?(:\d{1,5})?$/.test(host);
 }
 
 function headerFirst(value: string | string[] | undefined): string | undefined {
